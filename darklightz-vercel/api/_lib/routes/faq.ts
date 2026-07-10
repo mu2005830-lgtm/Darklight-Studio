@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
-import { db, faqItemsTable } from "../db/index";
+import { db, faqItemsTable } from "../db/index.js";
 import {
   ListFaqItemsResponse,
   FaqItemItem,
@@ -8,9 +8,9 @@ import {
   UpdateFaqItemParams,
   UpdateFaqItemBody,
   DeleteFaqItemParams,
-} from "../api-zod/index";
-import { requireAdminKey } from "../lib/auth";
-import { rejectEmptyUpdate } from "../lib/validate-update";
+} from "../api-zod/index.js";
+import { requireAdminKey } from "../lib/auth.js";
+import { rejectEmptyUpdate } from "../lib/validate-update.js";
 
 const router: IRouter = Router();
 

@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
-import { db, teamMembersTable } from "../db/index";
+import { db, teamMembersTable } from "../db/index.js";
 import {
   ListTeamMembersResponse,
   TeamMemberItem,
@@ -8,9 +8,9 @@ import {
   UpdateTeamMemberParams,
   UpdateTeamMemberBody,
   DeleteTeamMemberParams,
-} from "../api-zod/index";
-import { requireAdminKey } from "../lib/auth";
-import { rejectEmptyUpdate } from "../lib/validate-update";
+} from "../api-zod/index.js";
+import { requireAdminKey } from "../lib/auth.js";
+import { rejectEmptyUpdate } from "../lib/validate-update.js";
 
 const router: IRouter = Router();
 

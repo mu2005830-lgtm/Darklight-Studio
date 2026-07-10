@@ -1,9 +1,9 @@
 import { Router, type IRouter } from "express";
-import { db, contactSubmissionsTable } from "../db/index";
+import { db, contactSubmissionsTable } from "../db/index.js";
 import {
   CreateContactSubmissionBody,
   CreateContactSubmissionResponse,
-} from "../api-zod/index";
+} from "../api-zod/index.js";
 
 const router: IRouter = Router();
 

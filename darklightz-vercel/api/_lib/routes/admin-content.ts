@@ -12,7 +12,7 @@ import {
   testimonialsTable,
   blogPostsTable,
   pricingPlansTable,
-} from "../db/index";
+} from "../db/index.js";
 import {
   AdminServiceBody,
   AdminServiceResponse,
@@ -38,9 +38,9 @@ import {
   AdminPricingPlanResponse,
   AdminUpdatePricingPlanParams,
   AdminDeletePricingPlanParams,
-} from "../api-zod/index";
-import { requireAdminKey } from "../lib/auth";
-import { rejectEmptyUpdate } from "../lib/validate-update";
+} from "../api-zod/index.js";
+import { requireAdminKey } from "../lib/auth.js";
+import { rejectEmptyUpdate } from "../lib/validate-update.js";
 
 const router: IRouter = Router();
 router.use(requireAdminKey);

@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { db, testimonialsTable } from "../db/index";
-import { ListTestimonialsResponse } from "../api-zod/index";
+import { db, testimonialsTable } from "../db/index.js";
+import { ListTestimonialsResponse } from "../api-zod/index.js";
 
 const router: IRouter = Router();
 

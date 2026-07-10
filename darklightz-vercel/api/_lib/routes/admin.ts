@@ -7,7 +7,7 @@ import {
   blogPostsTable,
   contactSubmissionsTable,
   bookingsTable,
-} from "../db/index";
+} from "../db/index.js";
 import {
   GetDashboardSummaryResponse,
   ListContactSubmissionsResponse,
@@ -18,8 +18,8 @@ import {
   UpdateBookingParams,
   UpdateBookingBody,
   UpdateBookingResponse,
-} from "../api-zod/index";
-import { requireAdminKey } from "../lib/auth";
+} from "../api-zod/index.js";
+import { requireAdminKey } from "../lib/auth.js";
 
 const router: IRouter = Router();
 

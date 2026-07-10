@@ -1,11 +1,11 @@
 import { Router, type IRouter } from "express";
 import { eq, desc } from "drizzle-orm";
-import { db, blogPostsTable } from "../db/index";
+import { db, blogPostsTable } from "../db/index.js";
 import {
   ListBlogPostsResponse,
   GetBlogPostParams,
   GetBlogPostResponse,
-} from "../api-zod/index";
+} from "../api-zod/index.js";
 
 const router: IRouter = Router();
 

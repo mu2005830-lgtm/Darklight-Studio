@@ -10,7 +10,7 @@
 // mangles the request path when given real http objects, breaking every
 // route.)
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import app from "./_lib/app";
+import app from "./_lib/app.js";
 
 export default async function (req: VercelRequest, res: VercelResponse) {
   return app(req as any, res as any);

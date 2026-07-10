@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
-import { db, siteSettingsTable } from "../db/index";
-import { SiteSettingsResponse, UpdateSiteSettingsBody } from "../api-zod/index";
-import { requireAdminKey } from "../lib/auth";
+import { db, siteSettingsTable } from "../db/index.js";
+import { SiteSettingsResponse, UpdateSiteSettingsBody } from "../api-zod/index.js";
+import { requireAdminKey } from "../lib/auth.js";
 
 const router: IRouter = Router();
 
