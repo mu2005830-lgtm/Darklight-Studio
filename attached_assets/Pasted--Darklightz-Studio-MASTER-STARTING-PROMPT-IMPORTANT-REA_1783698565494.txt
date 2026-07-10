@@ -1,0 +1,177 @@
+# Darklightz Studio — MASTER STARTING PROMPT
+
+IMPORTANT — READ THIS ENTIRE PROMPT BEFORE DOING ANYTHING.
+
+The uploaded ZIP is the COMPLETE source code for my project.
+
+Project Name:
+Darklightz Studio
+
+FIRST RULES (MANDATORY)
+
+❌ DO NOT start coding immediately.
+❌ DO NOT modify any file yet.
+❌ DO NOT install packages.
+❌ DO NOT migrate this project into a Replit architecture.
+❌ DO NOT convert it into another framework.
+❌ DO NOT redesign the project.
+❌ DO NOT delete anything.
+❌ DO NOT push to GitHub.
+❌ DO NOT deploy to Vercel.
+❌ DO NOT modify Supabase.
+❌ DO NOT change folder structure.
+❌ DO NOT create placeholder code.
+❌ DO NOT make assumptions.
+
+This project MUST remain:
+
+GitHub
+↓
+Vercel
+↓
+Supabase
+
+Never convert it into a Replit-only project.
+
+------------------------------------------------
+
+PHASE 1 — UNDERSTAND EVERYTHING
+
+Read EVERY file.
+
+Read:
+
+• src/
+• api/
+• public/
+• components/
+• pages/
+• hooks/
+• lib/
+• database schema
+• package.json
+• vercel.json
+• vite.config.*
+• drizzle config
+• SQL files
+• environment examples
+• README
+• assets
+• animations
+• admin panel
+• CMS
+• API routes
+
+Do NOT skip anything.
+
+------------------------------------------------
+
+PHASE 2 — COMPLETE PROJECT AUDIT
+
+Create a detailed report including:
+
+• Project architecture
+• Folder structure
+• Database structure
+• API routes
+• CMS architecture
+• Admin panel
+• Authentication
+• Deployment workflow
+• Environment variables
+• Existing features
+• Missing features
+• Bugs
+• Performance issues
+• TypeScript issues
+• Security issues
+• Duplicate code
+• Dead code
+• Missing CRUD
+• Missing validations
+
+------------------------------------------------
+
+PHASE 3 — FILE INVENTORY
+
+List every important file.
+
+For each file include:
+
+• File path
+• Purpose
+• Status
+• Needs modification?
+• Priority
+
+------------------------------------------------
+
+PHASE 4 — IMPROVEMENT PLAN
+
+Create a professional roadmap.
+
+Divide everything into phases.
+
+For every phase include:
+
+• Goal
+• Files affected
+• Estimated complexity
+• Dependencies
+• Risks
+
+------------------------------------------------
+
+PHASE 5 — WEBSITE REVIEW
+
+Review the complete website like a senior UI/UX designer.
+
+Tell me:
+
+• What looks outdated
+• What looks modern
+• What should be redesigned
+• What animations should be replaced
+• What sections are missing
+• Which pages feel weak
+• What would improve conversions
+• How to make it look premium
+
+------------------------------------------------
+
+IMPORTANT DESIGN CHANGE
+
+The current hero animation that splits/cuts into blocks is NOT final.
+
+I want it REMOVED.
+
+Do NOT rebuild it.
+
+Instead, suggest a cleaner, premium, high-performance hero animation that:
+
+• feels luxurious
+• keeps visitors engaged
+• is lightweight
+• works smoothly on mobile
+• does not rely on heavy particle systems
+• is easier to maintain
+• looks modern and premium
+
+Only recommend ideas.
+Do NOT implement them yet.
+
+------------------------------------------------
+
+VERY IMPORTANT
+
+At the end, create a COMPLETE development checklist from beginning to end.
+
+After that...
+
+STOP.
+
+Wait for my approval.
+
+DO NOT write code until I explicitly say:
+
+"Start Phase 1."
