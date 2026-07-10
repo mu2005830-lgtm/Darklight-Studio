@@ -5,7 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { ContactSubmissionStatusUpdateStatus } from './contactSubmissionStatusUpdateStatus';
+import type { ContactSubmissionStatusUpdateStatus } from './contactSubmissionStatusUpdateStatus.js';
 
 export interface ContactSubmissionStatusUpdate {
   status: ContactSubmissionStatusUpdateStatus;
