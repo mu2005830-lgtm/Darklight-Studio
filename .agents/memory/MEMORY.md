@@ -1,0 +1,1 @@
+- [Vercel Express catch-all API + Vite SPA rewrites](vercel-express-catchall-spa-rewrites.md) — SPA fallback rewrite can swallow /api routes; zero-config catch-all route can be single-segment only.
