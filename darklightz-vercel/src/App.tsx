@@ -2,6 +2,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
+import { useState } from 'react';
+import { CinematicLoader } from '@/components/CinematicLoader';
+import { PageTransition } from '@/components/PageTransition';
+import { ScrollProgress } from '@/components/ScrollProgress';
 
 // Pages
 import Home from '@/pages/home';
@@ -29,28 +33,34 @@ const queryClient = new QueryClient({
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/services" component={Services} />
-      <Route path="/portfolio" component={Portfolio} />
-      <Route path="/case-studies" component={CaseStudies} />
-      <Route path="/case-studies/:slug" component={CaseStudyDetail} />
-      <Route path="/about" component={About} />
-      <Route path="/pricing" component={Pricing} />
-      <Route path="/blog" component={Blog} />
-      <Route path="/blog/:slug" component={BlogDetail} />
-      <Route path="/contact" component={Contact} />
-      <Route path="/book-a-call" component={BookACall} />
-      <Route path="/admin" component={AdminDashboard} />
-      <Route component={NotFound} />
-    </Switch>
+    <PageTransition>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/services" component={Services} />
+        <Route path="/portfolio" component={Portfolio} />
+        <Route path="/case-studies" component={CaseStudies} />
+        <Route path="/case-studies/:slug" component={CaseStudyDetail} />
+        <Route path="/about" component={About} />
+        <Route path="/pricing" component={Pricing} />
+        <Route path="/blog" component={Blog} />
+        <Route path="/blog/:slug" component={BlogDetail} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/book-a-call" component={BookACall} />
+        <Route path="/admin" component={AdminDashboard} />
+        <Route component={NotFound} />
+      </Switch>
+    </PageTransition>
   );
 }
 
 function App() {
+  const [showLoader, setShowLoader] = useState(true);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        {showLoader && <CinematicLoader onComplete={() => setShowLoader(false)} />}
+        <ScrollProgress />
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
           <Router />
         </WouterRouter>

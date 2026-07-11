@@ -6,7 +6,7 @@ import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { PublicLayout } from "@/components/layout/PublicLayout"
 import { useListServices, useListPortfolioProjects, useListTestimonials } from "@/lib/api-client"
-import { MagneticButton, MagneticLink, SilverDivider, Eyebrow } from "@/components/effects"
+import { MagneticButton, MagneticLink, SilverDivider, Eyebrow, TextSliceReveal, TiltCard, AnimatedNumber } from "@/components/effects"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -113,9 +113,11 @@ function Capabilities({ services }: { services: { id: number; title: string; sum
           <div className="lg:col-span-5 relative">
             <div className="sticky top-40">
               <Eyebrow>Expertise</Eyebrow>
-              <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tighter leading-[1.1] mb-8 text-neutral-300">
-                SYSTEMS THAT <br /> <span className="text-white">DRIVE</span> <br /> OUTCOMES.
-              </h2>
+              <TextSliceReveal>
+                <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tighter leading-[1.1] mb-8 text-neutral-300">
+                  SYSTEMS THAT <br /> <span className="text-white">DRIVE</span> <br /> OUTCOMES.
+                </h2>
+              </TextSliceReveal>
               <p className="text-neutral-500 text-lg leading-relaxed max-w-sm mb-8">
                 We handle the entire product lifecycle from blank canvas to production-ready scale. No handoffs, no lost translation.
               </p>
@@ -127,7 +129,7 @@ function Capabilities({ services }: { services: { id: number; title: string; sum
 
           <div className="lg:col-span-7 flex flex-col border-t border-white/5 mt-10 lg:mt-0">
             {services?.slice(0, 3).map((service, i) => (
-              <div key={service.id} className="group relative border-b border-white/5 py-12 md:py-16 hover:pl-10 transition-all duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] cursor-pointer">
+              <TiltCard key={service.id} className="group relative border-b border-white/5 py-12 md:py-16 hover:pl-10 transition-all duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] cursor-pointer">
                 <div className="absolute inset-0 bg-gradient-to-r from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col md:flex-row gap-6 md:gap-12 md:items-baseline">
@@ -145,7 +147,7 @@ function Capabilities({ services }: { services: { id: number; title: string; sum
                     <ArrowRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   </div>
                 </div>
-              </div>
+              </TiltCard>
             ))}
           </div>
         </div>
@@ -178,10 +180,12 @@ function SelectedWork({ projects }: { projects: { id: number; title: string; cat
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-8">
           <div>
             <Eyebrow>Portfolio</Eyebrow>
-            <h2 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold tracking-tighter">
-              SELECTED<br />
-              <span className="text-neutral-600">ARCHIVE.</span>
-            </h2>
+            <TextSliceReveal>
+              <h2 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold tracking-tighter">
+                SELECTED<br />
+                <span className="text-neutral-600">ARCHIVE.</span>
+              </h2>
+            </TextSliceReveal>
           </div>
           <Link href="/portfolio" data-testid="link-selected-work-view-all">
             <MagneticButton className="group flex items-center gap-4 text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-400 hover:text-white transition-colors pb-2 border-b border-white/20 hover:border-white">
@@ -196,7 +200,7 @@ function SelectedWork({ projects }: { projects: { id: number; title: string; cat
               <div className="relative aspect-[4/3] md:aspect-[21/9] overflow-hidden rounded-[2px] bg-neutral-900 border border-white/5">
                 <div className="absolute inset-0 z-10 bg-black/40 group-hover:bg-black/10 transition-colors duration-700 pointer-events-none" />
                 <img
-                  src={project.imageUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${project.id}`}
+                  src={project.imageUrl || `/placeholders/project${(project.id % 4) + 1}.jpg`}
                   alt={project.title}
                   className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-[1.5s] ease-[cubic-bezier(0.19,1,0.22,1)]"
                 />
@@ -246,7 +250,7 @@ function SocialProof({ testimonial }: { testimonial: { quote: string; name: stri
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 rounded-full overflow-hidden mb-6 border border-white/10 p-1">
             <div className="w-full h-full rounded-full overflow-hidden">
-              <img src={testimonial.avatarUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${testimonial.name}`} alt={testimonial.name} className="w-full h-full object-cover grayscale opacity-80" />
+              <img src={testimonial.avatarUrl || `/testimonials/avatar1.jpg`} alt={testimonial.name} className="w-full h-full object-cover grayscale opacity-80" />
             </div>
           </div>
           <p className="text-[10px] font-bold tracking-[0.25em] uppercase text-white mb-2">{testimonial.name}</p>
@@ -267,14 +271,16 @@ function Engagement() {
             <span className="text-[9px] uppercase tracking-[0.25em] font-bold text-neutral-500">Partnership</span>
             <span className="w-8 h-[1px] bg-neutral-600" />
           </div>
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold tracking-tighter mb-8">ENGAGEMENT.</h2>
+          <TextSliceReveal>
+            <h2 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold tracking-tighter mb-8">ENGAGEMENT.</h2>
+          </TextSliceReveal>
           <p className="text-neutral-400 max-w-xl mx-auto text-lg leading-relaxed">
             We partner with a select number of clients each quarter to ensure uncompromising quality and focused attention.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          <div className="group relative p-[1px] bg-gradient-to-b from-white/10 to-transparent rounded-[2px] overflow-hidden hover:-translate-y-2 transition-transform duration-500">
+          <TiltCard className="group relative p-[1px] bg-gradient-to-b from-white/10 to-transparent rounded-[2px] overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl pointer-events-none" />
             <div className="relative h-full bg-[#050505] p-10 md:p-12 flex flex-col items-start rounded-[1px] z-10">
               <div className="px-4 py-1.5 bg-white/5 border border-white/10 text-white text-[9px] font-bold uppercase tracking-[0.25em] mb-8">Retainer</div>
@@ -288,9 +294,9 @@ function Engagement() {
                 </MagneticButton>
               </Link>
             </div>
-          </div>
+          </TiltCard>
 
-          <div className="group relative p-[1px] bg-gradient-to-b from-white/20 to-transparent rounded-[2px] overflow-hidden hover:-translate-y-2 transition-transform duration-500">
+          <TiltCard className="group relative p-[1px] bg-gradient-to-b from-white/20 to-transparent rounded-[2px] overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl pointer-events-none" />
             <div className="relative h-full bg-[#080808] p-10 md:p-12 flex flex-col items-start rounded-[1px] z-10">
               <div className="px-4 py-1.5 bg-white text-black text-[9px] font-bold uppercase tracking-[0.25em] mb-8">Project</div>
@@ -304,7 +310,7 @@ function Engagement() {
                 </MagneticButton>
               </Link>
             </div>
-          </div>
+          </TiltCard>
         </div>
       </div>
     </section>

@@ -11,6 +11,7 @@ export function Navbar() {
   const headerBg = useTransform(scrollY, [0, 100], ["rgba(3, 3, 3, 0)", "rgba(3, 3, 3, 0.85)"])
   const headerBorder = useTransform(scrollY, [0, 100], ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 0.08)"])
   const headerBlur = useTransform(scrollY, [0, 100], ["blur(0px)", "blur(12px)"])
+  const headerHeight = useTransform(scrollY, [0, 100], ["6rem", "4.5rem"])
 
   const navLinks = [
     { href: "/services", label: "Services" },
@@ -29,8 +30,9 @@ export function Navbar() {
         borderBottomWidth: 1,
         backdropFilter: headerBlur,
         WebkitBackdropFilter: headerBlur,
+        height: headerHeight,
       }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center h-24 transition-colors duration-300"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center transition-colors duration-300"
     >
       <div className="max-w-7xl mx-auto px-6 h-full w-full flex items-center justify-between">
         <Link

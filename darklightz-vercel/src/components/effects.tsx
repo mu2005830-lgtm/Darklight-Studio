@@ -1,6 +1,7 @@
 import * as React from "react"
 import { useEffect, useRef, useState } from "react"
-import { motion } from "framer-motion"
+import { motion, useInView, useAnimation, useScroll, useSpring, useTransform } from "framer-motion"
+import { cn } from "@/lib/utils"
 
 /**
  * Shared cinematic UI primitives used across the Darklightz redesign
@@ -38,6 +39,27 @@ export const CursorGlow = () => {
       }}
       transition={{ duration: 0 }}
     />
+  )
+}
+
+/**
+ * ScrollFollowLight creates a subtle light glow moving with the scroll.
+ * We position it relative to the viewport based on scroll percentage.
+ */
+export const ScrollFollowLight = () => {
+  const { scrollYProgress } = useScroll()
+  const y = useTransform(scrollYProgress, [0, 1], ["0vh", "100vh"])
+  const opacity = useTransform(scrollYProgress, [0, 0.05, 0.95, 1], [0, 0.3, 0.3, 0])
+  const smoothY = useSpring(y, { stiffness: 50, damping: 20 })
+
+  return (
+    <motion.div
+      aria-hidden="true"
+      className="pointer-events-none fixed left-0 right-0 z-20 h-[300px] mix-blend-screen flex justify-center"
+      style={{ top: "-150px", y: smoothY, opacity }}
+    >
+      <div className="w-[80vw] h-[300px] bg-white/[0.015] rounded-[100%] blur-[80px]" />
+    </motion.div>
   )
 }
 
@@ -143,3 +165,105 @@ export const Eyebrow = ({ children }: { children: React.ReactNode }) => (
     <span className="text-[9px] uppercase tracking-[0.25em] font-bold text-neutral-500">{children}</span>
   </div>
 )
+
+export const TextSliceReveal = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-10% 0px" })
+  
+  return (
+    <div ref={ref} className={cn("overflow-hidden", className)}>
+      <motion.div
+        initial={{ y: "100%", opacity: 0, rotateZ: 5 }}
+        animate={isInView ? { y: 0, opacity: 1, rotateZ: 0 } : { y: "100%", opacity: 0, rotateZ: 5 }}
+        transition={{ duration: 0.8, ease: [0.19, 1, 0.22, 1] }}
+        className="origin-left"
+      >
+        {children}
+      </motion.div>
+    </div>
+  )
+}
+
+export const TiltCard = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const ref = useRef<HTMLDivElement>(null)
+  const [rotation, setRotation] = useState({ x: 0, y: 0 })
+  const [reflection, setReflection] = useState({ x: 50, y: 50, opacity: 0 })
+  
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return
+    const rect = ref.current.getBoundingClientRect()
+    const width = rect.width
+    const height = rect.height
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    const xPct = mouseX / width
+    const yPct = mouseY / height
+    
+    // Rotate max 5 degrees
+    const rotateY = (xPct - 0.5) * 10
+    const rotateX = (0.5 - yPct) * 10
+    
+    setRotation({ x: rotateX, y: rotateY })
+    setReflection({ x: xPct * 100, y: yPct * 100, opacity: 1 })
+  }
+  
+  const handleMouseLeave = () => {
+    setRotation({ x: 0, y: 0 })
+    setReflection((prev) => ({ ...prev, opacity: 0 }))
+  }
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      animate={{ rotateX: rotation.x, rotateY: rotation.y }}
+      transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.5 }}
+      style={{ perspective: 1000, transformStyle: "preserve-3d" }}
+      className={cn("relative group", className)}
+    >
+      <div 
+        className="absolute inset-0 z-50 pointer-events-none rounded-inherit transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(circle at ${reflection.x}% ${reflection.y}%, rgba(255,255,255,0.08) 0%, transparent 60%)`,
+          opacity: reflection.opacity
+        }}
+      />
+      {children}
+    </motion.div>
+  )
+}
+
+export const AnimatedNumber = ({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) => {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true })
+  const [displayValue, setDisplayValue] = useState(0)
+
+  useEffect(() => {
+    if (isInView) {
+      let startTimestamp: number | null = null
+      const duration = 1500
+      
+      const step = (timestamp: number) => {
+        if (!startTimestamp) startTimestamp = timestamp
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1)
+        // easeOutQuart
+        const easeProgress = 1 - Math.pow(1 - progress, 4)
+        
+        setDisplayValue(Math.floor(easeProgress * value))
+        
+        if (progress < 1) {
+          window.requestAnimationFrame(step)
+        }
+      }
+      
+      window.requestAnimationFrame(step)
+    }
+  }, [isInView, value])
+
+  return (
+    <span ref={ref}>
+      {prefix}{displayValue}{suffix}
+    </span>
+  )
+}
