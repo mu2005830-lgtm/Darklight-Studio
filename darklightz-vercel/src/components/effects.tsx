@@ -173,8 +173,8 @@ export const TextSliceReveal = ({ children, className }: { children: React.React
   return (
     <div ref={ref} className={cn("overflow-hidden", className)}>
       <motion.div
-        initial={{ y: "100%", opacity: 0, rotateZ: 5 }}
-        animate={isInView ? { y: 0, opacity: 1, rotateZ: 0 } : { y: "100%", opacity: 0, rotateZ: 5 }}
+        initial={{ y: "100%", opacity: 0, rotateZ: 5, filter: "blur(8px)" }}
+        animate={isInView ? { y: 0, opacity: 1, rotateZ: 0, filter: "blur(0px)" } : { y: "100%", opacity: 0, rotateZ: 5, filter: "blur(8px)" }}
         transition={{ duration: 0.8, ease: [0.19, 1, 0.22, 1] }}
         className="origin-left"
       >
@@ -183,6 +183,72 @@ export const TextSliceReveal = ({ children, className }: { children: React.React
     </div>
   )
 }
+
+export const BlurReveal = ({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-10% 0px" })
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20, filter: "blur(12px)" }}
+      animate={isInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: 20, filter: "blur(12px)" }}
+      transition={{ duration: 0.8, ease: "easeOut", delay }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+export const SpotlightBackground = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+    <div className="absolute top-[-10%] right-[-5%] w-[50vw] h-[50vw] rounded-full bg-white/[0.03] blur-[120px]" />
+    <div className="absolute bottom-[-10%] left-[-5%] w-[40vw] h-[40vw] rounded-full bg-white/[0.02] blur-[100px]" />
+  </div>
+)
+
+export const MetallicTextureBackground = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+    <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#030303] to-[#080808]" />
+    <div 
+      className="absolute inset-0 opacity-[0.02] mix-blend-overlay"
+      style={{
+        backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 2px, white 2px, white 4px)`
+      }}
+    />
+  </div>
+)
+
+export const FloatingOrbsBackground = () => {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+      <motion.div
+        className="absolute top-[20%] left-[20%] w-[30vw] h-[30vw] rounded-full bg-white/[0.015] blur-[80px]"
+        animate={{ x: [0, 50, 0], y: [0, -50, 0] }}
+        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute bottom-[20%] right-[20%] w-[40vw] h-[40vw] rounded-full bg-white/[0.01] blur-[100px]"
+        animate={{ x: [0, -60, 0], y: [0, 40, 0] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+      />
+    </div>
+  )
+}
+
+export const AnimatedBorderSweep = () => (
+  <div className="absolute inset-0 rounded-[inherit] overflow-hidden pointer-events-none border border-transparent">
+    <div className="absolute inset-0 z-0">
+      <motion.div
+        className="absolute top-0 bottom-0 w-[200px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        initial={{ left: "-100%" }}
+        whileHover={{ left: "200%" }}
+        transition={{ duration: 1.5, ease: "easeInOut", repeat: Infinity, repeatDelay: 1 }}
+      />
+    </div>
+  </div>
+)
 
 export const TiltCard = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const ref = useRef<HTMLDivElement>(null)
