@@ -1,16 +1,15 @@
 import * as React from "react"
 import { Link, useLocation } from "wouter"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { motion, useScroll, useTransform } from "framer-motion"
+import { MagneticLink } from "@/components/effects"
 
 export function Navbar() {
   const [location] = useLocation()
   const { scrollY } = useScroll()
-  
-  const headerHeight = useTransform(scrollY, [0, 100], [96, 64])
-  const headerBg = useTransform(scrollY, [0, 100], ["rgba(10, 10, 10, 0)", "rgba(10, 10, 10, 0.8)"])
-  const headerBorder = useTransform(scrollY, [0, 100], ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 0.1)"])
+
+  const headerBg = useTransform(scrollY, [0, 100], ["rgba(3, 3, 3, 0)", "rgba(3, 3, 3, 0.85)"])
+  const headerBorder = useTransform(scrollY, [0, 100], ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 0.08)"])
   const headerBlur = useTransform(scrollY, [0, 100], ["blur(0px)", "blur(12px)"])
 
   const navLinks = [
@@ -19,62 +18,67 @@ export function Navbar() {
     { href: "/case-studies", label: "Case Studies" },
     { href: "/about", label: "Studio" },
     { href: "/pricing", label: "Pricing" },
-    { href: "/blog", label: "Journal" }
+    { href: "/blog", label: "Journal" },
   ]
 
   return (
     <motion.header
       style={{
-        height: headerHeight,
         backgroundColor: headerBg,
         borderBottomColor: headerBorder,
         borderBottomWidth: 1,
         backdropFilter: headerBlur,
-        WebkitBackdropFilter: headerBlur
+        WebkitBackdropFilter: headerBlur,
       }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center transition-all duration-300"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center h-24 transition-colors duration-300"
     >
-      <div className="container mx-auto px-6 h-full flex items-center justify-between">
-        <Link href="/" className="font-display font-bold text-xl tracking-tight text-white flex items-center gap-2">
-          <div className="w-4 h-4 bg-white relative overflow-hidden flex items-center justify-center">
-            <div className="absolute inset-0 bg-white" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 40%, 0 60%)' }} />
-            <div className="absolute inset-0 bg-neutral-400" style={{ clipPath: 'polygon(0 60%, 100% 40%, 100% 100%, 0 100%)' }} />
-            <div className="w-[150%] h-[1px] bg-white shadow-[0_0_8px_2px_rgba(255,255,255,0.8)] rotate-[-20deg]" />
+      <div className="max-w-7xl mx-auto px-6 h-full w-full flex items-center justify-between">
+        <Link
+          href="/"
+          className="font-bold text-xl tracking-tight text-white flex items-center gap-3 group font-display"
+          data-testid="link-home"
+        >
+          <div className="w-5 h-5 bg-white relative overflow-hidden flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+            <div className="absolute inset-0 bg-white" style={{ clipPath: "polygon(0 0, 100% 0, 100% 40%, 0 60%)" }} />
+            <div className="absolute inset-0 bg-neutral-500" style={{ clipPath: "polygon(0 60%, 100% 40%, 100% 100%, 0 100%)" }} />
+            <div className="w-[150%] h-[1px] bg-white shadow-[0_0_8px_2px_rgba(255,255,255,0.8)] rotate-[-20deg] absolute -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
           </div>
-          <span>DARKLIGHTZ</span>
+          <span className="opacity-90 group-hover:opacity-100 transition-opacity">DARKLIGHTZ</span>
         </Link>
-        
-        <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map(link => (
-            <Link 
-              key={link.href} 
+
+        <nav className="hidden lg:flex items-center gap-10">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
               href={link.href}
+              data-testid={`link-nav-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
               className={cn(
-                "text-sm font-medium transition-colors hover:text-white relative",
-                location.startsWith(link.href) ? "text-white" : "text-neutral-400"
+                "text-[10px] uppercase tracking-widest font-bold transition-colors relative group",
+                location.startsWith(link.href) ? "text-white" : "text-neutral-400 hover:text-white"
               )}
             >
               {link.label}
-              {location.startsWith(link.href) && (
-                <motion.div 
+              {location.startsWith(link.href) ? (
+                <motion.span
                   layoutId="nav-indicator"
                   className="absolute -bottom-2 left-0 right-0 h-[1px] bg-white"
-                  initial={false}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
+              ) : (
+                <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
               )}
             </Link>
           ))}
         </nav>
-        
-        <div className="flex items-center gap-4">
-          <Link href="/contact" className="hidden lg:block text-sm font-medium text-neutral-400 hover:text-white transition-colors">
+
+        <div className="flex items-center gap-6">
+          <Link href="/contact" className="hidden xl:block text-[10px] uppercase tracking-widest font-bold text-neutral-400 hover:text-white transition-colors" data-testid="link-nav-contact">
             Contact
           </Link>
-          <Link href="/book-a-call" className={cn(
-            "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 uppercase tracking-wider font-display h-10 px-6 bg-white text-black hover:bg-neutral-200"
-          )}>
-            Book a call
+          <Link href="/book-a-call" data-testid="link-nav-book-a-call">
+            <MagneticLink className="hidden md:inline-flex items-center justify-center whitespace-nowrap text-[10px] font-bold uppercase tracking-widest h-12 px-8 bg-white text-black hover:bg-neutral-200 transition-colors rounded-full cursor-pointer">
+              Book a call
+            </MagneticLink>
           </Link>
         </div>
       </div>

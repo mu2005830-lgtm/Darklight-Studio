@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CheckCircle2, ArrowRight } from "lucide-react"
+import { Eyebrow, SilverDivider } from "@/components/effects"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -23,7 +24,7 @@ const formSchema = z.object({
 export default function BookACall() {
   const [isSuccess, setIsSuccess] = useState(false)
   const { data: services } = useListServices()
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,26 +51,26 @@ export default function BookACall() {
     }, {
       onSuccess: () => {
         setIsSuccess(true)
-      }
+      },
     })
   }
 
   return (
     <PublicLayout>
-      <div className="pt-32 pb-20 bg-black min-h-[100dvh]">
-        <div className="container mx-auto px-6">
+      <div className="pt-40 pb-24 md:pb-32 bg-[#030303] min-h-[100dvh]">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-16">
-              <h1 className="text-5xl md:text-6xl font-display font-bold mb-6">Book a Call.</h1>
+              <div className="flex justify-center"><Eyebrow>Direct Access</Eyebrow></div>
+              <h1 className="text-5xl md:text-6xl font-display font-bold tracking-tighter mb-6">Book a Call.</h1>
               <p className="text-xl text-neutral-400 leading-relaxed">
                 Direct access to the principals. Let's discuss your next move.
               </p>
             </div>
 
-            <div className="bg-[#050505] border border-white/10 p-8 md:p-12 relative overflow-hidden">
-              {/* Decorative slice line */}
-              <div className="absolute top-0 right-0 w-32 h-[1px] bg-gradient-to-r from-transparent to-white/50 rotate-45 transform origin-top-right"></div>
-              
+            <div className="bg-[#050505] border border-white/10 rounded-[2px] p-8 md:p-12 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0"><SilverDivider /></div>
+
               {isSuccess ? (
                 <div className="h-full flex flex-col items-center justify-center text-center py-12">
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-black mb-6">
@@ -79,9 +80,9 @@ export default function BookACall() {
                   <p className="text-neutral-400 mb-8 max-w-md mx-auto">
                     We've received your booking request. Check your email for available time slots to confirm the meeting.
                   </p>
-                  <Button 
-                    variant="outline" 
-                    className="border-white/20 hover:bg-white/5"
+                  <Button
+                    variant="outline"
+                    className="rounded-full border-white/20 hover:bg-white/5"
                     onClick={() => {
                       setIsSuccess(false)
                       form.reset()
@@ -92,7 +93,7 @@ export default function BookACall() {
                 </div>
               ) : (
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 relative z-10">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 relative z-10 pt-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
@@ -121,7 +122,7 @@ export default function BookACall() {
                         )}
                       />
                     </div>
-                    
+
                     <FormField
                       control={form.control}
                       name="company"
@@ -150,7 +151,7 @@ export default function BookACall() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {services?.map(s => (
+                                {services?.map((s) => (
                                   <SelectItem key={s.id} value={s.title}>{s.title}</SelectItem>
                                 ))}
                                 <SelectItem value="General Inquiry">General Inquiry</SelectItem>
@@ -178,7 +179,7 @@ export default function BookACall() {
                         )}
                       />
                     </div>
-                    
+
                     <FormField
                       control={form.control}
                       name="message"
@@ -186,20 +187,20 @@ export default function BookACall() {
                         <FormItem>
                           <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px]">Context (Optional)</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="Any context to help us prepare..." 
+                            <Textarea
+                              placeholder="Any context to help us prepare..."
                               className="min-h-[100px] resize-none"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full h-14 bg-white text-black hover:bg-neutral-200 mt-8 group"
+
+                    <Button
+                      type="submit"
+                      className="w-full h-14 rounded-full bg-white text-black hover:bg-neutral-200 mt-8 group"
                       disabled={isPending}
                     >
                       {isPending ? "Submitting..." : (

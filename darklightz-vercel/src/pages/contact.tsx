@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CheckCircle2, ArrowRight } from "lucide-react"
+import { Eyebrow } from "@/components/effects"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -21,7 +22,7 @@ const formSchema = z.object({
 
 export default function Contact() {
   const [isSuccess, setIsSuccess] = useState(false)
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -39,28 +40,29 @@ export default function Contact() {
     mutate({ data: values }, {
       onSuccess: () => {
         setIsSuccess(true)
-      }
+      },
     })
   }
 
   return (
     <PublicLayout>
-      <div className="pt-32 pb-20 bg-black min-h-[100dvh]">
-        <div className="container mx-auto px-6">
+      <div className="pt-40 pb-24 md:pb-32 bg-[#030303] min-h-[100dvh]">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
             <div>
-              <h1 className="text-5xl md:text-7xl font-display font-bold mb-6">Inquiries.</h1>
+              <Eyebrow>Get in touch</Eyebrow>
+              <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tighter mb-6">Inquiries.</h1>
               <p className="text-xl text-neutral-400 leading-relaxed mb-12">
                 Whether you have a specific project in mind or just want to explore possibilities, we're here to talk.
               </p>
-              
+
               <div className="space-y-8 border-t border-white/10 pt-12">
                 <div>
-                  <div className="text-sm font-display uppercase tracking-widest text-neutral-500 mb-2">Email</div>
+                  <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-neutral-500 mb-2">Email</div>
                   <a href="mailto:hello@darklightz.com" className="text-xl font-medium text-white hover:text-neutral-300 transition-colors">hello@darklightz.com</a>
                 </div>
                 <div>
-                  <div className="text-sm font-display uppercase tracking-widest text-neutral-500 mb-2">Location</div>
+                  <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-neutral-500 mb-2">Location</div>
                   <address className="not-italic text-xl font-medium text-white">
                     San Francisco, CA<br />
                     Remote Worldwide
@@ -69,7 +71,7 @@ export default function Contact() {
               </div>
             </div>
 
-            <div className="bg-[#050505] border border-white/10 p-8 md:p-12">
+            <div className="bg-[#050505] border border-white/10 rounded-[2px] p-8 md:p-12">
               {isSuccess ? (
                 <div className="h-full flex flex-col items-center justify-center text-center py-12">
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-black mb-6">
@@ -79,9 +81,9 @@ export default function Contact() {
                   <p className="text-neutral-400 mb-8 max-w-md">
                     Thank you for reaching out. A principal will review your inquiry and get back to you within 24 hours.
                   </p>
-                  <Button 
-                    variant="outline" 
-                    className="border-white/20 hover:bg-white/5"
+                  <Button
+                    variant="outline"
+                    className="rounded-full border-white/20 hover:bg-white/5"
                     onClick={() => {
                       setIsSuccess(false)
                       form.reset()
@@ -121,7 +123,7 @@ export default function Contact() {
                         )}
                       />
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
@@ -160,7 +162,7 @@ export default function Contact() {
                         )}
                       />
                     </div>
-                    
+
                     <FormField
                       control={form.control}
                       name="message"
@@ -168,20 +170,20 @@ export default function Contact() {
                         <FormItem>
                           <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px]">Message *</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="Tell us about your project goals..." 
+                            <Textarea
+                              placeholder="Tell us about your project goals..."
                               className="min-h-[150px] resize-none"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full h-14 bg-white text-black hover:bg-neutral-200 mt-4 group"
+
+                    <Button
+                      type="submit"
+                      className="w-full h-14 rounded-full bg-white text-black hover:bg-neutral-200 mt-4 group"
                       disabled={isPending}
                     >
                       {isPending ? "Submitting..." : (
