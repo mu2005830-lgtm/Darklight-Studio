@@ -30,7 +30,7 @@ export default function CaseStudyDetail() {
       <PublicLayout>
         <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background">
           <div className="text-xl mb-4">Case study not found</div>
-          <Link href="/case-studies" className="text-white underline">Back to case studies</Link>
+          <Link href="/case-studies" className="text-foreground underline">Back to case studies</Link>
         </div>
       </PublicLayout>
     )
@@ -66,7 +66,7 @@ export default function CaseStudyDetail() {
             <div className="md:col-span-4">
               <div className="sticky top-32 p-8 border border-border bg-card rounded-[2px]">
                 <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-neutral-500 mb-2">Key Metric</div>
-                <div className="text-5xl font-display font-bold text-white mb-2">{study.metricValue}</div>
+                <div className="text-5xl font-display font-bold text-foreground mb-2">{study.metricValue}</div>
                 <div className="text-sm text-neutral-400 leading-tight">{study.metricLabel}</div>
               </div>
             </div>

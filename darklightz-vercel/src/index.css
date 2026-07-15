@@ -95,11 +95,11 @@
   --destructive-border: hsl(var(--destructive));
 
   /* Premium background tokens */
-  --bg-glow-primary: rgba(200, 200, 200, 0.04);
-  --bg-glow-secondary: rgba(160, 160, 160, 0.025);
-  --grain-opacity: 0.045;
-  --sweep-opacity: 0.012;
-  --section-divider: rgba(255, 255, 255, 0.05);
+  --bg-glow-primary: rgba(210, 210, 225, 0.09);
+  --bg-glow-secondary: rgba(170, 170, 190, 0.055);
+  --grain-opacity: 0.055;
+  --sweep-opacity: 0.022;
+  --section-divider: rgba(255, 255, 255, 0.06);
 }
 
 /* ─── LIGHT THEME ──────────────────────────────────────────────────────── */
@@ -134,20 +134,33 @@ html.light {
   --destructive: 0 84% 50%;
   --destructive-foreground: 0 0% 97%;
 
-  --bg-glow-primary: rgba(120, 120, 140, 0.07);
-  --bg-glow-secondary: rgba(100, 100, 120, 0.045);
-  --grain-opacity: 0.025;
-  --sweep-opacity: 0.025;
+  --bg-glow-primary: rgba(100, 100, 140, 0.13);
+  --bg-glow-secondary: rgba(80, 80, 120, 0.08);
+  --grain-opacity: 0.032;
+  --sweep-opacity: 0.04;
   --section-divider: rgba(0, 0, 0, 0.06);
 }
 
 /* ─── SMOOTH THEME TRANSITION ─────────────────────────────────────────── */
+/*
+ * Apply color transitions broadly so theme switching looks polished,
+ * but ONLY for background-color / border-color / color — never opacity
+ * or transform, which Framer Motion controls exclusively via inline styles.
+ */
 *, *::before, *::after {
   transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease;
 }
 
-/* Override for elements that should NOT transition (breaks animations) */
-[class*="animate-"], [data-no-transition] {
+/*
+ * Carve-outs: anything Framer Motion controls, CSS keyframe animations,
+ * and explicit opt-out. Framer Motion uses inline `opacity` / `transform`
+ * styles — those are not in our transition list, so there's no conflict.
+ * The carve-outs below cover edge-cases and `will-change` perf hints.
+ */
+[class*="animate-"],
+[data-no-transition],
+[data-framer-portal] *,
+[style*="will-change"] {
   transition: none !important;
 }
 

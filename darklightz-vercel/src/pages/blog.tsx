@@ -57,7 +57,7 @@ export default function Blog() {
                         {post.excerpt}
                       </p>
 
-                      <Link href={`/blog/${post.slug}`} className="inline-flex items-center gap-2 text-[10px] font-display uppercase tracking-[0.2em] font-bold text-white hover:text-muted-foreground transition-colors mt-auto">
+                      <Link href={`/blog/${post.slug}`} className="inline-flex items-center gap-2 text-[10px] font-display uppercase tracking-[0.2em] font-bold text-foreground hover:text-muted-foreground transition-colors mt-auto">
                         Read Article <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </Link>
                     </div>

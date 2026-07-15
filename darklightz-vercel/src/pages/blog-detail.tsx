@@ -30,7 +30,7 @@ export default function BlogPostDetail() {
       <PublicLayout>
         <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background">
           <div className="text-xl mb-4">Post not found</div>
-          <Link href="/blog" className="text-white underline">Back to journal</Link>
+          <Link href="/blog" className="text-foreground underline">Back to journal</Link>
         </div>
       </PublicLayout>
     )
@@ -53,7 +53,7 @@ export default function BlogPostDetail() {
               <span>By {post.author}</span>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tighter mb-8 leading-[1.05] text-white">
+            <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tighter mb-8 leading-[1.05] text-foreground">
               {post.title}
             </h1>
           </header>
@@ -76,7 +76,7 @@ export default function BlogPostDetail() {
 
           <div className="mt-24 pt-12 border-t border-border text-center">
             <p className="text-neutral-400 mb-6 font-display">Enjoyed this reading?</p>
-            <Link href="/blog" className="inline-flex h-12 px-8 border border-border rounded-full text-white font-display uppercase tracking-widest text-xs font-semibold items-center justify-center hover:bg-white/5 transition-colors">
+            <Link href="/blog" className="inline-flex h-12 px-8 border border-border rounded-full text-foreground font-display uppercase tracking-widest text-xs font-semibold items-center justify-center hover:bg-white/5 transition-colors">
               More Articles
             </Link>
           </div>

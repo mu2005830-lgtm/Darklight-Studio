@@ -35,9 +35,9 @@ export default function Pricing() {
                   <TiltCard
                     className={`group relative rounded-[2px] p-8 border ${
                       plan.isFeatured
-                        ? "border-white/30 bg-black/60 shadow-[0_0_40px_rgba(255,255,255,0.05)]"
+                        ? "border-border bg-card/80 shadow-[0_0_40px_rgba(120,120,140,0.08)]"
                         : "border-border bg-card/60"
-                    } flex flex-col h-full backdrop-blur-md transition-colors hover:border-white/40`}
+                    } flex flex-col h-full backdrop-blur-md transition-colors hover:border-foreground/25`}
                   >
                     {plan.isFeatured && (
                       <>
@@ -57,7 +57,7 @@ export default function Pricing() {
                     </div>
 
                     <div className="relative z-10 mb-8 pb-8 border-b border-border">
-                      <div className="text-4xl font-display font-bold text-white mb-2">{plan.price}</div>
+                      <div className="text-4xl font-display font-bold text-foreground mb-2">{plan.price}</div>
                       <div className="text-sm text-muted-foreground/70 font-mono">{plan.billingNote}</div>
                     </div>
 
@@ -76,7 +76,7 @@ export default function Pricing() {
                           className={`h-12 w-full flex items-center justify-center rounded-full font-display uppercase tracking-widest text-sm font-semibold transition-all duration-300 cursor-pointer ${
                             plan.isFeatured
                               ? "bg-white text-black hover:bg-neutral-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)]"
-                              : "border border-border text-white hover:bg-white hover:text-black"
+                              : "border border-border text-foreground hover:bg-primary hover:text-primary-foreground"
                           }`}
                         >
                           Select Plan

@@ -56,12 +56,12 @@ export default function CaseStudies() {
 
                       <div className="grid grid-cols-2 gap-8 mb-10 pb-10 border-b border-border">
                         <div>
-                          <div className="text-3xl font-display font-bold text-white mb-2">{study.metricValue}</div>
+                          <div className="text-3xl font-display font-bold text-foreground mb-2">{study.metricValue}</div>
                           <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-muted-foreground/70">{study.metricLabel}</div>
                         </div>
                       </div>
 
-                      <Link href={`/case-studies/${study.slug}`} className="inline-flex items-center gap-2 text-[10px] font-display uppercase tracking-[0.2em] font-bold hover:text-muted-foreground transition-colors border-b border-white/40 hover:border-white pb-1">
+                      <Link href={`/case-studies/${study.slug}`} className="inline-flex items-center gap-2 text-[10px] font-display uppercase tracking-[0.2em] font-bold hover:text-muted-foreground transition-colors border-b border-foreground/30 hover:border-foreground pb-1">
                         Read Full Case Study <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </Link>
                     </div>

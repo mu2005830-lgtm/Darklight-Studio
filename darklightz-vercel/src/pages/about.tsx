@@ -9,7 +9,7 @@ const TimelineItem = ({ year, title, desc, i }: { year: string, title: string, d
       <div className="md:grid md:grid-cols-5 md:gap-8 items-start relative">
         <div className="hidden md:flex flex-col items-end col-span-2 text-right pt-1">
           <span className="text-sm font-mono text-muted-foreground/70 mb-1">{year}</span>
-          <h3 className="text-xl font-display font-bold text-white">{title}</h3>
+          <h3 className="text-xl font-display font-bold text-foreground">{title}</h3>
         </div>
         
         <div className="absolute left-[-5px] md:relative md:left-auto md:col-span-1 flex justify-center h-full">
@@ -26,7 +26,7 @@ const TimelineItem = ({ year, title, desc, i }: { year: string, title: string, d
         <div className="md:col-span-2 pb-16">
           <div className="md:hidden mb-2">
             <span className="text-sm font-mono text-muted-foreground/70 mr-3">{year}</span>
-            <h3 className="text-xl font-display font-bold text-white inline">{title}</h3>
+            <h3 className="text-xl font-display font-bold text-foreground inline">{title}</h3>
           </div>
           <p className="text-muted-foreground leading-relaxed text-base">
             {desc}
@@ -63,7 +63,7 @@ export default function About() {
               transition={{ delay: 0.2, duration: 0.8 }}
               className="text-2xl text-muted-foreground leading-relaxed"
             >
-              Minimum <span className="text-white">Magnificent</span> Product.
+              Minimum <span className="text-foreground font-bold">Magnificent</span> Product.
             </motion.p>
           </div>
 
@@ -161,7 +161,7 @@ export default function About() {
                   },
                 ].map((principle, i) => (
                   <BlurReveal delay={i * 0.1} key={principle.num}>
-                    <div className="p-8 border border-border bg-card/60 backdrop-blur-sm rounded-[2px] hover:border-white/30 transition-colors h-full">
+                    <div className="p-8 border border-border bg-card/60 backdrop-blur-sm rounded-[2px] hover:border-foreground/20 transition-colors h-full">
                       <div className="text-muted-foreground/50 font-mono text-xl mb-6">{principle.num}</div>
                       <h3 className="text-2xl font-display font-bold mb-4">{principle.title}</h3>
                       <p className="text-muted-foreground leading-relaxed">{principle.desc}</p>

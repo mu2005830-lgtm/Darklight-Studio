@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { CinematicLoader } from '@/components/CinematicLoader';
 import { PageTransition } from '@/components/PageTransition';
 import { ScrollProgress } from '@/components/ScrollProgress';
@@ -69,7 +70,9 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AppInner />
         <TooltipProvider>
-          {showLoader && <CinematicLoader onComplete={() => setShowLoader(false)} />}
+          <AnimatePresence>
+            {showLoader && <CinematicLoader onComplete={() => setShowLoader(false)} />}
+          </AnimatePresence>
           <ScrollProgress />
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
             <Router />

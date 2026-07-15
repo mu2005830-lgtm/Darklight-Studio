@@ -41,8 +41,8 @@ export default function Portfolio() {
                 onClick={() => setActiveCategory(undefined)}
                 className={`px-6 py-2.5 rounded-full font-display uppercase tracking-[0.15em] text-[10px] font-bold transition-colors border ${
                   !activeCategory
-                    ? "bg-white text-black border-white"
-                    : "bg-transparent text-white border-white/15 hover:border-white/40"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-transparent text-foreground border-border hover:border-foreground/30"
                 }`}
               >
                 All Work
@@ -53,8 +53,8 @@ export default function Portfolio() {
                   onClick={() => setActiveCategory(cat)}
                   className={`px-6 py-2.5 rounded-full font-display uppercase tracking-[0.15em] text-[10px] font-bold transition-colors border ${
                     activeCategory === cat
-                      ? "bg-white text-black border-white"
-                      : "bg-transparent text-white border-white/15 hover:border-white/40"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-transparent text-foreground border-border hover:border-foreground/30"
                   }`}
                 >
                   {cat}
@@ -85,7 +85,7 @@ export default function Portfolio() {
                         className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-card/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                        <div className="w-12 h-12 rounded-full bg-muted/50 backdrop-blur border border-border flex items-center justify-center text-white transform scale-50 group-hover:scale-100 transition-transform duration-500">
+                        <div className="w-12 h-12 rounded-full bg-muted/50 backdrop-blur border border-border flex items-center justify-center text-foreground transform scale-50 group-hover:scale-100 transition-transform duration-500">
                           <ArrowUpRight className="w-5 h-5" />
                         </div>
                       </div>
@@ -135,7 +135,7 @@ export default function Portfolio() {
                   />
                   <button 
                     onClick={() => setSelectedProjectId(null)}
-                    className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-border flex items-center justify-center text-white hover:bg-white/20 transition-colors z-50"
+                    className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-border flex items-center justify-center text-foreground hover:bg-foreground/10 transition-colors z-50"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -144,7 +144,7 @@ export default function Portfolio() {
                   <DialogHeader className="mb-8">
                     <div className="flex justify-between items-start mb-6">
                       <motion.div layoutId={`project-title-${selectedProject.id}`}>
-                        <DialogTitle className="text-4xl md:text-5xl font-display font-bold text-white">{selectedProject.title}</DialogTitle>
+                        <DialogTitle className="text-4xl md:text-5xl font-display font-bold text-foreground">{selectedProject.title}</DialogTitle>
                       </motion.div>
                       <span className="text-sm border border-border rounded-full px-4 py-1.5 font-mono text-muted-foreground">{selectedProject.year}</span>
                     </div>
