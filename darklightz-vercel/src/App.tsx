@@ -7,6 +7,7 @@ import { CinematicLoader } from '@/components/CinematicLoader';
 import { PageTransition } from '@/components/PageTransition';
 import { ScrollProgress } from '@/components/ScrollProgress';
 import { ThemeProvider } from '@/lib/theme';
+import { useFavicon } from '@/hooks/use-favicon';
 
 // Pages
 import Home from '@/pages/home';
@@ -54,12 +55,19 @@ function Router() {
   );
 }
 
+/** Inner component so it has access to QueryClientProvider */
+function AppInner() {
+  useFavicon();
+  return null;
+}
+
 function App() {
   const [showLoader, setShowLoader] = useState(true);
 
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
+        <AppInner />
         <TooltipProvider>
           {showLoader && <CinematicLoader onComplete={() => setShowLoader(false)} />}
           <ScrollProgress />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { format } from "date-fns"
 import { setAdminApiKey } from "@/lib/api-client"
@@ -47,7 +47,7 @@ import {
   LayoutDashboard, FileText, Image, Users, Star, DollarSign,
   HelpCircle, Building2, Mail, Calendar, Settings,
   Link as LinkIcon, Plus, Pencil, Trash2, LogOut, Lock,
-  Eye, EyeOff, Save, AlertCircle,
+  Eye, EyeOff, Save, AlertCircle, Upload, X,
 } from "lucide-react"
 
 // ============================================================================
@@ -1079,6 +1079,113 @@ function BookingsSection() {
 }
 
 // ============================================================================
+// Favicon Upload Widget
+// ============================================================================
+
+function FaviconUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [preview, setPreview] = useState<string>(value || "/favicon.png")
+  const [dragOver, setDragOver] = useState(false)
+
+  useEffect(() => {
+    setPreview(value || "/favicon.png")
+  }, [value])
+
+  function processFile(file: File) {
+    if (!file.type.startsWith("image/")) return
+    const img = new window.Image()
+    const objectUrl = URL.createObjectURL(file)
+    img.onload = () => {
+      // Resize to 128×128 using canvas so the base64 stays small
+      const canvas = document.createElement("canvas")
+      canvas.width = 128
+      canvas.height = 128
+      const ctx = canvas.getContext("2d")!
+      ctx.drawImage(img, 0, 0, 128, 128)
+      URL.revokeObjectURL(objectUrl)
+      const dataUrl = canvas.toDataURL("image/png", 0.95)
+      setPreview(dataUrl)
+      onChange(dataUrl)
+    }
+    img.src = objectUrl
+  }
+
+  function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) processFile(file)
+    // Reset so the same file can be re-selected
+    e.target.value = ""
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) processFile(file)
+  }
+
+  const hasCustom = value && value !== "/favicon.png"
+
+  return (
+    <div className="flex items-start gap-5">
+      {/* Preview box */}
+      <div className="relative flex-shrink-0">
+        <div className="w-20 h-20 rounded-xl border border-white/10 bg-black overflow-hidden flex items-center justify-center shadow-lg">
+          <img
+            src={preview}
+            alt="Current favicon"
+            className="w-14 h-14 object-contain"
+            onError={() => setPreview("/favicon.png")}
+          />
+        </div>
+        {hasCustom && (
+          <button
+            type="button"
+            onClick={() => { setPreview("/favicon.png"); onChange("") }}
+            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-neutral-700 border border-white/10 flex items-center justify-center hover:bg-red-900/60 transition-colors"
+            title="Reset to default"
+          >
+            <X className="w-3 h-3 text-white" />
+          </button>
+        )}
+      </div>
+
+      {/* Drop zone + button */}
+      <div className="flex-1">
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          className={`border border-dashed rounded-[2px] p-5 flex flex-col items-center gap-3 cursor-pointer transition-colors ${
+            dragOver ? "border-white/40 bg-white/5" : "border-white/10 hover:border-white/20"
+          }`}
+          onClick={() => inputRef.current?.click()}
+        >
+          <Upload className="w-5 h-5 text-neutral-500" />
+          <div className="text-center">
+            <p className="text-xs text-neutral-300 font-medium">Drop an image or click to upload</p>
+            <p className="text-[10px] text-neutral-600 mt-1">PNG · JPG · SVG · WEBP — resized to 128 × 128</p>
+          </div>
+        </div>
+        {hasCustom && (
+          <p className="text-[10px] text-emerald-400 mt-2 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+            Custom favicon active — save settings to apply
+          </p>
+        )}
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileInput}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ============================================================================
 // Site Settings Section
 // ============================================================================
 
@@ -1139,10 +1246,13 @@ function SiteSettingsSection() {
           <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-4">SEO</h3>
           <FormField label="SEO Title"><Input className={inputCls} value={form.seoTitle ?? ""} onChange={f("seoTitle")} /></FormField>
           <FormField label="SEO Description"><Textarea className={inputCls} value={form.seoDescription ?? ""} onChange={f("seoDescription")} rows={3} /></FormField>
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="OG Image URL"><Input className={inputCls} value={form.ogImageUrl ?? ""} onChange={f("ogImageUrl")} placeholder="https://…" /></FormField>
-            <FormField label="Favicon URL"><Input className={inputCls} value={form.faviconUrl ?? ""} onChange={f("faviconUrl")} placeholder="https://…" /></FormField>
-          </div>
+          <FormField label="OG Image URL"><Input className={inputCls} value={form.ogImageUrl ?? ""} onChange={f("ogImageUrl")} placeholder="https://…" /></FormField>
+          <FormField label="Favicon">
+            <FaviconUpload
+              value={form.faviconUrl ?? ""}
+              onChange={(url) => setForm(p => ({ ...p, faviconUrl: url }))}
+            />
+          </FormField>
         </div>
 
         <div className="bg-[#050505] border border-white/10 p-6 space-y-4">
