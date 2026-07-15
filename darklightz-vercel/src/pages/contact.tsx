@@ -47,7 +47,7 @@ export default function Contact() {
 
   return (
     <PublicLayout>
-      <div className="pt-40 pb-24 md:pb-32 bg-[#030303] min-h-[100dvh]">
+      <div className="pt-40 pb-24 md:pb-32 bg-background min-h-[100dvh]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
             <div>
@@ -59,18 +59,18 @@ export default function Contact() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
-                className="text-xl text-neutral-400 leading-relaxed mb-12"
+                className="text-xl text-muted-foreground leading-relaxed mb-12"
               >
                 Whether you have a specific project in mind or just want to explore possibilities, we're here to talk.
               </motion.p>
 
-              <div className="space-y-8 border-t border-white/10 pt-12">
+              <div className="space-y-8 border-t border-border pt-12">
                 <div>
-                  <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-neutral-500 mb-2">Email</div>
-                  <a href="mailto:hello@darklightz.com" className="text-xl font-medium text-white hover:text-neutral-300 transition-colors">hello@darklightz.com</a>
+                  <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-muted-foreground/70 mb-2">Email</div>
+                  <a href="mailto:hello@darklightz.com" className="text-xl font-medium text-white hover:text-muted-foreground transition-colors">hello@darklightz.com</a>
                 </div>
                 <div>
-                  <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-neutral-500 mb-2">Location</div>
+                  <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-muted-foreground/70 mb-2">Location</div>
                   <address className="not-italic text-xl font-medium text-white">
                     San Francisco, CA<br />
                     Remote Worldwide
@@ -79,7 +79,7 @@ export default function Contact() {
               </div>
             </div>
 
-            <div className="bg-[#050505] border border-white/10 rounded-[2px] p-8 md:p-12 relative overflow-hidden group">
+            <div className="bg-card border border-border rounded-[2px] p-8 md:p-12 relative overflow-hidden group">
               {/* Subtle hover effect for the form container */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
               
@@ -102,12 +102,12 @@ export default function Contact() {
                       <CheckCircle2 className="w-8 h-8" />
                     </motion.div>
                     <h3 className="text-3xl font-display font-bold mb-4">Message Received</h3>
-                    <p className="text-neutral-400 mb-8 max-w-md">
+                    <p className="text-muted-foreground mb-8 max-w-md">
                       Thank you for reaching out. A principal will review your inquiry and get back to you within 24 hours.
                     </p>
                     <Button
                       variant="outline"
-                      className="rounded-full border-white/20 hover:bg-white/5 transition-colors"
+                      className="rounded-full border-border hover:bg-muted/30 transition-colors"
                       onClick={() => {
                         setIsSuccess(false)
                         form.reset()
@@ -133,11 +133,11 @@ export default function Contact() {
                             name="name"
                             render={({ field }) => (
                               <FormItem className="group/field relative">
-                                <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Name *</FormLabel>
+                                <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Name *</FormLabel>
                                 <FormControl>
                                   <Input 
                                     placeholder="John Doe" 
-                                    className="bg-black/50 border-white/10 focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300"
+                                    className="bg-black/50 border-border focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300"
                                     {...field} 
                                   />
                                 </FormControl>
@@ -150,12 +150,12 @@ export default function Contact() {
                             name="email"
                             render={({ field }) => (
                               <FormItem className="group/field relative">
-                                <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Email *</FormLabel>
+                                <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Email *</FormLabel>
                                 <FormControl>
                                   <Input 
                                     placeholder="john@example.com" 
                                     type="email" 
-                                    className="bg-black/50 border-white/10 focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300"
+                                    className="bg-black/50 border-border focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300"
                                     {...field} 
                                   />
                                 </FormControl>
@@ -171,11 +171,11 @@ export default function Contact() {
                             name="company"
                             render={({ field }) => (
                               <FormItem className="group/field relative">
-                                <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Company</FormLabel>
+                                <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Company</FormLabel>
                                 <FormControl>
                                   <Input 
                                     placeholder="Acme Inc." 
-                                    className="bg-black/50 border-white/10 focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300"
+                                    className="bg-black/50 border-border focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300"
                                     {...field} 
                                   />
                                 </FormControl>
@@ -188,18 +188,18 @@ export default function Contact() {
                             name="budget"
                             render={({ field }) => (
                               <FormItem className="group/field relative">
-                                <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Budget Range</FormLabel>
+                                <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Budget Range</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
-                                    <SelectTrigger className="bg-black/50 border-white/10 focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300">
+                                    <SelectTrigger className="bg-black/50 border-border focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300">
                                       <SelectValue placeholder="Select a range" />
                                     </SelectTrigger>
                                   </FormControl>
-                                  <SelectContent className="bg-[#0a0a0a] border-white/10">
-                                    <SelectItem value="< $25k" className="focus:bg-white/10 focus:text-white">&lt; $25k</SelectItem>
-                                    <SelectItem value="$25k - $50k" className="focus:bg-white/10 focus:text-white">$25k - $50k</SelectItem>
-                                    <SelectItem value="$50k - $100k" className="focus:bg-white/10 focus:text-white">$50k - $100k</SelectItem>
-                                    <SelectItem value="$100k+" className="focus:bg-white/10 focus:text-white">$100k+</SelectItem>
+                                  <SelectContent className="bg-background border-border">
+                                    <SelectItem value="< $25k" className="focus:bg-muted/50 focus:text-white">&lt; $25k</SelectItem>
+                                    <SelectItem value="$25k - $50k" className="focus:bg-muted/50 focus:text-white">$25k - $50k</SelectItem>
+                                    <SelectItem value="$50k - $100k" className="focus:bg-muted/50 focus:text-white">$50k - $100k</SelectItem>
+                                    <SelectItem value="$100k+" className="focus:bg-muted/50 focus:text-white">$100k+</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -213,11 +213,11 @@ export default function Contact() {
                           name="message"
                           render={({ field }) => (
                             <FormItem className="group/field relative">
-                              <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Message *</FormLabel>
+                              <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Message *</FormLabel>
                               <FormControl>
                                 <Textarea
                                   placeholder="Tell us about your project goals..."
-                                  className="min-h-[150px] resize-none bg-black/50 border-white/10 focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300"
+                                  className="min-h-[150px] resize-none bg-black/50 border-border focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300"
                                   {...field}
                                 />
                               </FormControl>

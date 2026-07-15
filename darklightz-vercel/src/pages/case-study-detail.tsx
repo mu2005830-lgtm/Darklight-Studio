@@ -18,7 +18,7 @@ export default function CaseStudyDetail() {
   if (isLoading) {
     return (
       <PublicLayout>
-        <div className="min-h-[100dvh] flex items-center justify-center bg-[#030303]">
+        <div className="min-h-[100dvh] flex items-center justify-center bg-background">
           <div className="text-neutral-500">Loading case study...</div>
         </div>
       </PublicLayout>
@@ -28,7 +28,7 @@ export default function CaseStudyDetail() {
   if (isError || !study) {
     return (
       <PublicLayout>
-        <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-[#030303]">
+        <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background">
           <div className="text-xl mb-4">Case study not found</div>
           <Link href="/case-studies" className="text-white underline">Back to case studies</Link>
         </div>
@@ -38,15 +38,15 @@ export default function CaseStudyDetail() {
 
   return (
     <PublicLayout>
-      <article className="pt-40 pb-24 bg-[#030303] min-h-[100dvh]">
+      <article className="pt-40 pb-24 bg-background min-h-[100dvh]">
         <div className="max-w-7xl mx-auto px-6">
-          <Link href="/case-studies" className="inline-flex items-center gap-2 text-[10px] text-neutral-500 hover:text-white transition-colors mb-12 font-display uppercase tracking-[0.2em] font-bold">
+          <Link href="/case-studies" className="inline-flex items-center gap-2 text-[10px] text-neutral-500 hover:text-foreground transition-colors mb-12 font-display uppercase tracking-[0.2em] font-bold">
             <ArrowLeft className="w-4 h-4" /> Back
           </Link>
 
           <header className="max-w-4xl mb-16">
             <div className="flex items-center gap-4 mb-8">
-              <span className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-neutral-500 border border-white/10 rounded-full px-4 py-1.5">{study.client}</span>
+              <span className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-neutral-500 border border-border rounded-full px-4 py-1.5">{study.client}</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tighter mb-8 leading-[1.05]">{study.title}</h1>
             <p className="text-2xl text-neutral-400 leading-relaxed">
@@ -54,7 +54,7 @@ export default function CaseStudyDetail() {
             </p>
           </header>
 
-          <div className="w-full aspect-[21/9] bg-neutral-900 border border-white/5 rounded-[2px] mb-20">
+          <div className="w-full aspect-[21/9] bg-neutral-900 border border-border rounded-[2px] mb-20">
             <img
               src={study.imageUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${study.id}`}
               alt={study.title}
@@ -64,7 +64,7 @@ export default function CaseStudyDetail() {
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-16 lg:gap-24">
             <div className="md:col-span-4">
-              <div className="sticky top-32 p-8 border border-white/10 bg-[#050505] rounded-[2px]">
+              <div className="sticky top-32 p-8 border border-border bg-card rounded-[2px]">
                 <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-neutral-500 mb-2">Key Metric</div>
                 <div className="text-5xl font-display font-bold text-white mb-2">{study.metricValue}</div>
                 <div className="text-sm text-neutral-400 leading-tight">{study.metricLabel}</div>
@@ -89,7 +89,7 @@ export default function CaseStudyDetail() {
         </div>
       </article>
 
-      <section className="py-24 md:py-32 bg-[#020202] border-t border-white/5 text-center px-6">
+      <section className="py-24 md:py-32 bg-background border-t border-border text-center px-6">
         <h2 className="text-4xl font-display font-bold tracking-tighter mb-8">Ready for similar results?</h2>
         <Link href="/book-a-call">
           <MagneticButton className="inline-flex h-14 px-10 bg-white text-black font-display uppercase tracking-widest text-sm font-bold items-center justify-center hover:bg-neutral-200 transition-colors rounded-full">

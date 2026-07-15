@@ -8,12 +8,12 @@ const TimelineItem = ({ year, title, desc, i }: { year: string, title: string, d
     <BlurReveal delay={i * 0.15} className="relative pl-8 md:pl-0">
       <div className="md:grid md:grid-cols-5 md:gap-8 items-start relative">
         <div className="hidden md:flex flex-col items-end col-span-2 text-right pt-1">
-          <span className="text-sm font-mono text-neutral-500 mb-1">{year}</span>
+          <span className="text-sm font-mono text-muted-foreground/70 mb-1">{year}</span>
           <h3 className="text-xl font-display font-bold text-white">{title}</h3>
         </div>
         
         <div className="absolute left-[-5px] md:relative md:left-auto md:col-span-1 flex justify-center h-full">
-          <div className="w-[1px] h-full bg-white/10 absolute top-0" />
+          <div className="w-[1px] h-full bg-muted/50 absolute top-0" />
           <motion.div 
             initial={{ scale: 0, backgroundColor: "rgba(255,255,255,0.2)" }}
             whileInView={{ scale: 1, backgroundColor: "rgba(255,255,255,1)" }}
@@ -25,10 +25,10 @@ const TimelineItem = ({ year, title, desc, i }: { year: string, title: string, d
         
         <div className="md:col-span-2 pb-16">
           <div className="md:hidden mb-2">
-            <span className="text-sm font-mono text-neutral-500 mr-3">{year}</span>
+            <span className="text-sm font-mono text-muted-foreground/70 mr-3">{year}</span>
             <h3 className="text-xl font-display font-bold text-white inline">{title}</h3>
           </div>
-          <p className="text-neutral-400 leading-relaxed text-base">
+          <p className="text-muted-foreground leading-relaxed text-base">
             {desc}
           </p>
         </div>
@@ -55,13 +55,13 @@ export default function About() {
               className="text-5xl md:text-8xl font-display font-bold tracking-tighter mb-8 leading-[1.05]"
             >
               We don't build MVP.<br />
-              <span className="text-neutral-600">We build MMP.</span>
+              <span className="text-muted-foreground/50">We build MMP.</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="text-2xl text-neutral-400 leading-relaxed"
+              className="text-2xl text-muted-foreground leading-relaxed"
             >
               Minimum <span className="text-white">Magnificent</span> Product.
             </motion.p>
@@ -69,7 +69,7 @@ export default function About() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 lg:gap-32 mb-40">
             <div ref={containerRef} className="overflow-hidden rounded-[2px]">
-              <motion.div style={{ y: imageY }} className="aspect-[3/4] bg-neutral-900 border border-white/5 h-[120%] -mt-[10%]">
+              <motion.div style={{ y: imageY }} className="aspect-[3/4] bg-neutral-900 border border-border h-[120%] -mt-[10%]">
                 <img
                   src="/images/about-team-abstract.jpg"
                   alt="Studio vibe"
@@ -86,7 +86,7 @@ export default function About() {
               <BlurReveal>
                 <h2 className="text-3xl font-display font-bold tracking-tight mb-8">The Studio Story</h2>
               </BlurReveal>
-              <div className="space-y-6 text-lg text-neutral-400 leading-relaxed">
+              <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
                 <BlurReveal delay={0.1}>
                   <p>
                     Darklightz was founded on a simple premise: most software is aggressively mediocre. The industry standard has drifted toward bloated templates, slow load times, and disjointed experiences.
@@ -106,10 +106,10 @@ export default function About() {
             </div>
           </div>
 
-          <div className="mb-40 pt-10 border-t border-white/5">
+          <div className="mb-40 pt-10 border-t border-border">
             <div className="flex justify-center items-center gap-4 mb-16">
               <span className="w-8 h-[1px] bg-neutral-600" />
-              <span className="text-[9px] uppercase tracking-[0.25em] font-bold text-neutral-500">Timeline</span>
+              <span className="text-[9px] uppercase tracking-[0.25em] font-bold text-muted-foreground/70">Timeline</span>
               <span className="w-8 h-[1px] bg-neutral-600" />
             </div>
             
@@ -136,7 +136,7 @@ export default function About() {
               <BlurReveal>
                 <div className="flex justify-center items-center gap-4 mb-16">
                   <span className="w-8 h-[1px] bg-neutral-600" />
-                  <span className="text-[9px] uppercase tracking-[0.25em] font-bold text-neutral-500">Principles</span>
+                  <span className="text-[9px] uppercase tracking-[0.25em] font-bold text-muted-foreground/70">Principles</span>
                   <span className="w-8 h-[1px] bg-neutral-600" />
                 </div>
                 <h2 className="text-4xl font-display font-bold tracking-tighter mb-16 text-center">Core Principles.</h2>
@@ -161,10 +161,10 @@ export default function About() {
                   },
                 ].map((principle, i) => (
                   <BlurReveal delay={i * 0.1} key={principle.num}>
-                    <div className="p-8 border border-white/10 bg-black/40 backdrop-blur-sm rounded-[2px] hover:border-white/30 transition-colors h-full">
-                      <div className="text-neutral-600 font-mono text-xl mb-6">{principle.num}</div>
+                    <div className="p-8 border border-border bg-card/60 backdrop-blur-sm rounded-[2px] hover:border-white/30 transition-colors h-full">
+                      <div className="text-muted-foreground/50 font-mono text-xl mb-6">{principle.num}</div>
                       <h3 className="text-2xl font-display font-bold mb-4">{principle.title}</h3>
-                      <p className="text-neutral-400 leading-relaxed">{principle.desc}</p>
+                      <p className="text-muted-foreground leading-relaxed">{principle.desc}</p>
                     </div>
                   </BlurReveal>
                 ))}

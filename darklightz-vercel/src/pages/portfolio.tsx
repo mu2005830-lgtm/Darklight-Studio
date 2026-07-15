@@ -29,7 +29,7 @@ export default function Portfolio() {
               <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tighter mb-6">Our Work.</h1>
             </BlurReveal>
             <BlurReveal delay={0.2}>
-              <p className="text-xl text-neutral-400 leading-relaxed">
+              <p className="text-xl text-muted-foreground leading-relaxed">
                 A selection of digital products and platforms we've built for ambitious teams around the globe.
               </p>
             </BlurReveal>
@@ -77,15 +77,15 @@ export default function Portfolio() {
                   className="cursor-pointer block relative h-full"
                   onClick={() => setSelectedProjectId(project.id)}
                 >
-                  <TiltCard className="group h-full bg-black/40 backdrop-blur-sm border border-white/5 rounded-[4px] p-4 flex flex-col hover:border-white/20 transition-colors">
-                    <motion.div layoutId={`project-image-${project.id}`} className="aspect-[4/3] overflow-hidden mb-6 relative bg-white/5 rounded-[2px]">
+                  <TiltCard className="group h-full bg-card/60 backdrop-blur-sm border border-border rounded-[4px] p-4 flex flex-col hover:border-border transition-colors">
+                    <motion.div layoutId={`project-image-${project.id}`} className="aspect-[4/3] overflow-hidden mb-6 relative bg-muted/30 rounded-[2px]">
                       <motion.img
                         src={project.imageUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${project.id}`}
                         alt={project.title}
                         className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110"
                       />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                        <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center text-white transform scale-50 group-hover:scale-100 transition-transform duration-500">
+                      <div className="absolute inset-0 bg-card/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                        <div className="w-12 h-12 rounded-full bg-muted/50 backdrop-blur border border-border flex items-center justify-center text-white transform scale-50 group-hover:scale-100 transition-transform duration-500">
                           <ArrowUpRight className="w-5 h-5" />
                         </div>
                       </div>
@@ -93,9 +93,9 @@ export default function Portfolio() {
                     <div className="flex-1 flex flex-col">
                       <div className="flex justify-between items-start mb-2">
                         <motion.h3 layoutId={`project-title-${project.id}`} className="text-2xl font-display font-bold">{project.title}</motion.h3>
-                        <span className="text-sm text-neutral-500 font-mono">{project.year}</span>
+                        <span className="text-sm text-muted-foreground/70 font-mono">{project.year}</span>
                       </div>
-                      <p className="text-neutral-400 text-sm">{project.category}</p>
+                      <p className="text-muted-foreground text-sm">{project.category}</p>
                     </div>
                   </TiltCard>
                 </motion.div>
@@ -103,12 +103,12 @@ export default function Portfolio() {
             </AnimatePresence>
 
             {isLoading && (
-              <div className="col-span-full py-20 text-center text-neutral-500">
+              <div className="col-span-full py-20 text-center text-muted-foreground/70">
                 Loading projects...
               </div>
             )}
             {!isLoading && projects?.length === 0 && (
-              <div className="col-span-full py-20 text-center text-neutral-500">
+              <div className="col-span-full py-20 text-center text-muted-foreground/70">
                 No projects found in this category.
               </div>
             )}
@@ -124,7 +124,7 @@ export default function Portfolio() {
               
               <motion.div 
                 layoutId={`project-container-${selectedProject.id}`}
-                className="bg-[#0a0a0a] border border-white/10 overflow-hidden rounded-[4px] pointer-events-auto shadow-2xl"
+                className="bg-background border border-border overflow-hidden rounded-[4px] pointer-events-auto shadow-2xl"
               >
                 <div className="relative aspect-video w-full overflow-hidden">
                   <motion.img
@@ -135,7 +135,7 @@ export default function Portfolio() {
                   />
                   <button 
                     onClick={() => setSelectedProjectId(null)}
-                    className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-50"
+                    className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-border flex items-center justify-center text-white hover:bg-white/20 transition-colors z-50"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -146,22 +146,22 @@ export default function Portfolio() {
                       <motion.div layoutId={`project-title-${selectedProject.id}`}>
                         <DialogTitle className="text-4xl md:text-5xl font-display font-bold text-white">{selectedProject.title}</DialogTitle>
                       </motion.div>
-                      <span className="text-sm border border-white/20 rounded-full px-4 py-1.5 font-mono text-neutral-400">{selectedProject.year}</span>
+                      <span className="text-sm border border-border rounded-full px-4 py-1.5 font-mono text-muted-foreground">{selectedProject.year}</span>
                     </div>
-                    <DialogDescription className="text-lg md:text-xl text-neutral-400 leading-relaxed max-w-3xl">
+                    <DialogDescription className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl">
                       {selectedProject.summary}
                     </DialogDescription>
                   </DialogHeader>
 
-                  <div className="flex flex-wrap gap-3 mt-10 border-t border-white/10 pt-10">
-                    <span className="text-xs text-neutral-500 mr-4 self-center font-display uppercase tracking-[0.2em] font-bold">Technologies</span>
+                  <div className="flex flex-wrap gap-3 mt-10 border-t border-border pt-10">
+                    <span className="text-xs text-muted-foreground/70 mr-4 self-center font-display uppercase tracking-[0.2em] font-bold">Technologies</span>
                     {selectedProject.tags.map((tag, idx) => (
                       <motion.span 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 + (idx * 0.05) }}
                         key={tag} 
-                        className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs font-mono text-neutral-300"
+                        className="px-4 py-1.5 bg-muted/30 border border-border rounded-full text-xs font-mono text-muted-foreground"
                       >
                         {tag}
                       </motion.span>

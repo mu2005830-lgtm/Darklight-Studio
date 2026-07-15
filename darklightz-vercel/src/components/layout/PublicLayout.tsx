@@ -5,7 +5,7 @@ import { NoiseOverlay, CursorGlow, ScrollFollowLight } from "@/components/effect
 
 export function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col bg-[#030303] text-white selection:bg-white selection:text-black relative">
+    <div className="min-h-screen flex flex-col bg-background text-foreground relative transition-colors duration-350">
       <NoiseOverlay />
       <CursorGlow />
       <ScrollFollowLight />

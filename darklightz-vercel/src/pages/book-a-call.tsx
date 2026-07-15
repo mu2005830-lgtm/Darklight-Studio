@@ -57,18 +57,18 @@ export default function BookACall() {
 
   return (
     <PublicLayout>
-      <div className="pt-40 pb-24 md:pb-32 bg-[#030303] min-h-[100dvh]">
+      <div className="pt-40 pb-24 md:pb-32 bg-background min-h-[100dvh]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-16">
               <div className="flex justify-center"><Eyebrow>Direct Access</Eyebrow></div>
               <h1 className="text-5xl md:text-6xl font-display font-bold tracking-tighter mb-6">Book a Call.</h1>
-              <p className="text-xl text-neutral-400 leading-relaxed">
+              <p className="text-xl text-muted-foreground leading-relaxed">
                 Direct access to the principals. Let's discuss your next move.
               </p>
             </div>
 
-            <div className="bg-[#050505] border border-white/10 rounded-[2px] p-8 md:p-12 relative overflow-hidden">
+            <div className="bg-card border border-border rounded-[2px] p-8 md:p-12 relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0"><SilverDivider /></div>
 
               {isSuccess ? (
@@ -77,12 +77,12 @@ export default function BookACall() {
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
                   <h3 className="text-3xl font-display font-bold mb-4">Request Confirmed</h3>
-                  <p className="text-neutral-400 mb-8 max-w-md mx-auto">
+                  <p className="text-muted-foreground mb-8 max-w-md mx-auto">
                     We've received your booking request. Check your email for available time slots to confirm the meeting.
                   </p>
                   <Button
                     variant="outline"
-                    className="rounded-full border-white/20 hover:bg-white/5"
+                    className="rounded-full border-border hover:bg-muted/30"
                     onClick={() => {
                       setIsSuccess(false)
                       form.reset()
@@ -100,7 +100,7 @@ export default function BookACall() {
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px]">Name *</FormLabel>
+                            <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px]">Name *</FormLabel>
                             <FormControl>
                               <Input placeholder="John Doe" {...field} />
                             </FormControl>
@@ -113,7 +113,7 @@ export default function BookACall() {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px]">Email *</FormLabel>
+                            <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px]">Email *</FormLabel>
                             <FormControl>
                               <Input placeholder="john@example.com" type="email" {...field} />
                             </FormControl>
@@ -128,7 +128,7 @@ export default function BookACall() {
                       name="company"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px]">Company</FormLabel>
+                          <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px]">Company</FormLabel>
                           <FormControl>
                             <Input placeholder="Acme Inc." {...field} />
                           </FormControl>
@@ -143,7 +143,7 @@ export default function BookACall() {
                         name="service"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px]">Service of Interest *</FormLabel>
+                            <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px]">Service of Interest *</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
@@ -166,7 +166,7 @@ export default function BookACall() {
                         name="preferredDate"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px]">Preferred Date *</FormLabel>
+                            <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px]">Preferred Date *</FormLabel>
                             <FormControl>
                               <Input
                                 type="date"
@@ -185,7 +185,7 @@ export default function BookACall() {
                       name="message"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-neutral-400 font-display uppercase tracking-widest text-[10px]">Context (Optional)</FormLabel>
+                          <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px]">Context (Optional)</FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder="Any context to help us prepare..."

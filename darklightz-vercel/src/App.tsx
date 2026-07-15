@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { CinematicLoader } from '@/components/CinematicLoader';
 import { PageTransition } from '@/components/PageTransition';
 import { ScrollProgress } from '@/components/ScrollProgress';
+import { ThemeProvider } from '@/lib/theme';
 
 // Pages
 import Home from '@/pages/home';
@@ -57,16 +58,18 @@ function App() {
   const [showLoader, setShowLoader] = useState(true);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        {showLoader && <CinematicLoader onComplete={() => setShowLoader(false)} />}
-        <ScrollProgress />
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          {showLoader && <CinematicLoader onComplete={() => setShowLoader(false)} />}
+          <ScrollProgress />
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 
