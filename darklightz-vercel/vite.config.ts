@@ -14,15 +14,37 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    // Bump the warning threshold slightly — our vendor chunks are expected to
+    // be large (Framer Motion + Radix + React Query are heavy).
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        // Split vendor libraries into separate cacheable chunks so that
+        // deploying new app code doesn't bust the browser cache for libraries.
+        manualChunks: {
+          // React ecosystem
+          "vendor-react": ["react", "react-dom"],
+          // Routing
+          "vendor-router": ["wouter"],
+          // Animation
+          "vendor-motion": ["framer-motion"],
+          // Data fetching
+          "vendor-query": ["@tanstack/react-query"],
+          // UI primitives (Radix)
+          "vendor-radix": [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-select",
+            "@radix-ui/react-tooltip",
+            "@radix-ui/react-label",
+            "@radix-ui/react-slot",
+          ],
+        },
+      },
+    },
   },
   server: {
     port: 3000,
     proxy: {
-      // Forward /api/* to the local Vercel dev server when using `pnpm run dev`
-      // alone. Uses a regex so /api-assets/* (static images under public/) is
-      // NOT matched — only proper API routes like /api/services are proxied.
-      // If you use `vercel dev` instead, this proxy is unused.
-      // Change the target port if your Vercel dev server runs on a different port.
       "^/api/": {
         target: "http://localhost:3001",
         changeOrigin: true,
