@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
-import { useState, lazy, Suspense } from 'react';
+import { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { CinematicLoader } from '@/components/CinematicLoader';
 import { PageTransition } from '@/components/PageTransition';
@@ -10,21 +10,26 @@ import { ScrollProgress } from '@/components/ScrollProgress';
 import { ThemeProvider } from '@/lib/theme';
 import { useFavicon } from '@/hooks/use-favicon';
 
-// ── Lazy-loaded pages — each becomes its own JS chunk ──────────────────────
-// This cuts the initial bundle from ~892KB to ~250KB (only shell + home load upfront).
-const Home          = lazy(() => import('@/pages/home'));
-const Services      = lazy(() => import('@/pages/services'));
-const Portfolio     = lazy(() => import('@/pages/portfolio'));
-const CaseStudies   = lazy(() => import('@/pages/case-studies'));
-const CaseStudyDetail = lazy(() => import('@/pages/case-study-detail'));
-const About         = lazy(() => import('@/pages/about'));
-const Pricing       = lazy(() => import('@/pages/pricing'));
-const Blog          = lazy(() => import('@/pages/blog'));
-const BlogDetail    = lazy(() => import('@/pages/blog-detail'));
-const Contact       = lazy(() => import('@/pages/contact'));
-const BookACall     = lazy(() => import('@/pages/book-a-call'));
-const AdminDashboard = lazy(() => import('@/pages/admin'));
-const NotFound      = lazy(() => import('@/pages/not-found'));
+// ── Eager imports — no Suspense, no lazy() ────────────────────────────────
+// React.lazy() + AnimatePresence mode="wait" are incompatible: while the old
+// motion.div holds its exit animation, its Switch still live-updates to the
+// new location and throws a Suspense Promise. That Promise either hides the
+// entire PageTransition (Suspense outside) or never re-commits because the
+// tree is mid-unmount (Suspense inside) — both kill page transitions.
+// Eager imports remove Suspense from the equation entirely.
+import Home from '@/pages/home';
+import Services from '@/pages/services';
+import Portfolio from '@/pages/portfolio';
+import CaseStudies from '@/pages/case-studies';
+import CaseStudyDetail from '@/pages/case-study-detail';
+import About from '@/pages/about';
+import Pricing from '@/pages/pricing';
+import Blog from '@/pages/blog';
+import BlogDetail from '@/pages/blog-detail';
+import Contact from '@/pages/contact';
+import BookACall from '@/pages/book-a-call';
+import AdminDashboard from '@/pages/admin';
+import NotFound from '@/pages/not-found';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,45 +40,25 @@ const queryClient = new QueryClient({
   },
 });
 
-/** Minimal inline fallback — invisible div so layout doesn't shift. */
-function PageFallback() {
-  return <div style={{ flex: 1, minHeight: '100dvh' }} />;
-}
-
-/**
- * Suspense MUST wrap PageTransition from the outside — never inside it.
- *
- * Why: PageTransition uses AnimatePresence mode="wait". If a lazy chunk throws
- * a Promise (Suspense mechanism) while AnimatePresence is mid-exit on the old
- * motion.div, React cannot reliably commit the re-render when the Promise
- * resolves because the component tree is in the process of being unmounted.
- * Result: permanent blank screen until hard refresh.
- *
- * With Suspense outside, lazy chunks suspend at a level above AnimatePresence.
- * Once the chunk loads, AnimatePresence sees a clean, fully-resolved tree and
- * plays the enter animation correctly.
- */
 function Router() {
   return (
-    <Suspense fallback={<PageFallback />}>
-      <PageTransition>
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/services" component={Services} />
-          <Route path="/portfolio" component={Portfolio} />
-          <Route path="/case-studies" component={CaseStudies} />
-          <Route path="/case-studies/:slug" component={CaseStudyDetail} />
-          <Route path="/about" component={About} />
-          <Route path="/pricing" component={Pricing} />
-          <Route path="/blog" component={Blog} />
-          <Route path="/blog/:slug" component={BlogDetail} />
-          <Route path="/contact" component={Contact} />
-          <Route path="/book-a-call" component={BookACall} />
-          <Route path="/admin" component={AdminDashboard} />
-          <Route component={NotFound} />
-        </Switch>
-      </PageTransition>
-    </Suspense>
+    <PageTransition>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/services" component={Services} />
+        <Route path="/portfolio" component={Portfolio} />
+        <Route path="/case-studies" component={CaseStudies} />
+        <Route path="/case-studies/:slug" component={CaseStudyDetail} />
+        <Route path="/about" component={About} />
+        <Route path="/pricing" component={Pricing} />
+        <Route path="/blog" component={Blog} />
+        <Route path="/blog/:slug" component={BlogDetail} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/book-a-call" component={BookACall} />
+        <Route path="/admin" component={AdminDashboard} />
+        <Route component={NotFound} />
+      </Switch>
+    </PageTransition>
   );
 }
 
