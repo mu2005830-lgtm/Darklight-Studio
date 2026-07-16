@@ -21,6 +21,7 @@ export const siteSettingsTable = pgTable("site_settings", {
   heroSubtitle: text("hero_subtitle").notNull().default(""),
   heroCtaText: text("hero_cta_text").notNull().default(""),
   heroCtaUrl: text("hero_cta_url").notNull().default(""),
+  whatsappNumber: text("whatsapp_number").notNull().default("+923351468615"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

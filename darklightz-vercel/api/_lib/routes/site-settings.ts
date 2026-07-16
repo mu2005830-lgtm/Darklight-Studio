@@ -29,6 +29,7 @@ const DEFAULT_SETTINGS = {
   heroSubtitle: "",
   heroCtaText: "",
   heroCtaUrl: "",
+  whatsappNumber: "+923351468615",
   updatedAt: new Date(),
 };
 

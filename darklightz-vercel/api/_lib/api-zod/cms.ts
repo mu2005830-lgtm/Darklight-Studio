@@ -30,6 +30,7 @@ export const SiteSettingsResponse = zod.object({
   heroSubtitle: zod.string(),
   heroCtaText: zod.string(),
   heroCtaUrl: zod.string(),
+  whatsappNumber: zod.string(),
   updatedAt: zod.coerce.date(),
 });
 

@@ -24,6 +24,7 @@ export interface SiteSettings {
   heroSubtitle: string;
   heroCtaText: string;
   heroCtaUrl: string;
+  whatsappNumber: string;
   updatedAt: string;
 }
 

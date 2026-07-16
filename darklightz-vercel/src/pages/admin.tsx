@@ -296,8 +296,16 @@ function DashboardSection() {
 // Services Section
 // ============================================================================
 
-type ServiceForm = { title: string; slug: string; summary: string; description: string; icon: string; sortOrder: string }
-const EMPTY_SERVICE: ServiceForm = { title: "", slug: "", summary: "", description: "", icon: "✦", sortOrder: "0" }
+type ServiceForm = {
+  title: string; slug: string; summary: string; description: string; icon: string; sortOrder: string;
+  category: string; price: string; deliveryTime: string; heroImage: string;
+  featuredBadge: string; ctaText: string; whatsIncluded: string; processSteps: string;
+}
+const EMPTY_SERVICE: ServiceForm = {
+  title: "", slug: "", summary: "", description: "", icon: "✦", sortOrder: "0",
+  category: "website-services", price: "", deliveryTime: "", heroImage: "",
+  featuredBadge: "", ctaText: "Get Started", whatsIncluded: "", processSteps: "",
+}
 
 function ServicesSection() {
   const qc = useQueryClient()
@@ -311,11 +319,33 @@ function ServicesSection() {
   const f = (k: keyof ServiceForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm(p => ({ ...p, [k]: e.target.value }))
 
   function openCreate() { setEditing(null); setForm(EMPTY_SERVICE); setOpen(true) }
-  function openEdit(item: typeof items[0]) { setEditing(item.id); setForm({ title: item.title, slug: item.slug, summary: item.summary, description: item.description, icon: item.icon, sortOrder: String(item.sortOrder) }); setOpen(true) }
+  function openEdit(item: typeof items[0]) {
+    setEditing(item.id)
+    setForm({
+      title: item.title, slug: item.slug, summary: item.summary ?? "", description: item.description ?? "",
+      icon: item.icon ?? "✦", sortOrder: String(item.sortOrder ?? 0),
+      category: (item as any).category ?? "website-services",
+      price: (item as any).price ?? "",
+      deliveryTime: (item as any).deliveryTime ?? "",
+      heroImage: (item as any).heroImage ?? "",
+      featuredBadge: (item as any).featuredBadge ?? "",
+      ctaText: (item as any).ctaText ?? "Get Started",
+      whatsIncluded: ((item as any).whatsIncluded ?? []).join("\n"),
+      processSteps: ((item as any).processSteps ?? []).join("\n"),
+    })
+    setOpen(true)
+  }
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const body = { title: form.title, slug: form.slug, summary: form.summary, description: form.description, icon: form.icon, sortOrder: Number(form.sortOrder) }
-    editing !== null ? updateM.mutate({ id: editing, body }) : createM.mutate(body)
+    const body = {
+      title: form.title, slug: form.slug, summary: form.summary, description: form.description,
+      icon: form.icon, sortOrder: Number(form.sortOrder),
+      category: form.category, price: form.price, deliveryTime: form.deliveryTime,
+      heroImage: form.heroImage, featuredBadge: form.featuredBadge, ctaText: form.ctaText,
+      whatsIncluded: form.whatsIncluded.split("\n").map(s => s.trim()).filter(Boolean),
+      processSteps: form.processSteps.split("\n").map(s => s.trim()).filter(Boolean),
+    }
+    editing !== null ? updateM.mutate({ id: editing, body }) : createM.mutate(body as any)
   }
 
   return (
@@ -326,16 +356,18 @@ function ServicesSection() {
           <table className="w-full text-sm">
             <thead><tr className="border-b border-white/10">
               <th className="text-left p-4 text-xs text-neutral-500 font-medium uppercase tracking-wider">Title</th>
-              <th className="text-left p-4 text-xs text-neutral-500 font-medium uppercase tracking-wider">Slug</th>
-              <th className="text-left p-4 text-xs text-neutral-500 font-medium uppercase tracking-wider">Icon</th>
+              <th className="text-left p-4 text-xs text-neutral-500 font-medium uppercase tracking-wider">Category</th>
+              <th className="text-left p-4 text-xs text-neutral-500 font-medium uppercase tracking-wider">Price</th>
+              <th className="text-left p-4 text-xs text-neutral-500 font-medium uppercase tracking-wider">Delivery</th>
               <th className="p-4 w-20"></th>
             </tr></thead>
             <tbody>
               {items.map(item => (
                 <tr key={item.id} className="border-b border-white/5 hover:bg-white/2">
                   <td className="p-4 text-white">{item.title}</td>
-                  <td className="p-4 text-neutral-500 font-mono text-xs">{item.slug}</td>
-                  <td className="p-4 text-neutral-400">{item.icon}</td>
+                  <td className="p-4 text-neutral-400 text-xs">{(item as any).category ?? "—"}</td>
+                  <td className="p-4 text-neutral-300 text-xs font-mono">{(item as any).price || "—"}</td>
+                  <td className="p-4 text-neutral-400 text-xs">{(item as any).deliveryTime || "—"}</td>
                   <td className="p-4"><RowActions onEdit={() => openEdit(item)} onDelete={() => { if (confirmDelete(item.title)) deleteM.mutate(item.id) }} /></td>
                 </tr>
               ))}
@@ -344,21 +376,55 @@ function ServicesSection() {
         )}
       </div>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-[#050505] border-white/10 text-white max-w-lg">
+        <DialogContent className="bg-[#050505] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-display">{editing !== null ? "Edit Service" : "Add Service"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 mt-2">
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Title"><Input className={inputCls} value={form.title} onChange={f("title")} required /></FormField>
-              <FormField label="Slug"><Input className={inputCls} value={form.slug} onChange={f("slug")} required /></FormField>
+              <FormField label="Slug"><Input className={inputCls} value={form.slug} onChange={f("slug")} required placeholder="landing-page" /></FormField>
             </div>
-            <FormField label="Summary"><Textarea className={inputCls} value={form.summary} onChange={f("summary")} rows={2} required /></FormField>
-            <FormField label="Description"><Textarea className={inputCls} value={form.description} onChange={f("description")} rows={4} required /></FormField>
+            <FormField label="Summary (short)"><Textarea className={inputCls} value={form.summary} onChange={f("summary")} rows={2} required /></FormField>
+            <FormField label="Description (full)"><Textarea className={inputCls} value={form.description} onChange={f("description")} rows={3} /></FormField>
+
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Icon"><Input className={inputCls} value={form.icon} onChange={f("icon")} placeholder="✦" /></FormField>
-              <FormField label="Sort Order"><Input className={inputCls} type="number" value={form.sortOrder} onChange={f("sortOrder")} /></FormField>
+              <FormField label="Category">
+                <Select value={form.category} onValueChange={(v) => setForm(p => ({ ...p, category: v }))}>
+                  <SelectTrigger className={inputCls}><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-[#0a0a0a] border-white/10">
+                    <SelectItem value="website-services" className="text-white focus:bg-white/10">Website Services</SelectItem>
+                    <SelectItem value="content-creation" className="text-white focus:bg-white/10">Content Creation</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+              <FormField label="Featured Badge"><Input className={inputCls} value={form.featuredBadge} onChange={f("featuredBadge")} placeholder="Popular / Premium / Trending" /></FormField>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="Price"><Input className={inputCls} value={form.price} onChange={f("price")} placeholder="From PKR 6,000" /></FormField>
+              <FormField label="Delivery Time"><Input className={inputCls} value={form.deliveryTime} onChange={f("deliveryTime")} placeholder="3–5 days" /></FormField>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="CTA Button Text"><Input className={inputCls} value={form.ctaText} onChange={f("ctaText")} placeholder="Get Started" /></FormField>
+              <FormField label="Icon"><Input className={inputCls} value={form.icon} onChange={f("icon")} placeholder="✦" /></FormField>
+            </div>
+
+            <FormField label="Hero Image URL"><Input className={inputCls} value={form.heroImage} onChange={f("heroImage")} placeholder="https://…" /></FormField>
+
+            <FormField label="What's Included (one per line)">
+              <Textarea className={inputCls} value={form.whatsIncluded} onChange={f("whatsIncluded")} rows={5}
+                placeholder={"Custom design\nMobile responsive\nContact form\nSEO meta tags"} />
+            </FormField>
+
+            <FormField label="Process Steps (one per line, max 7)">
+              <Textarea className={inputCls} value={form.processSteps} onChange={f("processSteps")} rows={7}
+                placeholder={"Discovery — learn your goals.\nPlanning — structure and flow.\nDesign — premium layout.\nDevelopment — clean code.\nReview — your feedback.\nDelivery — live handover.\nSupport — 30-day post-launch."} />
+            </FormField>
+
+            <FormField label="Sort Order"><Input className={inputCls} type="number" value={form.sortOrder} onChange={f("sortOrder")} /></FormField>
+
             <div className="flex gap-3 pt-2">
-              <Button type="submit" className="bg-white text-black hover:bg-neutral-200">Save</Button>
+              <Button type="submit" disabled={createM.isPending || updateM.isPending} className="bg-white text-black hover:bg-neutral-200">Save</Button>
               <Button type="button" variant="outline" className="border-white/10 text-white hover:bg-white/5" onClick={() => setOpen(false)}>Cancel</Button>
             </div>
           </form>
@@ -1189,11 +1255,19 @@ function FaviconUpload({ value, onChange }: { value: string; onChange: (url: str
 // Site Settings Section
 // ============================================================================
 
+const DEFAULT_SITE_SETTINGS: Record<string, string> = {
+  siteName: "Darklightz Studio", tagline: "", logoText: "DARKLIGHTZ", logoUrl: "",
+  contactEmail: "", contactPhone: "", contactAddress: "", whatsappNumber: "+923351468615",
+  seoTitle: "Darklightz Studio", seoDescription: "", ogImageUrl: "", faviconUrl: "",
+  heroTitle: "", heroSubtitle: "", heroCtaText: "", heroCtaUrl: "",
+  primaryColor: "#ffffff", accentColor: "#ffffff", fontHeading: "Syne", fontBody: "Plus Jakarta Sans",
+}
+
 function SiteSettingsSection() {
   const qc = useQueryClient()
-  const { data: settings } = useGetSiteSettings()
+  const { data: settings, isLoading, isError } = useGetSiteSettings()
   const updateM = useUpdateSiteSettings({ onSuccess: () => qc.invalidateQueries({ queryKey: getSiteSettingsQueryKey() }) })
-  const [form, setForm] = useState<Record<string, string>>({})
+  const [form, setForm] = useState<Record<string, string>>(DEFAULT_SITE_SETTINGS)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
@@ -1201,7 +1275,9 @@ function SiteSettingsSection() {
       setForm({
         siteName: settings.siteName, tagline: settings.tagline,
         logoText: settings.logoText, logoUrl: settings.logoUrl,
-        contactEmail: settings.contactEmail, contactPhone: settings.contactPhone, contactAddress: settings.contactAddress,
+        contactEmail: settings.contactEmail, contactPhone: settings.contactPhone,
+        contactAddress: settings.contactAddress,
+        whatsappNumber: (settings as any).whatsappNumber ?? "+923351468615",
         seoTitle: settings.seoTitle, seoDescription: settings.seoDescription, ogImageUrl: settings.ogImageUrl, faviconUrl: settings.faviconUrl,
         heroTitle: settings.heroTitle, heroSubtitle: settings.heroSubtitle, heroCtaText: settings.heroCtaText, heroCtaUrl: settings.heroCtaUrl,
         primaryColor: settings.primaryColor, accentColor: settings.accentColor, fontHeading: settings.fontHeading, fontBody: settings.fontBody,
@@ -1216,11 +1292,16 @@ function SiteSettingsSection() {
     updateM.mutate(form as any, { onSuccess: () => { setSaved(true); setTimeout(() => setSaved(false), 2000) } })
   }
 
-  if (!settings) return <p className="text-neutral-500 text-sm">Loading…</p>
+  if (isLoading) return <p className="text-neutral-500 text-sm">Loading…</p>
 
   return (
     <div>
       <SectionHeader title="Site Settings" />
+      {isError && (
+        <div className="mb-6 p-4 border border-yellow-500/30 bg-yellow-500/5 rounded-[2px] text-xs text-yellow-400">
+          Could not load saved settings from the database — showing defaults. Changes will be saved once DATABASE_URL is configured in Vercel.
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
 
         <div className="bg-[#050505] border border-white/10 p-6 space-y-4">
@@ -1239,6 +1320,9 @@ function SiteSettingsSection() {
             <FormField label="Email"><Input className={inputCls} value={form.contactEmail ?? ""} onChange={f("contactEmail")} /></FormField>
             <FormField label="Phone"><Input className={inputCls} value={form.contactPhone ?? ""} onChange={f("contactPhone")} /></FormField>
           </div>
+          <FormField label="WhatsApp Number">
+            <Input className={inputCls} value={form.whatsappNumber ?? ""} onChange={f("whatsappNumber")} placeholder="+923351468615" />
+          </FormField>
           <FormField label="Address"><Input className={inputCls} value={form.contactAddress ?? ""} onChange={f("contactAddress")} /></FormField>
         </div>
 
