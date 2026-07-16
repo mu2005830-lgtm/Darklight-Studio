@@ -5,7 +5,6 @@ import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { CinematicLoader } from '@/components/CinematicLoader';
-import { PageTransition } from '@/components/PageTransition';
 import { ScrollProgress } from '@/components/ScrollProgress';
 import { ThemeProvider } from '@/lib/theme';
 import { useFavicon } from '@/hooks/use-favicon';
@@ -42,23 +41,21 @@ const queryClient = new QueryClient({
 
 function Router() {
   return (
-    <PageTransition>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/services" component={Services} />
-        <Route path="/portfolio" component={Portfolio} />
-        <Route path="/case-studies" component={CaseStudies} />
-        <Route path="/case-studies/:slug" component={CaseStudyDetail} />
-        <Route path="/about" component={About} />
-        <Route path="/pricing" component={Pricing} />
-        <Route path="/blog" component={Blog} />
-        <Route path="/blog/:slug" component={BlogDetail} />
-        <Route path="/contact" component={Contact} />
-        <Route path="/book-a-call" component={BookACall} />
-        <Route path="/admin" component={AdminDashboard} />
-        <Route component={NotFound} />
-      </Switch>
-    </PageTransition>
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/services" component={Services} />
+      <Route path="/portfolio" component={Portfolio} />
+      <Route path="/case-studies" component={CaseStudies} />
+      <Route path="/case-studies/:slug" component={CaseStudyDetail} />
+      <Route path="/about" component={About} />
+      <Route path="/pricing" component={Pricing} />
+      <Route path="/blog" component={Blog} />
+      <Route path="/blog/:slug" component={BlogDetail} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/book-a-call" component={BookACall} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 

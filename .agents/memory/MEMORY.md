@@ -1,2 +1,3 @@
 - [Vercel Express catch-all API + Vite SPA rewrites](vercel-express-catchall-spa-rewrites.md) — SPA fallback rewrite can swallow /api routes; zero-config catch-all route can be single-segment only.
 - [PageTransition + CinematicLoader pattern](page-transition-pattern.md) — must wrap CinematicLoader in AnimatePresence; use mode=wait + initial=false for PageTransition.
+- [Lazy loading + AnimatePresence incompatibility](lazy-animatepresence.md) — React.lazy + AnimatePresence mode=wait deadlock; use eager imports instead.
