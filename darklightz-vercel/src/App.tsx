@@ -40,10 +40,23 @@ function PageFallback() {
   return <div style={{ flex: 1, minHeight: '100dvh' }} />;
 }
 
+/**
+ * Suspense MUST wrap PageTransition from the outside — never inside it.
+ *
+ * Why: PageTransition uses AnimatePresence mode="wait". If a lazy chunk throws
+ * a Promise (Suspense mechanism) while AnimatePresence is mid-exit on the old
+ * motion.div, React cannot reliably commit the re-render when the Promise
+ * resolves because the component tree is in the process of being unmounted.
+ * Result: permanent blank screen until hard refresh.
+ *
+ * With Suspense outside, lazy chunks suspend at a level above AnimatePresence.
+ * Once the chunk loads, AnimatePresence sees a clean, fully-resolved tree and
+ * plays the enter animation correctly.
+ */
 function Router() {
   return (
-    <PageTransition>
-      <Suspense fallback={<PageFallback />}>
+    <Suspense fallback={<PageFallback />}>
+      <PageTransition>
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/services" component={Services} />
@@ -59,8 +72,8 @@ function Router() {
           <Route path="/admin" component={AdminDashboard} />
           <Route component={NotFound} />
         </Switch>
-      </Suspense>
-    </PageTransition>
+      </PageTransition>
+    </Suspense>
   );
 }
 
