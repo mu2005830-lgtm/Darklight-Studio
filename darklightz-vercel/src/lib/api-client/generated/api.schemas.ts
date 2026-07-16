@@ -17,6 +17,15 @@ export interface Service {
   description: string;
   icon: string;
   sortOrder: number;
+  // Phase 2
+  category: string;
+  heroImage: string;
+  price: string;
+  deliveryTime: string;
+  featuredBadge: string;
+  whatsIncluded: string[];
+  processSteps: string[];
+  ctaText: string;
 }
 
 export interface PortfolioProject {
@@ -54,6 +63,7 @@ export interface Testimonial {
   quote: string;
   avatarUrl: string;
   sortOrder: number;
+  serviceSlug: string;
 }
 
 export interface BlogPost {
@@ -65,7 +75,7 @@ export interface BlogPost {
   coverImageUrl: string;
   author: string;
   category: string;
-  publishedAt: string;
+  publishedAt: Date;
 }
 
 export interface PricingPlan {
@@ -79,115 +89,94 @@ export interface PricingPlan {
   sortOrder: number;
 }
 
-export interface ContactSubmissionInput {
-  /** @minLength 1 */
-  name: string;
-  /** @minLength 3 */
-  email: string;
-  company?: string;
-  budget?: string;
-  /** @minLength 1 */
-  message: string;
-}
-
-export type ContactSubmissionStatusUpdateStatus = typeof ContactSubmissionStatusUpdateStatus[keyof typeof ContactSubmissionStatusUpdateStatus];
-
-
-export const ContactSubmissionStatusUpdateStatus = {
-  new: 'new',
-  contacted: 'contacted',
-  archived: 'archived',
-} as const;
-
-export interface ContactSubmissionStatusUpdate {
-  status: ContactSubmissionStatusUpdateStatus;
-}
-
-export type ContactSubmissionStatus = typeof ContactSubmissionStatus[keyof typeof ContactSubmissionStatus];
-
-
-export const ContactSubmissionStatus = {
-  new: 'new',
-  contacted: 'contacted',
-  archived: 'archived',
-} as const;
-
 export interface ContactSubmission {
   id: number;
   name: string;
   email: string;
-  /** @nullable */
-  company: string | null;
-  /** @nullable */
-  budget: string | null;
+  company: string;
+  budget: string;
   message: string;
-  status: ContactSubmissionStatus;
-  createdAt: string;
+  status: string;
+  createdAt: Date;
 }
 
-export interface BookingInput {
-  /** @minLength 1 */
+export interface ContactSubmissionInput {
   name: string;
-  /** @minLength 3 */
   email: string;
   company?: string;
-  /** @minLength 1 */
-  service: string;
-  preferredDate: string;
+  budget?: string;
   message: string;
 }
 
-export type BookingStatusUpdateStatus = typeof BookingStatusUpdateStatus[keyof typeof BookingStatusUpdateStatus];
-
-
-export const BookingStatusUpdateStatus = {
-  pending: 'pending',
-  confirmed: 'confirmed',
-  completed: 'completed',
-  cancelled: 'cancelled',
+export type ContactSubmissionStatus = typeof ContactSubmissionStatus[keyof typeof ContactSubmissionStatus];
+export const ContactSubmissionStatus = {
+  new: 'new',
+  read: 'read',
+  archived: 'archived',
 } as const;
 
-export interface BookingStatusUpdate {
-  status: BookingStatusUpdateStatus;
+export interface ContactSubmissionStatusUpdate {
+  status: ContactSubmissionStatus;
 }
-
-export type BookingStatus = typeof BookingStatus[keyof typeof BookingStatus];
-
-
-export const BookingStatus = {
-  pending: 'pending',
-  confirmed: 'confirmed',
-  completed: 'completed',
-  cancelled: 'cancelled',
-} as const;
 
 export interface Booking {
   id: number;
   name: string;
   email: string;
-  /** @nullable */
-  company: string | null;
+  company: string;
   service: string;
   preferredDate: string;
-  /** @nullable */
-  message: string | null;
+  message: string;
+  status: string;
+  createdAt: Date;
+}
+
+export interface BookingInput {
+  name: string;
+  email: string;
+  company?: string;
+  service: string;
+  preferredDate: string;
+  message?: string;
+}
+
+export type BookingStatus = typeof BookingStatus[keyof typeof BookingStatus];
+export const BookingStatus = {
+  pending: 'pending',
+  confirmed: 'confirmed',
+  cancelled: 'cancelled',
+} as const;
+
+export interface BookingStatusUpdate {
   status: BookingStatus;
-  createdAt: string;
 }
 
 export interface DashboardSummary {
+  totalServices: number;
   totalPortfolioProjects: number;
   totalCaseStudies: number;
+  totalTestimonials: number;
   totalBlogPosts: number;
-  newContactSubmissions: number;
+  totalPricingPlans: number;
   totalContactSubmissions: number;
-  pendingBookings: number;
   totalBookings: number;
-  recentContactSubmissions: ContactSubmission[];
-  recentBookings: Booking[];
+  recentContactSubmissions: Array<{
+    id: number;
+    name: string;
+    email: string;
+    status: string;
+    createdAt: Date;
+  }>;
+  recentBookings: Array<{
+    id: number;
+    name: string;
+    email: string;
+    service: string;
+    status: string;
+    createdAt: Date;
+  }>;
 }
 
-export type ListPortfolioProjectsParams = {
-category?: string;
-};
-
+export interface ListPortfolioProjectsParams {
+  category?: string;
+}

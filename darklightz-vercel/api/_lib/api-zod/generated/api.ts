@@ -27,7 +27,15 @@ export const ListServicesResponseItem = zod.object({
   "summary": zod.string(),
   "description": zod.string(),
   "icon": zod.string(),
-  "sortOrder": zod.number()
+  "sortOrder": zod.number(),
+  "category": zod.string(),
+  "heroImage": zod.string(),
+  "price": zod.string(),
+  "deliveryTime": zod.string(),
+  "featuredBadge": zod.string(),
+  "whatsIncluded": zod.array(zod.string()),
+  "processSteps": zod.array(zod.string()),
+  "ctaText": zod.string(),
 })
 export const ListServicesResponse = zod.array(ListServicesResponseItem)
 
@@ -94,10 +102,10 @@ export const ListCaseStudiesResponse = zod.array(ListCaseStudiesResponseItem)
 
 
 /**
- * @summary Get a case study by slug
+ * @summary Get a case study
  */
 export const GetCaseStudyParams = zod.object({
-  "slug": zod.coerce.string()
+  "slug": zod.string()
 })
 
 export const GetCaseStudyResponse = zod.object({
@@ -126,7 +134,8 @@ export const ListTestimonialsResponseItem = zod.object({
   "company": zod.string(),
   "quote": zod.string(),
   "avatarUrl": zod.string(),
-  "sortOrder": zod.number()
+  "sortOrder": zod.number(),
+  "serviceSlug": zod.string(),
 })
 export const ListTestimonialsResponse = zod.array(ListTestimonialsResponseItem)
 
@@ -149,10 +158,10 @@ export const ListBlogPostsResponse = zod.array(ListBlogPostsResponseItem)
 
 
 /**
- * @summary Get a blog post by slug
+ * @summary Get a blog post
  */
 export const GetBlogPostParams = zod.object({
-  "slug": zod.coerce.string()
+  "slug": zod.string()
 })
 
 export const GetBlogPostResponse = zod.object({
@@ -185,177 +194,78 @@ export const ListPricingPlansResponse = zod.array(ListPricingPlansResponseItem)
 
 
 /**
- * @summary Submit the contact form
+ * @summary Create a contact submission
  */
-
-export const createContactSubmissionBodyEmailMin = 3;
-
-
-
-
 export const CreateContactSubmissionBody = zod.object({
-  "name": zod.string().min(1),
-  "email": zod.string().min(createContactSubmissionBodyEmailMin),
+  "name": zod.string().min(2),
+  "email": zod.string().email(),
   "company": zod.string().optional(),
   "budget": zod.string().optional(),
-  "message": zod.string().min(1)
+  "message": zod.string().min(10)
 })
 
 export const CreateContactSubmissionResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "email": zod.string(),
-  "company": zod.string().nullable(),
-  "budget": zod.string().nullable(),
+  "company": zod.string(),
+  "budget": zod.string(),
   "message": zod.string(),
-  "status": zod.enum(['new', 'contacted', 'archived']),
+  "status": zod.string(),
   "createdAt": zod.coerce.date()
 })
 
 
 /**
- * @summary Submit a book-a-call request
+ * @summary Create a booking
  */
-
-export const createBookingBodyEmailMin = 3;
-
-
-
-
 export const CreateBookingBody = zod.object({
-  "name": zod.string().min(1),
-  "email": zod.string().min(createBookingBodyEmailMin),
+  "name": zod.string().min(2),
+  "email": zod.string().email(),
   "company": zod.string().optional(),
   "service": zod.string().min(1),
-  "preferredDate": zod.coerce.date(),
-  "message": zod.string()
+  "preferredDate": zod.string(),
+  "message": zod.string().optional()
 })
 
 export const CreateBookingResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "email": zod.string(),
-  "company": zod.string().nullable(),
+  "company": zod.string(),
   "service": zod.string(),
-  "preferredDate": zod.coerce.date(),
-  "message": zod.string().nullable(),
-  "status": zod.enum(['pending', 'confirmed', 'completed', 'cancelled']),
+  "preferredDate": zod.string(),
+  "message": zod.string(),
+  "status": zod.string(),
   "createdAt": zod.coerce.date()
 })
 
 
 /**
- * @summary Aggregate stats for the admin dashboard
+ * @summary Get dashboard summary
  */
 export const GetDashboardSummaryResponse = zod.object({
+  "totalServices": zod.number(),
   "totalPortfolioProjects": zod.number(),
   "totalCaseStudies": zod.number(),
+  "totalTestimonials": zod.number(),
   "totalBlogPosts": zod.number(),
-  "newContactSubmissions": zod.number(),
+  "totalPricingPlans": zod.number(),
   "totalContactSubmissions": zod.number(),
-  "pendingBookings": zod.number(),
   "totalBookings": zod.number(),
   "recentContactSubmissions": zod.array(zod.object({
-  "id": zod.number(),
-  "name": zod.string(),
-  "email": zod.string(),
-  "company": zod.string().nullable(),
-  "budget": zod.string().nullable(),
-  "message": zod.string(),
-  "status": zod.enum(['new', 'contacted', 'archived']),
-  "createdAt": zod.coerce.date()
-})),
+    "id": zod.number(),
+    "name": zod.string(),
+    "email": zod.string(),
+    "status": zod.string(),
+    "createdAt": zod.coerce.date()
+  })),
   "recentBookings": zod.array(zod.object({
-  "id": zod.number(),
-  "name": zod.string(),
-  "email": zod.string(),
-  "company": zod.string().nullable(),
-  "service": zod.string(),
-  "preferredDate": zod.coerce.date(),
-  "message": zod.string().nullable(),
-  "status": zod.enum(['pending', 'confirmed', 'completed', 'cancelled']),
-  "createdAt": zod.coerce.date()
-}))
+    "id": zod.number(),
+    "name": zod.string(),
+    "email": zod.string(),
+    "service": zod.string(),
+    "status": zod.string(),
+    "createdAt": zod.coerce.date()
+  }))
 })
-
-
-/**
- * @summary List contact form submissions
- */
-export const ListContactSubmissionsResponseItem = zod.object({
-  "id": zod.number(),
-  "name": zod.string(),
-  "email": zod.string(),
-  "company": zod.string().nullable(),
-  "budget": zod.string().nullable(),
-  "message": zod.string(),
-  "status": zod.enum(['new', 'contacted', 'archived']),
-  "createdAt": zod.coerce.date()
-})
-export const ListContactSubmissionsResponse = zod.array(ListContactSubmissionsResponseItem)
-
-
-/**
- * @summary Update a contact submission's status
- */
-export const UpdateContactSubmissionParams = zod.object({
-  "id": zod.coerce.number()
-})
-
-export const UpdateContactSubmissionBody = zod.object({
-  "status": zod.enum(['new', 'contacted', 'archived'])
-})
-
-export const UpdateContactSubmissionResponse = zod.object({
-  "id": zod.number(),
-  "name": zod.string(),
-  "email": zod.string(),
-  "company": zod.string().nullable(),
-  "budget": zod.string().nullable(),
-  "message": zod.string(),
-  "status": zod.enum(['new', 'contacted', 'archived']),
-  "createdAt": zod.coerce.date()
-})
-
-
-/**
- * @summary List book-a-call submissions
- */
-export const ListBookingsResponseItem = zod.object({
-  "id": zod.number(),
-  "name": zod.string(),
-  "email": zod.string(),
-  "company": zod.string().nullable(),
-  "service": zod.string(),
-  "preferredDate": zod.coerce.date(),
-  "message": zod.string().nullable(),
-  "status": zod.enum(['pending', 'confirmed', 'completed', 'cancelled']),
-  "createdAt": zod.coerce.date()
-})
-export const ListBookingsResponse = zod.array(ListBookingsResponseItem)
-
-
-/**
- * @summary Update a booking's status
- */
-export const UpdateBookingParams = zod.object({
-  "id": zod.coerce.number()
-})
-
-export const UpdateBookingBody = zod.object({
-  "status": zod.enum(['pending', 'confirmed', 'completed', 'cancelled'])
-})
-
-export const UpdateBookingResponse = zod.object({
-  "id": zod.number(),
-  "name": zod.string(),
-  "email": zod.string(),
-  "company": zod.string().nullable(),
-  "service": zod.string(),
-  "preferredDate": zod.coerce.date(),
-  "message": zod.string().nullable(),
-  "status": zod.enum(['pending', 'confirmed', 'completed', 'cancelled']),
-  "createdAt": zod.coerce.date()
-})
-
-

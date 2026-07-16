@@ -10,6 +10,15 @@ export const servicesTable = pgTable("services", {
   description: text("description").notNull(),
   icon: text("icon").notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
+  // Phase 2 — services system
+  category: text("category").notNull().default("website-services"),
+  heroImage: text("hero_image").notNull().default(""),
+  price: text("price").notNull().default(""),
+  deliveryTime: text("delivery_time").notNull().default(""),
+  featuredBadge: text("featured_badge").notNull().default(""),
+  whatsIncluded: text("whats_included").array().notNull().default([]),
+  processSteps: text("process_steps").array().notNull().default([]),
+  ctaText: text("cta_text").notNull().default("Get Started"),
 });
 
 export const insertServiceSchema = createInsertSchema(servicesTable).omit({

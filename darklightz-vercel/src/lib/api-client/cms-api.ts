@@ -29,6 +29,8 @@ import type {
   AdminTestimonialInput,
   AdminBlogPostInput,
   AdminPricingPlanInput,
+  InquiryInput,
+  Inquiry,
 } from "./cms-schemas";
 import type { Service, PortfolioProject, CaseStudy, Testimonial, BlogPost, PricingPlan } from "./generated/api.schemas";
 
@@ -424,6 +426,75 @@ export function useAdminDeletePricingPlan(
   return useMutation<void, ErrorType<unknown>, number>({
     mutationFn: (id) => customFetch<void>(`/api/admin/pricing/${id}`, { method: "DELETE" }),
     ...options,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// INQUIRIES
+// ---------------------------------------------------------------------------
+
+export function useCreateInquiry(
+  options?: UseMutationOptions<Inquiry, ErrorType<unknown>, InquiryInput>
+) {
+  return useMutation<Inquiry, ErrorType<unknown>, InquiryInput>({
+    mutationFn: (body) => json<Inquiry>("/api/inquiries", "POST", body),
+    ...options,
+  });
+}
+
+export const getServiceBySlugQueryKey = (slug: string): QueryKey => [`/api/services/${slug}`];
+
+export function useGetServiceBySlug(
+  slug: string,
+  options?: { query?: UseQueryOptions<Service, ErrorType<unknown>> }
+) {
+  return useQuery<Service, ErrorType<unknown>>({
+    queryKey: getServiceBySlugQueryKey(slug),
+    queryFn: () => customFetch<Service>(`/api/services/${slug}`),
+    enabled: !!slug,
+    ...options?.query,
+  });
+}
+
+export const getServicePortfolioQueryKey = (slug: string): QueryKey => [`/api/services/${slug}/portfolio`];
+
+export function useServicePortfolio(
+  slug: string,
+  options?: { query?: UseQueryOptions<import("./generated/api.schemas").PortfolioProject[], ErrorType<unknown>> }
+) {
+  return useQuery({
+    queryKey: getServicePortfolioQueryKey(slug),
+    queryFn: () => customFetch<import("./generated/api.schemas").PortfolioProject[]>(`/api/services/${slug}/portfolio`),
+    enabled: !!slug,
+    ...options?.query,
+  });
+}
+
+export const getServiceFaqsQueryKey = (slug: string): QueryKey => [`/api/services/${slug}/faqs`];
+
+export function useServiceFaqs(
+  slug: string,
+  options?: { query?: UseQueryOptions<import("./cms-schemas").FaqItem[], ErrorType<unknown>> }
+) {
+  return useQuery({
+    queryKey: getServiceFaqsQueryKey(slug),
+    queryFn: () => customFetch<import("./cms-schemas").FaqItem[]>(`/api/services/${slug}/faqs`),
+    enabled: !!slug,
+    ...options?.query,
+  });
+}
+
+export const getServiceTestimonialsQueryKey = (slug: string): QueryKey => [`/api/services/${slug}/testimonials`];
+
+export function useServiceTestimonials(
+  slug: string,
+  options?: { query?: UseQueryOptions<Testimonial[], ErrorType<unknown>> }
+) {
+  return useQuery({
+    queryKey: getServiceTestimonialsQueryKey(slug),
+    queryFn: () => customFetch<Testimonial[]>(`/api/services/${slug}/testimonials`),
+    enabled: !!slug,
+    ...options?.query,
   });
 }
 

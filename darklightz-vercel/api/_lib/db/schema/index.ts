@@ -12,3 +12,5 @@ export * from "./social-links.js";
 export * from "./team-members.js";
 export * from "./faq-items.js";
 export * from "./clients.js";
+// Services System Phase 2
+export * from "./inquiries.js";

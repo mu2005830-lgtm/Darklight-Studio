@@ -59,6 +59,14 @@ router.post("/admin/services", async (req, res): Promise<void> => {
     description: parsed.data.description,
     icon: parsed.data.icon ?? "✦",
     sortOrder: parsed.data.sortOrder ?? 0,
+    category: parsed.data.category ?? "website-services",
+    heroImage: parsed.data.heroImage ?? "",
+    price: parsed.data.price ?? "",
+    deliveryTime: parsed.data.deliveryTime ?? "",
+    featuredBadge: parsed.data.featuredBadge ?? "",
+    whatsIncluded: parsed.data.whatsIncluded ?? [],
+    processSteps: parsed.data.processSteps ?? [],
+    ctaText: parsed.data.ctaText ?? "Get Started",
   }).returning();
   res.status(201).json(AdminServiceResponse.parse(row));
 });

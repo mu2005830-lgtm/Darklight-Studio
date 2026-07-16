@@ -102,6 +102,15 @@ export interface AdminServiceInput {
   description: string;
   icon?: string;
   sortOrder?: number;
+  // Phase 2
+  category?: string;
+  heroImage?: string;
+  price?: string;
+  deliveryTime?: string;
+  featuredBadge?: string;
+  whatsIncluded?: string[];
+  processSteps?: string[];
+  ctaText?: string;
 }
 
 export interface AdminPortfolioInput {
@@ -136,6 +145,7 @@ export interface AdminTestimonialInput {
   quote: string;
   avatarUrl?: string;
   sortOrder?: number;
+  serviceSlug?: string;
 }
 
 export interface AdminBlogPostInput {
@@ -157,4 +167,32 @@ export interface AdminPricingPlanInput {
   features?: string[];
   isFeatured?: boolean;
   sortOrder?: number;
+}
+
+// Inquiry
+export interface InquiryInput {
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  serviceSlug: string;
+  serviceTitle: string;
+  price?: string;
+  budget?: string;
+  description: string;
+}
+
+export interface Inquiry {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  serviceSlug: string;
+  serviceTitle: string;
+  price: string;
+  budget: string;
+  description: string;
+  status: string;
+  createdAt: string;
 }

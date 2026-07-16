@@ -10,6 +10,8 @@ export const testimonialsTable = pgTable("testimonials", {
   quote: text("quote").notNull(),
   avatarUrl: text("avatar_url").notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
+  // Phase 2 — service-specific testimonials (matches service slug, "" = global)
+  serviceSlug: text("service_slug").notNull().default(""),
 });
 
 export const insertTestimonialSchema = createInsertSchema(

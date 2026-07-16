@@ -18,6 +18,7 @@ import { useFavicon } from '@/hooks/use-favicon';
 // Eager imports remove Suspense from the equation entirely.
 import Home from '@/pages/home';
 import Services from '@/pages/services';
+import ServiceDetail from '@/pages/service-detail';
 import Portfolio from '@/pages/portfolio';
 import CaseStudies from '@/pages/case-studies';
 import CaseStudyDetail from '@/pages/case-study-detail';
@@ -44,6 +45,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/services" component={Services} />
+      {/* Service detail — must come after /services ─────────────────── */}
+      <Route path="/services/:slug" component={ServiceDetail} />
       <Route path="/portfolio" component={Portfolio} />
       <Route path="/case-studies" component={CaseStudies} />
       <Route path="/case-studies/:slug" component={CaseStudyDetail} />

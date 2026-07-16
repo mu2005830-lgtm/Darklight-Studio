@@ -143,7 +143,7 @@ export const UpdateClientBody = CreateClientBody.partial();
 export const DeleteClientParams = zod.object({ id: zod.coerce.number() });
 
 // =========================================================================
-// ADMIN CRUD — SERVICES
+// ADMIN CRUD — SERVICES (Phase 2 extended)
 // =========================================================================
 
 export const AdminServiceBody = zod.object({
@@ -153,6 +153,15 @@ export const AdminServiceBody = zod.object({
   description: zod.string().min(1),
   icon: zod.string().optional(),
   sortOrder: zod.number().optional(),
+  // Phase 2
+  category: zod.string().optional(),
+  heroImage: zod.string().optional(),
+  price: zod.string().optional(),
+  deliveryTime: zod.string().optional(),
+  featuredBadge: zod.string().optional(),
+  whatsIncluded: zod.array(zod.string()).optional(),
+  processSteps: zod.array(zod.string()).optional(),
+  ctaText: zod.string().optional(),
 });
 
 export const AdminServiceResponse = zod.object({
@@ -163,6 +172,14 @@ export const AdminServiceResponse = zod.object({
   description: zod.string(),
   icon: zod.string(),
   sortOrder: zod.number(),
+  category: zod.string(),
+  heroImage: zod.string(),
+  price: zod.string(),
+  deliveryTime: zod.string(),
+  featuredBadge: zod.string(),
+  whatsIncluded: zod.array(zod.string()),
+  processSteps: zod.array(zod.string()),
+  ctaText: zod.string(),
 });
 
 export const AdminUpdateServiceParams = zod.object({ id: zod.coerce.number() });
@@ -235,7 +252,7 @@ export const AdminUpdateCaseStudyParams = zod.object({ id: zod.coerce.number() }
 export const AdminDeleteCaseStudyParams = zod.object({ id: zod.coerce.number() });
 
 // =========================================================================
-// ADMIN CRUD — TESTIMONIALS
+// ADMIN CRUD — TESTIMONIALS (Phase 2: serviceSlug)
 // =========================================================================
 
 export const AdminTestimonialBody = zod.object({
@@ -245,6 +262,7 @@ export const AdminTestimonialBody = zod.object({
   quote: zod.string().min(1),
   avatarUrl: zod.string().optional(),
   sortOrder: zod.number().optional(),
+  serviceSlug: zod.string().optional(),
 });
 
 export const AdminTestimonialResponse = zod.object({
@@ -255,6 +273,7 @@ export const AdminTestimonialResponse = zod.object({
   quote: zod.string(),
   avatarUrl: zod.string(),
   sortOrder: zod.number(),
+  serviceSlug: zod.string(),
 });
 
 export const AdminUpdateTestimonialParams = zod.object({ id: zod.coerce.number() });
