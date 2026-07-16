@@ -16,14 +16,17 @@ import { cn } from "@/lib/utils"
 export const PremiumBackground = ({ className }: { className?: string }) => (
   <div
     aria-hidden="true"
-    className={cn("absolute inset-0 overflow-hidden pointer-events-none -z-10", className)}
+    className={cn("absolute inset-0 overflow-hidden pointer-events-none z-0", className)}
   >
-    {/* Soft radial glow — top right */}
+    {/* Soft radial glow — top right
+        mix-blend-mode: screen adds colour to the section background,
+        making the glow visible even through solid bg-background/bg-card. */}
     <div
       className="absolute top-[-15%] right-[-10%] w-[65vw] h-[65vw] rounded-full"
       style={{
         background: "radial-gradient(circle at center, var(--bg-glow-primary) 0%, transparent 65%)",
         animation: "ambient-pulse 16s ease-in-out infinite",
+        mixBlendMode: "screen",
       }}
     />
     {/* Soft radial glow — bottom left */}
@@ -32,6 +35,7 @@ export const PremiumBackground = ({ className }: { className?: string }) => (
       style={{
         background: "radial-gradient(circle at center, var(--bg-glow-secondary) 0%, transparent 65%)",
         animation: "ambient-pulse 20s ease-in-out infinite 4s",
+        mixBlendMode: "screen",
       }}
     />
     {/* Center ambient light */}
@@ -40,12 +44,13 @@ export const PremiumBackground = ({ className }: { className?: string }) => (
       style={{
         background: "radial-gradient(circle at center, var(--bg-glow-secondary) 0%, transparent 60%)",
         animation: "ambient-pulse 24s ease-in-out infinite 8s",
+        mixBlendMode: "screen",
       }}
     />
     {/* Silver light sweep — once every ~18s */}
     <div
       className="absolute inset-0 overflow-hidden"
-      style={{ opacity: "var(--sweep-opacity)" }}
+      style={{ opacity: "var(--sweep-opacity)", mixBlendMode: "screen" }}
     >
       <div
         className="absolute top-[25%] left-0 w-full h-[1px]"
