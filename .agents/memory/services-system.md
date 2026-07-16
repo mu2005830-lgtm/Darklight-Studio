@@ -25,9 +25,11 @@ description: Details of the complete services system built for Darklightz Studio
 `darklightz-vercel/supabase-migration-services-v2.sql` — run this in Supabase SQL Editor. Includes ALTER TABLE statements + full seed data for all 11 services.
 
 ## What still needs doing
-1. Run `supabase-migration-services-v2.sql` against Supabase — until then, pages show fallback data and inquiry form will 500
-2. Add new service fields (price, heroImage, processSteps, etc.) to admin dashboard editor
-3. Add Inquiries section to admin dashboard (`GET /admin/inquiries` + `PATCH /admin/inquiries/:id/status` routes already built)
+1. Run `supabase-migration-services-v2.sql` against Supabase — now also adds whatsapp_number column to site_settings. Until then, pages show fallback data and inquiry form will 500.
+2. Add Inquiries section to admin dashboard (`GET /admin/inquiries` + `PATCH /admin/inquiries/:id/status` routes already built)
+
+## WhatsApp number
++923351468615 — hardcoded in all src files, also configurable via Admin → Site Settings → Contact → WhatsApp Number once DB migration is run.
 
 ## Slug → service mapping
 website-services: landing-page, business-website, custom-website, shopify, wordpress, website-redesign, bug-fixes, website-maintenance
