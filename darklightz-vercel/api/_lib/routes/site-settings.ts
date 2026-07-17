@@ -34,8 +34,18 @@ const DEFAULT_SETTINGS = {
 };
 
 router.get("/site-settings", async (_req, res): Promise<void> => {
-  const [settings] = await db.select().from(siteSettingsTable).limit(1);
-  res.json(SiteSettingsResponse.parse(settings ?? DEFAULT_SETTINGS));
+  try {
+    const [settings] = await db.select().from(siteSettingsTable).limit(1);
+    // If no row OR row was created before migration (null siteName = uninitialized), fall back to defaults
+    if (!settings || settings.siteName == null) {
+      res.json(SiteSettingsResponse.parse(DEFAULT_SETTINGS));
+      return;
+    }
+    res.json(SiteSettingsResponse.parse(settings));
+  } catch {
+    // DB column missing (migration not yet run) — return defaults so admin form always loads
+    res.json(SiteSettingsResponse.parse(DEFAULT_SETTINGS));
+  }
 });
 
 router.put("/admin/site-settings", requireAdminKey, async (req, res): Promise<void> => {
