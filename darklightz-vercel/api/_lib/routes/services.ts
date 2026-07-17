@@ -11,17 +11,19 @@ import { ListServicesResponse } from "../api-zod/index.js";
 
 const router: IRouter = Router();
 
-// List all services — returns empty array if migration hasn't added new columns yet
-router.get("/services", async (_req, res): Promise<void> => {
+// List all services
+router.get("/services", async (_req, res, next): Promise<void> => {
   try {
     const services = await db
       .select()
       .from(servicesTable)
       .orderBy(servicesTable.sortOrder);
     res.json(ListServicesResponse.parse(services));
-  } catch {
-    // DB schema not yet migrated (e.g. new columns not yet added)
-    res.json([]);
+  } catch (err) {
+    // Surface the real error so it appears in Vercel function logs and the
+    // centralized error handler returns a 500 (instead of silently returning
+    // an empty array, which masks DB schema mismatches and Zod parse failures).
+    next(err);
   }
 });
 

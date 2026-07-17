@@ -15,7 +15,16 @@ create table if not exists services (
   summary text not null,
   description text not null,
   icon text not null,
-  sort_order integer not null default 0
+  sort_order integer not null default 0,
+  -- Phase 2 (services system)
+  category        text not null default 'website-services',
+  hero_image      text not null default '',
+  price           text not null default '',
+  delivery_time   text not null default '',
+  featured_badge  text not null default '',
+  whats_included  text[] not null default '{}',
+  process_steps   text[] not null default '{}',
+  cta_text        text not null default 'Get Started'
 );
 
 create table if not exists portfolio_projects (
@@ -52,7 +61,8 @@ create table if not exists testimonials (
   company text not null,
   quote text not null,
   avatar_url text not null,
-  sort_order integer not null default 0
+  sort_order integer not null default 0,
+  service_slug text not null default ''
 );
 
 create table if not exists blog_posts (
@@ -129,6 +139,7 @@ create table if not exists site_settings (
   hero_cta_text text not null default '',
   hero_cta_url text not null default '',
   updated_at timestamptz not null default now(),
+  whatsapp_number text not null default '+923351468615',
   singleton bool not null default true,
   constraint site_settings_singleton unique (singleton)
 );
