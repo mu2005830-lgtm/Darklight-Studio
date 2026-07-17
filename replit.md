@@ -57,6 +57,10 @@ Darklightz Studio agency marketing site: home/hero, services, work/portfolio, ca
 ## User preferences
 
 - Keep this project as a standalone Vercel/Supabase app rather than migrating it into Replit's pnpm-workspace artifacts model.
+- **Never change existing application logic unless explicitly asked.** Only modify the files required for the requested task.
+- **Never migrate, import, or recreate this project inside Replit.** Preserve the current structure, architecture, and business logic.
+- **Do not run the application in Replit.** Replit is for making code changes, committing, and preparing deployments — not for running the app locally.
+- **If deployment is required, ask for the `VERCEL_TOKEN` first** before attempting any deploy steps. Do not assume it is already set.
 
 ## Gotchas
 
