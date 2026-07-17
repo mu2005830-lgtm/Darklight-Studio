@@ -43,7 +43,7 @@ import { requireAdminKey } from "../lib/auth.js";
 import { rejectEmptyUpdate } from "../lib/validate-update.js";
 
 const router: IRouter = Router();
-router.use(requireAdminKey);
+router.use("/admin", requireAdminKey);
 
 // =========================================================================
 // SERVICES

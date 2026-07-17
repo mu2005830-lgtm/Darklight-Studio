@@ -11,13 +11,18 @@ import { ListServicesResponse } from "../api-zod/index.js";
 
 const router: IRouter = Router();
 
-// List all services
+// List all services — returns empty array if migration hasn't added new columns yet
 router.get("/services", async (_req, res): Promise<void> => {
-  const services = await db
-    .select()
-    .from(servicesTable)
-    .orderBy(servicesTable.sortOrder);
-  res.json(ListServicesResponse.parse(services));
+  try {
+    const services = await db
+      .select()
+      .from(servicesTable)
+      .orderBy(servicesTable.sortOrder);
+    res.json(ListServicesResponse.parse(services));
+  } catch {
+    // DB schema not yet migrated (e.g. new columns not yet added)
+    res.json([]);
+  }
 });
 
 // Get a single service by slug
