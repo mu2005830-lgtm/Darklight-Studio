@@ -2,9 +2,12 @@ import { Router, type IRouter } from "express";
 import { eq, desc, sql } from "drizzle-orm";
 import {
   db,
+  servicesTable,
   portfolioProjectsTable,
   caseStudiesTable,
+  testimonialsTable,
   blogPostsTable,
+  pricingPlansTable,
   contactSubmissionsTable,
   bookingsTable,
 } from "../db/index.js";
@@ -28,28 +31,24 @@ router.use(requireAdminKey);
 
 router.get("/admin/dashboard-summary", async (_req, res): Promise<void> => {
   const [
+    [{ count: totalServices }],
     [{ count: totalPortfolioProjects }],
     [{ count: totalCaseStudies }],
+    [{ count: totalTestimonials }],
     [{ count: totalBlogPosts }],
-    [{ count: newContactSubmissions }],
+    [{ count: totalPricingPlans }],
     [{ count: totalContactSubmissions }],
-    [{ count: pendingBookings }],
     [{ count: totalBookings }],
     recentContactSubmissions,
     recentBookings,
   ] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(servicesTable),
     db.select({ count: sql<number>`count(*)::int` }).from(portfolioProjectsTable),
     db.select({ count: sql<number>`count(*)::int` }).from(caseStudiesTable),
+    db.select({ count: sql<number>`count(*)::int` }).from(testimonialsTable),
     db.select({ count: sql<number>`count(*)::int` }).from(blogPostsTable),
-    db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(contactSubmissionsTable)
-      .where(eq(contactSubmissionsTable.status, "new")),
+    db.select({ count: sql<number>`count(*)::int` }).from(pricingPlansTable),
     db.select({ count: sql<number>`count(*)::int` }).from(contactSubmissionsTable),
-    db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(bookingsTable)
-      .where(eq(bookingsTable.status, "pending")),
     db.select({ count: sql<number>`count(*)::int` }).from(bookingsTable),
     db
       .select()
@@ -65,12 +64,13 @@ router.get("/admin/dashboard-summary", async (_req, res): Promise<void> => {
 
   res.json(
     GetDashboardSummaryResponse.parse({
+      totalServices,
       totalPortfolioProjects,
       totalCaseStudies,
+      totalTestimonials,
       totalBlogPosts,
-      newContactSubmissions,
+      totalPricingPlans,
       totalContactSubmissions,
-      pendingBookings,
       totalBookings,
       recentContactSubmissions,
       recentBookings,

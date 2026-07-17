@@ -337,3 +337,65 @@ export const AdminPricingPlanResponse = zod.object({
 
 export const AdminUpdatePricingPlanParams = zod.object({ id: zod.coerce.number() });
 export const AdminDeletePricingPlanParams = zod.object({ id: zod.coerce.number() });
+
+// =========================================================================
+// ADMIN — CONTACT SUBMISSIONS (list + status update)
+// =========================================================================
+
+export const ListContactSubmissionsResponse = zod.array(
+  zod.object({
+    id: zod.number(),
+    name: zod.string(),
+    email: zod.string(),
+    company: zod.string(),
+    budget: zod.string(),
+    message: zod.string(),
+    status: zod.string(),
+    createdAt: zod.coerce.date(),
+  }),
+);
+
+export const UpdateContactSubmissionParams = zod.object({ id: zod.coerce.number() });
+export const UpdateContactSubmissionBody = zod.object({ status: zod.string().min(1) });
+export const UpdateContactSubmissionResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  company: zod.string(),
+  budget: zod.string(),
+  message: zod.string(),
+  status: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+
+// =========================================================================
+// ADMIN — BOOKINGS (list + status update)
+// =========================================================================
+
+export const ListBookingsResponse = zod.array(
+  zod.object({
+    id: zod.number(),
+    name: zod.string(),
+    email: zod.string(),
+    company: zod.string(),
+    service: zod.string(),
+    preferredDate: zod.coerce.date(),
+    message: zod.string(),
+    status: zod.string(),
+    createdAt: zod.coerce.date(),
+  }),
+);
+
+export const UpdateBookingParams = zod.object({ id: zod.coerce.number() });
+export const UpdateBookingBody = zod.object({ status: zod.string().min(1) });
+export const UpdateBookingResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  company: zod.string(),
+  service: zod.string(),
+  preferredDate: zod.coerce.date(),
+  message: zod.string(),
+  status: zod.string(),
+  createdAt: zod.coerce.date(),
+});

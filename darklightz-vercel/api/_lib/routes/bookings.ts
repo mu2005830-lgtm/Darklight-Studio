@@ -18,7 +18,7 @@ router.post("/bookings", async (req, res): Promise<void> => {
       email: parsed.data.email,
       company: parsed.data.company ?? null,
       service: parsed.data.service,
-      preferredDate: parsed.data.preferredDate,
+      preferredDate: new Date(parsed.data.preferredDate),
       message: parsed.data.message ?? null,
     })
     .returning();
