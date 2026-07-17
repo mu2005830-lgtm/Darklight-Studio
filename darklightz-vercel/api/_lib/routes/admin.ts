@@ -26,8 +26,8 @@ import { requireAdminKey } from "../lib/auth.js";
 
 const router: IRouter = Router();
 
-// Apply to every route in this router
-router.use(requireAdminKey);
+// Only apply the admin key check to /admin/* routes
+router.use("/admin", requireAdminKey);
 
 router.get("/admin/dashboard-summary", async (_req, res): Promise<void> => {
   const [
