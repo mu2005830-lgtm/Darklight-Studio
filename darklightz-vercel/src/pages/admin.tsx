@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { format } from "date-fns"
 import { setAdminApiKey } from "@/lib/api-client"
+import { ImageUpload } from "@/components/ImageUpload"
 import {
   // ── public list hooks (reused for admin listing) ─────────────────────────
   useListServices,        getListServicesQueryKey,
@@ -409,7 +410,7 @@ function ServicesSection() {
               <FormField label="Icon"><Input className={inputCls} value={form.icon} onChange={f("icon")} placeholder="✦" /></FormField>
             </div>
 
-            <FormField label="Hero Image URL"><Input className={inputCls} value={form.heroImage} onChange={f("heroImage")} placeholder="https://…" /></FormField>
+            <FormField label="Hero Image URL"><ImageUpload value={form.heroImage} onChange={url => setForm(p => ({ ...p, heroImage: url }))} /></FormField>
 
             <FormField label="What's Included (one per line)">
               <Textarea className={inputCls} value={form.whatsIncluded} onChange={f("whatsIncluded")} rows={5}
@@ -497,7 +498,7 @@ function PortfolioSection() {
               <FormField label="Year"><Input className={inputCls} type="number" value={form.year} onChange={f("year")} required /></FormField>
             </div>
             <FormField label="Summary"><Textarea className={inputCls} value={form.summary} onChange={f("summary")} rows={2} required /></FormField>
-            <FormField label="Image URL"><Input className={inputCls} value={form.imageUrl} onChange={f("imageUrl")} placeholder="https://…" /></FormField>
+            <FormField label="Image URL"><ImageUpload value={form.imageUrl} onChange={url => setForm(p => ({ ...p, imageUrl: url }))} /></FormField>
             <FormField label="Tags (comma-separated)"><Input className={inputCls} value={form.tags} onChange={f("tags")} placeholder="Branding, Web, Motion" /></FormField>
             <FormField label="Sort Order"><Input className={inputCls} type="number" value={form.sortOrder} onChange={f("sortOrder")} /></FormField>
             <div className="flex gap-3 pt-2">
@@ -581,7 +582,7 @@ function CaseStudiesSection() {
             <FormField label="Challenge"><Textarea className={inputCls} value={form.challenge} onChange={f("challenge")} rows={3} required /></FormField>
             <FormField label="Solution"><Textarea className={inputCls} value={form.solution} onChange={f("solution")} rows={3} required /></FormField>
             <FormField label="Result"><Textarea className={inputCls} value={form.result} onChange={f("result")} rows={3} required /></FormField>
-            <FormField label="Image URL"><Input className={inputCls} value={form.imageUrl} onChange={f("imageUrl")} /></FormField>
+            <FormField label="Image URL"><ImageUpload value={form.imageUrl} onChange={url => setForm(p => ({ ...p, imageUrl: url }))} /></FormField>
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Metric Label"><Input className={inputCls} value={form.metricLabel} onChange={f("metricLabel")} placeholder="Growth" /></FormField>
               <FormField label="Metric Value"><Input className={inputCls} value={form.metricValue} onChange={f("metricValue")} placeholder="340%" /></FormField>
@@ -738,7 +739,7 @@ function BlogSection() {
               <FormField label="Published At"><Input className={`${inputCls} [color-scheme:dark]`} type="date" value={form.publishedAt} onChange={f("publishedAt")} /></FormField>
             </div>
             <FormField label="Excerpt"><Textarea className={inputCls} value={form.excerpt} onChange={f("excerpt")} rows={2} required /></FormField>
-            <FormField label="Cover Image URL"><Input className={inputCls} value={form.coverImageUrl} onChange={f("coverImageUrl")} placeholder="https://…" /></FormField>
+            <FormField label="Cover Image URL"><ImageUpload value={form.coverImageUrl} onChange={url => setForm(p => ({ ...p, coverImageUrl: url }))} /></FormField>
             <FormField label="Content (Markdown / HTML)"><Textarea className={`${inputCls} font-mono text-xs`} value={form.content} onChange={f("content")} rows={10} required /></FormField>
             <div className="flex gap-3 pt-2">
               <Button type="submit" className="bg-white text-black hover:bg-neutral-200">Save</Button>
@@ -1025,7 +1026,7 @@ function ClientsSection() {
           <DialogHeader><DialogTitle className="font-display">{editing !== null ? "Edit Client" : "Add Client"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 mt-2">
             <FormField label="Name"><Input className={inputCls} value={form.name} onChange={f("name")} required /></FormField>
-            <FormField label="Logo URL"><Input className={inputCls} value={form.logoUrl} onChange={f("logoUrl")} placeholder="https://…" /></FormField>
+            <FormField label="Logo URL"><ImageUpload value={form.logoUrl} onChange={url => setForm(p => ({ ...p, logoUrl: url }))} /></FormField>
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Website URL"><Input className={inputCls} value={form.websiteUrl} onChange={f("websiteUrl")} placeholder="https://…" /></FormField>
               <FormField label="Sort Order"><Input className={inputCls} type="number" value={form.sortOrder} onChange={f("sortOrder")} /></FormField>
@@ -1311,7 +1312,7 @@ function SiteSettingsSection() {
             <FormField label="Logo Text"><Input className={inputCls} value={form.logoText ?? ""} onChange={f("logoText")} /></FormField>
           </div>
           <FormField label="Tagline"><Input className={inputCls} value={form.tagline ?? ""} onChange={f("tagline")} /></FormField>
-          <FormField label="Logo URL"><Input className={inputCls} value={form.logoUrl ?? ""} onChange={f("logoUrl")} placeholder="https://…" /></FormField>
+          <FormField label="Logo URL"><ImageUpload value={form.logoUrl ?? ""} onChange={url => setForm(p => ({ ...p, logoUrl: url }))} /></FormField>
         </div>
 
         <div className="bg-[#050505] border border-white/10 p-6 space-y-4">
@@ -1330,11 +1331,11 @@ function SiteSettingsSection() {
           <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-4">SEO</h3>
           <FormField label="SEO Title"><Input className={inputCls} value={form.seoTitle ?? ""} onChange={f("seoTitle")} /></FormField>
           <FormField label="SEO Description"><Textarea className={inputCls} value={form.seoDescription ?? ""} onChange={f("seoDescription")} rows={3} /></FormField>
-          <FormField label="OG Image URL"><Input className={inputCls} value={form.ogImageUrl ?? ""} onChange={f("ogImageUrl")} placeholder="https://…" /></FormField>
+          <FormField label="OG Image URL"><ImageUpload value={form.ogImageUrl ?? ""} onChange={url => setForm(p => ({ ...p, ogImageUrl: url }))} /></FormField>
           <FormField label="Favicon">
-            <FaviconUpload
+            <ImageUpload
               value={form.faviconUrl ?? ""}
-              onChange={(url) => setForm(p => ({ ...p, faviconUrl: url }))}
+              onChange={url => setForm(p => ({ ...p, faviconUrl: url }))}
             />
           </FormField>
         </div>

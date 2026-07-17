@@ -18,6 +18,7 @@ import clientsRouter from "./clients.js";
 import adminContentRouter from "./admin-content.js";
 // Services System Phase 2
 import inquiriesRouter from "./inquiries.js";
+import uploadRouter from "./upload.js";
 
 const router: IRouter = Router();
 
@@ -40,5 +41,6 @@ router.use(clientsRouter);
 router.use(adminContentRouter);
 // Services System Phase 2
 router.use(inquiriesRouter);
+router.use(uploadRouter);
 
 export default router;
