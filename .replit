@@ -21,3 +21,11 @@ timeoutMs = 20000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+ADMIN_NOTIFICATION_EMAIL = "darklightzstudiu@gmail.com"
+FROM_EMAIL = "Darklightz Studio <darklightzstudiu@gmail.com>"
+SUPABASE_URL = "https://clhmisxqjinlcgmxhhsd.supabase.co"
+VITE_SUPABASE_URL = "https://clhmisxqjinlcgmxhhsd.supabase.co"
