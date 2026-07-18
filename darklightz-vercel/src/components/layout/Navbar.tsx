@@ -2,7 +2,7 @@ import * as React from "react"
 import { Link, useLocation } from "wouter"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
-import { Moon, Sun, Menu, X } from "lucide-react"
+import { Moon, Sun, Menu, X, LogIn } from "lucide-react"
 import { MagneticLink } from "@/components/effects"
 import { useTheme } from "@/lib/theme"
 
@@ -109,6 +109,16 @@ export function Navbar() {
               data-testid="link-nav-contact"
             >
               Contact
+            </Link>
+
+            {/* Client Portal link */}
+            <Link
+              href="/portal/login"
+              data-testid="link-nav-portal"
+              className="hidden md:flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground transition-colors border border-border hover:border-muted-foreground rounded-full px-4 h-9"
+            >
+              <LogIn className="w-3 h-3" />
+              Client Portal
             </Link>
 
             {/* Theme toggle */}
@@ -218,17 +228,23 @@ export function Navbar() {
               ))}
             </nav>
 
-            {/* Bottom CTA */}
+            {/* Bottom CTAs */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 12 }}
               transition={{ duration: 0.35, delay: navLinks.length * 0.055 + 0.05 }}
-              className="px-8 pb-12"
+              className="px-8 pb-12 flex flex-col gap-3"
             >
               <Link href="/book-a-call" className="block">
                 <span className="flex items-center justify-center w-full h-14 bg-foreground text-background text-[11px] font-bold uppercase tracking-[0.2em] rounded-full hover:opacity-85 transition-opacity">
                   Book a Call
+                </span>
+              </Link>
+              <Link href="/portal/login" className="block">
+                <span className="flex items-center justify-center gap-2 w-full h-12 border border-border text-foreground text-[11px] font-bold uppercase tracking-[0.2em] rounded-full hover:border-muted-foreground transition-colors">
+                  <LogIn className="w-3.5 h-3.5" />
+                  Client Portal
                 </span>
               </Link>
             </motion.div>
