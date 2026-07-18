@@ -19,6 +19,9 @@ import adminContentRouter from "./admin-content.js";
 // Services System Phase 2
 import inquiriesRouter from "./inquiries.js";
 import uploadRouter from "./upload.js";
+// Client Portal — Phase 3
+import portalRouter from "./portal.js";
+import adminPortalRouter from "./admin-portal.js";
 
 const router: IRouter = Router();
 
@@ -42,5 +45,8 @@ router.use(adminContentRouter);
 // Services System Phase 2
 router.use(inquiriesRouter);
 router.use(uploadRouter);
+// Client Portal — Phase 3
+router.use(portalRouter);
+router.use(adminPortalRouter);
 
 export default router;

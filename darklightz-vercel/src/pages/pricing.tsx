@@ -173,6 +173,10 @@ export default function Pricing() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
                 {plans.map((plan, i) => (
                   <BlurReveal key={plan.id} delay={i * 0.1}>
+                    <div
+                      onMouseEnter={() => setHighlighted(plan.id)}
+                      onMouseLeave={() => setHighlighted(null)}
+                    >
                     <TiltCard
                       className={`group relative rounded-[2px] p-8 border flex flex-col h-full transition-all duration-500 cursor-pointer ${
                         plan.isFeatured
@@ -181,8 +185,6 @@ export default function Pricing() {
                           ? "border-white/20 bg-card/60"
                           : "border-border bg-card/40"
                       }`}
-                      onMouseEnter={() => setHighlighted(plan.id)}
-                      onMouseLeave={() => setHighlighted(null)}
                     >
                       {plan.isFeatured && (
                         <>
@@ -240,6 +242,7 @@ export default function Pricing() {
                         </Link>
                       </div>
                     </TiltCard>
+                    </div>
                   </BlurReveal>
                 ))}
               </div>

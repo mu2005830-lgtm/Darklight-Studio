@@ -14,3 +14,5 @@ export * from "./faq-items.js";
 export * from "./clients.js";
 // Services System Phase 2
 export * from "./inquiries.js";
+// Client Portal — Phase 3
+export * from "./portal.js";

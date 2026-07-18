@@ -8,6 +8,7 @@ import { CinematicLoader } from '@/components/CinematicLoader';
 import { ScrollProgress } from '@/components/ScrollProgress';
 import { ThemeProvider } from '@/lib/theme';
 import { useFavicon } from '@/hooks/use-favicon';
+import { PortalAuthProvider, usePortalAuth } from '@/lib/portal-auth';
 
 // ── Eager imports — no Suspense, no lazy() ────────────────────────────────
 // React.lazy() + AnimatePresence mode="wait" are incompatible: while the old
@@ -31,6 +32,17 @@ import BookACall from '@/pages/book-a-call';
 import AdminDashboard from '@/pages/admin';
 import NotFound from '@/pages/not-found';
 
+// ── Portal pages ──────────────────────────────────────────────────────────
+import PortalLogin from '@/pages/portal/login';
+import PortalSignup from '@/pages/portal/signup';
+import PortalForgotPassword from '@/pages/portal/forgot-password';
+import PortalDashboard from '@/pages/portal/dashboard';
+import PortalProject from '@/pages/portal/project';
+import PortalMessages from '@/pages/portal/messages';
+import PortalRevisions from '@/pages/portal/revisions';
+import PortalSupport from '@/pages/portal/support';
+import PortalInvoices from '@/pages/portal/invoices';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -40,12 +52,35 @@ const queryClient = new QueryClient({
   },
 });
 
+// ── Portal route guard ────────────────────────────────────────────────────
+function RequirePortalAuth({ children }: { children: React.ReactNode }) {
+  const { user, loading } = usePortalAuth();
+  const [, setLocation] = [null, (path: string) => { window.location.href = path; }];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="w-px h-16 bg-white/20 animate-pulse" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    // Redirect to portal login
+    window.location.replace(`${import.meta.env.BASE_URL ?? '/'}portal/login`);
+    return null;
+  }
+
+  return <>{children}</>;
+}
+
 function Router() {
   return (
     <Switch>
+      {/* ── Public site ────────────────────────────────────────────────── */}
       <Route path="/" component={Home} />
       <Route path="/services" component={Services} />
-      {/* Service detail — must come after /services ─────────────────── */}
+      {/* Service detail — must come after /services */}
       <Route path="/services/:slug" component={ServiceDetail} />
       <Route path="/portfolio" component={Portfolio} />
       <Route path="/case-studies" component={CaseStudies} />
@@ -57,6 +92,56 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/book-a-call" component={BookACall} />
       <Route path="/admin" component={AdminDashboard} />
+
+      {/* ── Client Portal — public (auth pages) ──────────────────────── */}
+      <Route path="/portal/login" component={PortalLogin} />
+      <Route path="/portal/signup" component={PortalSignup} />
+      <Route path="/portal/forgot-password" component={PortalForgotPassword} />
+
+      {/* ── Client Portal — protected ─────────────────────────────────── */}
+      <Route path="/portal">
+        {() => (
+          <RequirePortalAuth>
+            <PortalDashboard />
+          </RequirePortalAuth>
+        )}
+      </Route>
+      <Route path="/portal/projects/:id">
+        {() => (
+          <RequirePortalAuth>
+            <PortalProject />
+          </RequirePortalAuth>
+        )}
+      </Route>
+      <Route path="/portal/messages">
+        {() => (
+          <RequirePortalAuth>
+            <PortalMessages />
+          </RequirePortalAuth>
+        )}
+      </Route>
+      <Route path="/portal/revisions">
+        {() => (
+          <RequirePortalAuth>
+            <PortalRevisions />
+          </RequirePortalAuth>
+        )}
+      </Route>
+      <Route path="/portal/support">
+        {() => (
+          <RequirePortalAuth>
+            <PortalSupport />
+          </RequirePortalAuth>
+        )}
+      </Route>
+      <Route path="/portal/invoices">
+        {() => (
+          <RequirePortalAuth>
+            <PortalInvoices />
+          </RequirePortalAuth>
+        )}
+      </Route>
+
       <Route component={NotFound} />
     </Switch>
   );
@@ -74,17 +159,19 @@ function App() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <AppInner />
-        <TooltipProvider>
-          <AnimatePresence>
-            {showLoader && <CinematicLoader onComplete={() => setShowLoader(false)} />}
-          </AnimatePresence>
-          <ScrollProgress />
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-            <Router />
-          </WouterRouter>
-          <Toaster />
-        </TooltipProvider>
+        <PortalAuthProvider>
+          <AppInner />
+          <TooltipProvider>
+            <AnimatePresence>
+              {showLoader && <CinematicLoader onComplete={() => setShowLoader(false)} />}
+            </AnimatePresence>
+            <ScrollProgress />
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+              <Router />
+            </WouterRouter>
+            <Toaster />
+          </TooltipProvider>
+        </PortalAuthProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

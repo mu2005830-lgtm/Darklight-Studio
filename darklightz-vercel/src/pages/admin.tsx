@@ -63,6 +63,7 @@ type Section =
   | "blog" | "pricing" | "faq" | "team" | "clients"
   | "contacts" | "bookings"
   | "site-settings" | "social-links"
+  | "portal-crm"
 
 // ============================================================================
 // AdminLogin — preserved exactly from original
@@ -219,8 +220,8 @@ function DashboardSection() {
     { label: "Portfolio Projects", value: summary?.totalPortfolioProjects ?? 0 },
     { label: "Case Studies",       value: summary?.totalCaseStudies       ?? 0 },
     { label: "Blog Posts",         value: summary?.totalBlogPosts         ?? 0 },
-    { label: "New Contacts",       value: summary?.newContactSubmissions  ?? 0 },
-    { label: "Pending Bookings",   value: summary?.pendingBookings        ?? 0 },
+    { label: "New Contacts",       value: summary?.totalContactSubmissions ?? 0 },
+    { label: "Recent Bookings",   value: summary?.totalBookings           ?? 0 },
     { label: "Total Bookings",     value: summary?.totalBookings          ?? 0 },
   ]
 
@@ -691,7 +692,7 @@ function BlogSection() {
   const [form, setForm] = useState<BlogForm>(EMPTY_BLOG)
   const f = (k: keyof BlogForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm(p => ({ ...p, [k]: e.target.value }))
 
-  function openEdit(item: typeof items[0]) { setEditing(item.id); setForm({ title: item.title, slug: item.slug, excerpt: item.excerpt, content: item.content, coverImageUrl: item.coverImageUrl, author: item.author, category: item.category, publishedAt: item.publishedAt ? item.publishedAt.split("T")[0] : EMPTY_BLOG.publishedAt }); setOpen(true) }
+  function openEdit(item: typeof items[0]) { setEditing(item.id); setForm({ title: item.title, slug: item.slug, excerpt: item.excerpt, content: item.content, coverImageUrl: item.coverImageUrl, author: item.author, category: item.category, publishedAt: item.publishedAt ? String(item.publishedAt).split("T")[0] : EMPTY_BLOG.publishedAt }); setOpen(true) }
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const body = { ...form, publishedAt: form.publishedAt ? new Date(form.publishedAt).toISOString() : undefined }
@@ -1441,6 +1442,489 @@ function SocialLinksSection() {
 }
 
 // ============================================================================
+// Portal CRM Section — Client Portal management
+// ============================================================================
+
+interface PortalClient {
+  id: number; supabaseUserId: string; email: string; name: string;
+  company: string; phone: string; createdAt: string;
+}
+interface PortalProject {
+  id: number; portalUserId: number; title: string; orderId: string;
+  serviceName: string; assignedTeamMember: string; status: string;
+  progressPct: number; startDate: string; estCompletionDate: string;
+  latestUpdate: string; createdAt: string;
+}
+interface PortalClientDetail extends PortalClient { projects: PortalProject[] }
+interface PortalMessage { id: number; portalUserId: number; sender: string; body: string; isRead: boolean; createdAt: string; projectId: number|null }
+interface PortalRevision { id: number; projectId: number; portalUserId: number; description: string; status: string; createdAt: string }
+interface PortalTicket { id: number; portalUserId: number; subject: string; body: string; status: string; createdAt: string }
+interface PortalInvoice { id: number; portalUserId: number; title: string; amountCents: number; currency: string; status: string; createdAt: string }
+
+function useAdminPortal<T>(path: string, key: string | null) {
+  const [data, setData] = React.useState<T | null>(null)
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState("")
+  const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? ""
+
+  async function load() {
+    if (!key) return
+    setLoading(true)
+    try {
+      const r = await fetch(`${base}/api/admin/portal/${path}`, { headers: { "x-admin-key": key } })
+      if (!r.ok) throw new Error(`${r.status}`)
+      setData(await r.json())
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Error") }
+    finally { setLoading(false) }
+  }
+
+  React.useEffect(() => { load() }, [path, key])
+  return { data, loading, error, reload: load }
+}
+
+const STATUS_BADGE: Record<string, string> = {
+  pending: "text-neutral-400 border-neutral-700",
+  active: "text-blue-400 border-blue-900",
+  in_progress: "text-amber-400 border-amber-900",
+  completed: "text-green-400 border-green-900",
+  cancelled: "text-red-400 border-red-900",
+  open: "text-amber-400 border-amber-900",
+  closed: "text-neutral-500 border-neutral-700",
+  draft: "text-neutral-500 border-neutral-700",
+  sent: "text-amber-400 border-amber-900",
+  paid: "text-green-400 border-green-900",
+  overdue: "text-red-400 border-red-900",
+}
+function SBadge({ s }: { s: string }) {
+  return <span className={`text-[10px] font-mono uppercase px-2 py-0.5 border ${STATUS_BADGE[s] ?? "text-neutral-500 border-neutral-700"}`}>{s.replace(/_/g," ")}</span>
+}
+
+function PortalCRMSection() {
+  const adminKey = sessionStorage.getItem(SESSION_KEY) ?? ""
+  const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? ""
+
+  const [tab, setTab] = React.useState<"clients"|"projects"|"messages"|"revisions"|"tickets"|"invoices">("clients")
+  const [clients, setClients] = React.useState<PortalClient[]>([])
+  const [projects, setProjects] = React.useState<PortalProject[]>([])
+  const [messages, setMessages] = React.useState<PortalMessage[]>([])
+  const [revisions, setRevisions] = React.useState<PortalRevision[]>([])
+  const [tickets, setTickets] = React.useState<PortalTicket[]>([])
+  const [invoices, setInvoices] = React.useState<PortalInvoice[]>([])
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState("")
+
+  // Selected client / project for detail
+  const [selectedClient, setSelectedClient] = React.useState<PortalClientDetail | null>(null)
+  const [selectedProject, setSelectedProject] = React.useState<PortalProject & { milestones?: unknown[]; files?: unknown[] } | null>(null)
+
+  // Forms
+  const [newProjectModal, setNewProjectModal] = React.useState(false)
+  const [editProject, setEditProject] = React.useState<PortalProject | null>(null)
+  const [msgModal, setMsgModal] = React.useState<{ userId: number; projectId?: number } | null>(null)
+  const [msgBody, setMsgBody] = React.useState("")
+  const [invModal, setInvModal] = React.useState<{ userId: number } | null>(null)
+  const [invForm, setInvForm] = React.useState({ title: "", amountCents: "", currency: "USD", status: "sent", issuedAt: "", dueAt: "" })
+
+  const h = { headers: { "x-admin-key": adminKey, "Content-Type": "application/json" } }
+
+  async function apiGet<T>(path: string): Promise<T> {
+    const r = await fetch(`${base}/api/admin/portal/${path}`, { headers: { "x-admin-key": adminKey } })
+    if (!r.ok) throw new Error(`${r.status}`)
+    return r.json()
+  }
+  async function apiPost<T>(path: string, body: unknown): Promise<T> {
+    const r = await fetch(`${base}/api/admin/portal/${path}`, { method: "POST", ...h, body: JSON.stringify(body) })
+    if (!r.ok) throw new Error(`${r.status} ${await r.text()}`)
+    return r.json()
+  }
+  async function apiPatch<T>(path: string, body: unknown): Promise<T> {
+    const r = await fetch(`${base}/api/admin/portal/${path}`, { method: "PATCH", ...h, body: JSON.stringify(body) })
+    if (!r.ok) throw new Error(`${r.status} ${await r.text()}`)
+    return r.json()
+  }
+
+  async function loadTab(t: typeof tab) {
+    setLoading(true); setError("")
+    try {
+      if (t === "clients") setClients(await apiGet("clients"))
+      if (t === "projects") setProjects(await apiGet("projects"))
+      if (t === "messages") setMessages(await apiGet("messages"))
+      if (t === "revisions") setRevisions(await apiGet("revisions"))
+      if (t === "tickets") setTickets(await apiGet("tickets"))
+      if (t === "invoices") setInvoices(await apiGet("invoices"))
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Error") }
+    finally { setLoading(false) }
+  }
+
+  React.useEffect(() => { loadTab(tab) }, [tab])
+
+  async function openClient(id: number) {
+    const data = await apiGet<PortalClientDetail>(`clients/${id}`)
+    setSelectedClient(data)
+  }
+
+  const TABS = [
+    { id: "clients", label: "Clients" },
+    { id: "projects", label: "Projects" },
+    { id: "messages", label: "Messages" },
+    { id: "revisions", label: "Revisions" },
+    { id: "tickets", label: "Tickets" },
+    { id: "invoices", label: "Invoices" },
+  ] as const
+
+  // ── New Project Form ────────────────────────────────────────────────────
+  function NewProjectForm({ onDone }: { onDone: () => void }) {
+    const clientList = clients.length ? clients : []
+    const [f, setF] = React.useState({ portalUserId: "", title: "", orderId: "", serviceName: "", assignedTeamMember: "", startDate: "", estCompletionDate: "" })
+    const [saving, setSaving] = React.useState(false)
+    async function submit(e: React.FormEvent) {
+      e.preventDefault(); setSaving(true)
+      try {
+        await apiPost("projects", { ...f, portalUserId: parseInt(f.portalUserId) })
+        onDone(); loadTab("projects")
+      } catch(e: unknown) { alert(e instanceof Error ? e.message : "Error") }
+      finally { setSaving(false) }
+    }
+    return (
+      <form onSubmit={submit} className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Client</label>
+            <select required value={f.portalUserId} onChange={e=>setF({...f,portalUserId:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2">
+              <option value="">Select client…</option>
+              {clientList.map(c=><option key={c.id} value={c.id}>{c.name||c.email}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Project Title</label>
+            <input required value={f.title} onChange={e=>setF({...f,title:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2" placeholder="Website Redesign" />
+          </div>
+          <div>
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Order ID</label>
+            <input value={f.orderId} onChange={e=>setF({...f,orderId:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2" placeholder="ORD-001" />
+          </div>
+          <div>
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Service</label>
+            <input value={f.serviceName} onChange={e=>setF({...f,serviceName:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2" placeholder="Brand Identity" />
+          </div>
+          <div>
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Assigned To</label>
+            <input value={f.assignedTeamMember} onChange={e=>setF({...f,assignedTeamMember:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2" placeholder="Team member name" />
+          </div>
+          <div>
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Start Date</label>
+            <input value={f.startDate} onChange={e=>setF({...f,startDate:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2" placeholder="Jan 1, 2025" />
+          </div>
+          <div className="col-span-2">
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Est. Completion</label>
+            <input value={f.estCompletionDate} onChange={e=>setF({...f,estCompletionDate:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2" placeholder="Mar 31, 2025" />
+          </div>
+        </div>
+        <div className="flex gap-2 pt-2">
+          <Button type="submit" disabled={saving} className="bg-white text-black hover:bg-neutral-200 text-sm">{saving?"Creating…":"Create Project"}</Button>
+          <Button type="button" variant="outline" onClick={onDone} className="border-white/15 text-neutral-400 hover:text-white">Cancel</Button>
+        </div>
+      </form>
+    )
+  }
+
+  // ── Edit Project Progress ───────────────────────────────────────────────
+  function EditProjectForm({ project, onDone }: { project: PortalProject; onDone: () => void }) {
+    const [f, setF] = React.useState({
+      status: project.status, progressPct: String(project.progressPct),
+      latestUpdate: project.latestUpdate, assignedTeamMember: project.assignedTeamMember,
+      estCompletionDate: project.estCompletionDate,
+    })
+    const [saving, setSaving] = React.useState(false)
+    async function submit(e: React.FormEvent) {
+      e.preventDefault(); setSaving(true)
+      try {
+        await apiPatch(`projects/${project.id}`, { ...f, progressPct: parseInt(f.progressPct) })
+        onDone(); loadTab("projects")
+      } catch(e: unknown) { alert(e instanceof Error ? e.message : "Error") }
+      finally { setSaving(false) }
+    }
+    return (
+      <form onSubmit={submit} className="space-y-3">
+        <p className="text-sm font-semibold text-white">{project.title}</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Status</label>
+            <select value={f.status} onChange={e=>setF({...f,status:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2">
+              {["pending","active","in_progress","completed","cancelled"].map(s=><option key={s} value={s}>{s.replace(/_/g," ")}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Progress %</label>
+            <input type="number" min="0" max="100" value={f.progressPct} onChange={e=>setF({...f,progressPct:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2" />
+          </div>
+          <div>
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Assigned To</label>
+            <input value={f.assignedTeamMember} onChange={e=>setF({...f,assignedTeamMember:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2" />
+          </div>
+          <div>
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Est. Completion</label>
+            <input value={f.estCompletionDate} onChange={e=>setF({...f,estCompletionDate:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2" />
+          </div>
+          <div className="col-span-2">
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Latest Update</label>
+            <Textarea value={f.latestUpdate} onChange={e=>setF({...f,latestUpdate:e.target.value})} rows={2} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2 resize-none" />
+          </div>
+        </div>
+        <div className="flex gap-2 pt-2">
+          <Button type="submit" disabled={saving} className="bg-white text-black hover:bg-neutral-200 text-sm">{saving?"Saving…":"Save Changes"}</Button>
+          <Button type="button" variant="outline" onClick={onDone} className="border-white/15 text-neutral-400 hover:text-white">Cancel</Button>
+        </div>
+      </form>
+    )
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-lg font-display font-bold text-white">Client Portal CRM</h2>
+          <p className="text-neutral-500 text-sm mt-1">Manage portal clients, projects, messages, and invoices.</p>
+        </div>
+        {tab === "projects" && (
+          <Button onClick={() => { setNewProjectModal(true); loadTab("clients") }} className="bg-white text-black hover:bg-neutral-200 text-sm gap-1.5">
+            <Plus className="w-3.5 h-3.5" /> New Project
+          </Button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 border-b border-white/10 pb-0">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => { setTab(t.id as typeof tab); setSelectedClient(null); setEditProject(null); setNewProjectModal(false) }}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${tab===t.id ? "border-white text-white" : "border-transparent text-neutral-500 hover:text-white"}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+      {loading && <p className="text-neutral-500 text-sm">Loading…</p>}
+
+      {/* New project form */}
+      {newProjectModal && !loading && (
+        <div className="border border-white/15 bg-white/[0.03] p-6 mb-6">
+          <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Create Project</h3>
+          <NewProjectForm onDone={() => setNewProjectModal(false)} />
+        </div>
+      )}
+
+      {/* Edit project form */}
+      {editProject && (
+        <div className="border border-white/15 bg-white/[0.03] p-6 mb-6">
+          <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Update Project</h3>
+          <EditProjectForm project={editProject} onDone={() => setEditProject(null)} />
+        </div>
+      )}
+
+      {/* Send message modal */}
+      {msgModal && (
+        <div className="border border-white/15 bg-white/[0.03] p-6 mb-6">
+          <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Send Message</h3>
+          <Textarea value={msgBody} onChange={e=>setMsgBody(e.target.value)} rows={3} placeholder="Write a message…" className="w-full bg-white/5 border border-white/10 text-white text-sm px-3 py-2 resize-none mb-3" />
+          <div className="flex gap-2">
+            <Button onClick={async()=>{ if(!msgBody.trim())return; await apiPost("messages",{portalUserId:msgModal.userId,projectId:msgModal.projectId,body:msgBody}); setMsgModal(null);setMsgBody(""); loadTab("messages") }} className="bg-white text-black hover:bg-neutral-200 text-sm">Send</Button>
+            <Button variant="outline" onClick={()=>setMsgModal(null)} className="border-white/15 text-neutral-400 hover:text-white">Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Invoice modal */}
+      {invModal && (
+        <div className="border border-white/15 bg-white/[0.03] p-6 mb-6">
+          <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Create Invoice</h3>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            {([["title","Title","Invoice for..."],["amountCents","Amount (cents)","10000"],["currency","Currency","USD"],["status","Status","sent"],["issuedAt","Issued At","2025-01-01"],["dueAt","Due At","2025-02-01"]] as const).map(([k,lbl,ph])=>(
+              <div key={k}>
+                <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">{lbl}</label>
+                <input value={(invForm as Record<string,string>)[k]} onChange={e=>setInvForm({...invForm,[k]:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2" placeholder={ph} />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={async()=>{ await apiPost("invoices",{portalUserId:invModal.userId,...invForm,amountCents:parseInt(invForm.amountCents||"0")}); setInvModal(null);setInvForm({title:"",amountCents:"",currency:"USD",status:"sent",issuedAt:"",dueAt:""}); loadTab("invoices") }} className="bg-white text-black hover:bg-neutral-200 text-sm">Create Invoice</Button>
+            <Button variant="outline" onClick={()=>setInvModal(null)} className="border-white/15 text-neutral-400 hover:text-white">Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Client detail panel */}
+      {selectedClient && (
+        <div className="border border-white/10 bg-white/[0.02] p-6 mb-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-semibold text-white">{selectedClient.name||selectedClient.email}</h3>
+              <p className="text-xs text-neutral-500 mt-0.5">{selectedClient.email} {selectedClient.company && `· ${selectedClient.company}`}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => setMsgModal({ userId: selectedClient.id })} variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs">Message</Button>
+              <Button size="sm" onClick={() => setInvModal({ userId: selectedClient.id })} variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs">Invoice</Button>
+              <Button size="sm" variant="outline" onClick={() => setSelectedClient(null)} className="border-white/15 text-neutral-400 hover:text-white text-xs">✕</Button>
+            </div>
+          </div>
+          <p className="text-xs text-neutral-600 uppercase tracking-wider font-mono mb-2">Projects ({selectedClient.projects.length})</p>
+          <div className="space-y-2">
+            {selectedClient.projects.length === 0 ? (
+              <p className="text-neutral-600 text-xs">No projects yet.</p>
+            ) : selectedClient.projects.map(p => (
+              <div key={p.id} className="flex items-center justify-between border border-white/5 px-4 py-3 bg-black">
+                <div>
+                  <p className="text-sm text-white">{p.title}</p>
+                  <p className="text-xs text-neutral-600 font-mono">{p.progressPct}% complete</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <SBadge s={p.status} />
+                  <Button size="sm" onClick={()=>setEditProject(p)} variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs">Edit</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Clients tab ────────────────────────────────────────────────── */}
+      {tab === "clients" && !loading && (
+        <div className="space-y-2">
+          {clients.length === 0 ? (
+            <p className="text-neutral-500 text-sm py-8 text-center">No portal clients yet. Clients appear here after they sign up.</p>
+          ) : clients.map(c => (
+            <div key={c.id} className="flex items-center justify-between border border-white/10 bg-white/[0.02] px-5 py-4 hover:bg-white/[0.04] transition-colors">
+              <div>
+                <p className="text-sm text-white font-medium">{c.name||"—"}</p>
+                <p className="text-xs text-neutral-500">{c.email} {c.company&&`· ${c.company}`}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button size="sm" onClick={()=>openClient(c.id)} variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs">View</Button>
+                <Button size="sm" onClick={()=>setMsgModal({userId:c.id})} variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs">Message</Button>
+                <Button size="sm" onClick={()=>setInvModal({userId:c.id})} variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs">Invoice</Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Projects tab ───────────────────────────────────────────────── */}
+      {tab === "projects" && !loading && (
+        <div className="space-y-2">
+          {projects.length === 0 ? (
+            <p className="text-neutral-500 text-sm py-8 text-center">No projects yet.</p>
+          ) : projects.map(p => (
+            <div key={p.id} className={`border border-white/10 bg-white/[0.02] px-5 py-4 ${editProject?.id===p.id?"border-white/20":""}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-white font-medium">{p.title}</p>
+                  <p className="text-xs text-neutral-500 mt-0.5">{p.serviceName} {p.orderId&&`· #${p.orderId}`} · {p.progressPct}% · {p.assignedTeamMember||"Unassigned"}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <SBadge s={p.status} />
+                  <Button size="sm" onClick={()=>setEditProject(editProject?.id===p.id?null:p)} variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs">Update</Button>
+                </div>
+              </div>
+              {p.latestUpdate && <p className="text-xs text-neutral-600 mt-2 line-clamp-1">{p.latestUpdate}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Messages tab ───────────────────────────────────────────────── */}
+      {tab === "messages" && !loading && (
+        <div className="space-y-2">
+          {messages.length === 0 ? <p className="text-neutral-500 text-sm py-8 text-center">No messages yet.</p> : messages.map(m=>(
+            <div key={m.id} className={`border px-5 py-4 ${m.sender==="client"&&!m.isRead?"border-white/20 bg-white/[0.04]":"border-white/10 bg-white/[0.02]"}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className={`text-[10px] font-mono uppercase px-2 py-0.5 border ${m.sender==="client"?"border-white/20 text-white bg-white/10":"border-white/10 text-neutral-500"}`}>{m.sender==="client"?"Client":"You"}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-neutral-600 font-mono">{new Date(m.createdAt).toLocaleDateString()}</span>
+                  {m.sender==="client"&&!m.isRead&&<span className="w-2 h-2 bg-white rounded-full"/>}
+                  {m.sender==="client"&&(
+                    <Button size="sm" onClick={()=>setMsgModal({userId:m.portalUserId,projectId:m.projectId??undefined})} variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs">Reply</Button>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-neutral-300 leading-relaxed">{m.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Revisions tab ──────────────────────────────────────────────── */}
+      {tab === "revisions" && !loading && (
+        <div className="space-y-2">
+          {revisions.length===0?<p className="text-neutral-500 text-sm py-8 text-center">No revision requests.</p>:revisions.map(r=>(
+            <div key={r.id} className="border border-white/10 bg-white/[0.02] px-5 py-4">
+              <div className="flex items-start justify-between gap-4">
+                <p className="text-sm text-neutral-300 flex-1">{r.description}</p>
+                <div className="flex items-center gap-2 shrink-0">
+                  <SBadge s={r.status} />
+                  <select value={r.status} onChange={async e=>{await apiPatch(`revisions/${r.id}`,{status:e.target.value});loadTab("revisions")}} className="bg-white/5 border border-white/10 text-white text-xs px-2 py-1">
+                    {["pending","in_progress","completed"].map(s=><option key={s} value={s}>{s.replace(/_/g," ")}</option>)}
+                  </select>
+                </div>
+              </div>
+              <p className="text-xs text-neutral-600 font-mono mt-2">{new Date(r.createdAt).toLocaleDateString()}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Tickets tab ────────────────────────────────────────────────── */}
+      {tab === "tickets" && !loading && (
+        <div className="space-y-2">
+          {tickets.length===0?<p className="text-neutral-500 text-sm py-8 text-center">No support tickets.</p>:tickets.map(t=>(
+            <div key={t.id} className="border border-white/10 bg-white/[0.02] px-5 py-4">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-sm text-white font-medium">{t.subject}</p>
+                <div className="flex items-center gap-2">
+                  <SBadge s={t.status} />
+                  <select value={t.status} onChange={async e=>{await apiPatch(`tickets/${t.id}`,{status:e.target.value});loadTab("tickets")}} className="bg-white/5 border border-white/10 text-white text-xs px-2 py-1">
+                    {["open","in_progress","closed"].map(s=><option key={s} value={s}>{s.replace(/_/g," ")}</option>)}
+                  </select>
+                  <Button size="sm" onClick={async()=>{const body=prompt("Reply:");if(body)await apiPost(`tickets/${t.id}/replies`,{body});}} variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs">Reply</Button>
+                </div>
+              </div>
+              <p className="text-xs text-neutral-500 line-clamp-2">{t.body}</p>
+              <p className="text-xs text-neutral-600 font-mono mt-2">{new Date(t.createdAt).toLocaleDateString()}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Invoices tab ───────────────────────────────────────────────── */}
+      {tab === "invoices" && !loading && (
+        <div>
+          <div className="flex justify-end mb-4">
+            <Button onClick={()=>setInvModal({userId:0})} className="bg-white text-black hover:bg-neutral-200 text-sm gap-1.5"><Plus className="w-3.5 h-3.5"/>New Invoice</Button>
+          </div>
+          <div className="space-y-2">
+            {invoices.length===0?<p className="text-neutral-500 text-sm py-8 text-center">No invoices yet.</p>:invoices.map(inv=>(
+              <div key={inv.id} className="border border-white/10 bg-white/[0.02] px-5 py-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-white font-medium">{inv.title}</p>
+                    <p className="text-xs text-neutral-500 font-mono">{(inv.amountCents/100).toFixed(2)} {inv.currency}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <SBadge s={inv.status} />
+                    <select value={inv.status} onChange={async e=>{await apiPatch(`invoices/${inv.id}`,{status:e.target.value});loadTab("invoices")}} className="bg-white/5 border border-white/10 text-white text-xs px-2 py-1">
+                      {["draft","sent","paid","overdue"].map(s=><option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
 // Sidebar
 // ============================================================================
 
@@ -1461,10 +1945,11 @@ const NAV: NavItem[] = [
   { id: "bookings",      label: "Bookings",     icon: Calendar,        group: "CRM" },
   { id: "site-settings", label: "Site Settings",icon: Settings,        group: "Settings" },
   { id: "social-links",  label: "Social Links", icon: LinkIcon,        group: "Settings" },
+  { id: "portal-crm",   label: "Client Portal", icon: Users,           group: "Portal CRM" },
 ]
 
 function Sidebar({ active, setActive, onLogout }: { active: Section; setActive: (s: Section) => void; onLogout: () => void }) {
-  const groups = ["Overview", "Content", "CRM", "Settings"]
+  const groups = ["Overview", "Content", "CRM", "Settings", "Portal CRM"]
 
   return (
     <aside className="w-56 shrink-0 bg-[#050505] border-r border-white/10 flex flex-col h-screen sticky top-0 overflow-y-auto">
@@ -1540,6 +2025,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     bookings:      <BookingsSection />,
     "site-settings": <SiteSettingsSection />,
     "social-links":  <SocialLinksSection />,
+    "portal-crm":    <PortalCRMSection />,
   }
 
   return (
