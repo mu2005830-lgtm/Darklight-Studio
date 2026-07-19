@@ -12,6 +12,44 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CheckCircle2, ArrowRight } from "lucide-react"
 import { Eyebrow, TextSliceReveal } from "@/components/effects"
 import { motion, AnimatePresence } from "framer-motion"
+import emailjs from "@emailjs/browser"
+
+// EmailJS credentials — public keys are safe on the frontend (EmailJS design)
+const EJS_SERVICE   = "service_bcnryac"
+const EJS_NOTIFY    = "template_xege7fl"   // notification to you (admin)
+const EJS_AUTOREPLY = "template_o2q56z1"   // auto-reply to customer
+const EJS_PUBLIC    = "ccdOoCFFbQawg-Qeg"
+
+async function sendEmailJS(values: {
+  name: string; email: string; company?: string; budget?: string; message: string
+}) {
+  const now = new Date()
+  const dateTime = now.toLocaleString("en-PK", {
+    day: "2-digit", month: "long", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: true,
+  })
+
+  const params = {
+    from_name:    values.name,
+    from_email:   values.email,
+    reply_to:     values.email,
+    company:      values.company  || "Not provided",
+    budget:       values.budget   || "Not specified",
+    message:      values.message,
+    date_time:    dateTime,
+    website_url:  typeof window !== "undefined" ? window.location.origin : "",
+  }
+
+  try {
+    // 1. Notification to admin
+    await emailjs.send(EJS_SERVICE, EJS_NOTIFY, params, EJS_PUBLIC)
+    // 2. Auto-reply to customer
+    await emailjs.send(EJS_SERVICE, EJS_AUTOREPLY, params, EJS_PUBLIC)
+  } catch (err) {
+    // Silent fail — DB submission already succeeded; log for debugging only
+    console.error("[EmailJS] Failed to send email notification:", err)
+  }
+}
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -40,6 +78,8 @@ export default function Contact() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     mutate({ data: values }, {
       onSuccess: () => {
+        // DB saved — fire EmailJS in the background, never block success UI
+        sendEmailJS(values)
         setIsSuccess(true)
       },
     })

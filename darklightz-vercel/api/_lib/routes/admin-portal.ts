@@ -21,9 +21,15 @@ import {
 import { requireAdminKey } from "../lib/auth.js";
 import {
   notifyClient,
+  notifyAdmin,
   emailNewMessage,
   emailStatusChanged,
   emailProjectCompleted,
+  emailReadyForReview,
+  emailProjectDelivered,
+  emailReviewInvite,
+  emailRequestInfo,
+  emailRequestFiles,
 } from "../lib/email.js";
 import { z } from "zod/v4";
 
@@ -586,6 +592,171 @@ router.patch("/admin/portal/invoices/:id", async (req, res): Promise<void> => {
     .returning();
   if (!updated) { res.status(404).json({ error: "Invoice not found" }); return; }
   res.json(updated);
+});
+
+// ── Project Workflow Actions ───────────────────────────────────────────────
+// POST /admin/portal/projects/:id/workflow
+// Body: { action, message?, files?: [{name,url}] }
+// Actions: notify-client | request-info | request-files | ready-for-review
+//          deliver | complete | reopen | archive | save-draft
+
+router.post("/admin/portal/projects/:id/workflow", async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+
+  const schema = z.object({
+    action: z.enum([
+      "notify-client", "request-info", "request-files",
+      "ready-for-review", "deliver", "complete", "reopen", "archive", "save-draft",
+    ]),
+    message: z.string().optional(),
+    files: z.array(z.object({ name: z.string(), url: z.string() })).optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const [project] = await db.select().from(portalProjectsTable).where(eq(portalProjectsTable.id, id));
+  if (!project) { res.status(404).json({ error: "Project not found" }); return; }
+
+  const [client] = await db.select().from(portalUsersTable).where(eq(portalUsersTable.id, project.portalUserId));
+  const clientName  = client?.name  || client?.email || "";
+  const clientEmail = client?.email || "";
+
+  const { action, message, files } = parsed.data;
+
+  if (action === "save-draft") {
+    const [updated] = await db.update(portalProjectsTable)
+      .set({ latestUpdate: message ?? project.latestUpdate, updatedAt: new Date() })
+      .where(eq(portalProjectsTable.id, id))
+      .returning();
+    res.json(updated);
+    return;
+  }
+
+  if (action === "notify-client") {
+    if (!message) { res.status(400).json({ error: "message required" }); return; }
+    await db.insert(portalMessagesTable).values({
+      portalUserId: project.portalUserId,
+      projectId: id,
+      sender: "admin",
+      body: message,
+    });
+    await db.insert(portalNotificationsTable).values({
+      portalUserId: project.portalUserId,
+      type: "message",
+      title: "Message from Darklightz",
+      body: message.slice(0, 200),
+    });
+    if (clientEmail) {
+      await notifyClient(clientEmail, `[Darklightz] Message: ${project.title}`,
+        emailNewMessage(clientName, "Darklightz Studio", project.title, message.slice(0, 200)));
+    }
+    res.json({ ok: true });
+    return;
+  }
+
+  if (action === "request-info") {
+    const body = message || "We need some additional information to continue.";
+    await db.insert(portalMessagesTable).values({ portalUserId: project.portalUserId, projectId: id, sender: "admin", body });
+    await db.insert(portalNotificationsTable).values({
+      portalUserId: project.portalUserId, type: "info",
+      title: "Information requested", body: body.slice(0, 200),
+    });
+    if (clientEmail) await notifyClient(clientEmail, `[Darklightz] Information needed: ${project.title}`, emailRequestInfo(clientName, project.title, body));
+    res.json({ ok: true });
+    return;
+  }
+
+  if (action === "request-files") {
+    const body = message || "Please upload the required files to continue.";
+    await db.insert(portalMessagesTable).values({ portalUserId: project.portalUserId, projectId: id, sender: "admin", body });
+    await db.insert(portalNotificationsTable).values({
+      portalUserId: project.portalUserId, type: "info",
+      title: "Files requested", body: body.slice(0, 200),
+    });
+    if (clientEmail) await notifyClient(clientEmail, `[Darklightz] Files needed: ${project.title}`, emailRequestFiles(clientName, project.title, body));
+    res.json({ ok: true });
+    return;
+  }
+
+  if (action === "ready-for-review") {
+    const [updated] = await db.update(portalProjectsTable)
+      .set({ status: "review", updatedAt: new Date() })
+      .where(eq(portalProjectsTable.id, id))
+      .returning();
+    await db.insert(portalNotificationsTable).values({
+      portalUserId: project.portalUserId, type: "progress",
+      title: "Your project is ready for review!", body: `"${project.title}" is ready. Please log in to review and approve.`,
+    });
+    if (clientEmail) await notifyClient(clientEmail, `[Darklightz] Ready for review: ${project.title}`, emailReadyForReview(clientName, project.title));
+    res.json(updated);
+    return;
+  }
+
+  if (action === "deliver") {
+    const deliveryMsg = message || "Your project has been delivered. Please check your files.";
+    const [updated] = await db.update(portalProjectsTable)
+      .set({ status: "delivered", updatedAt: new Date() })
+      .where(eq(portalProjectsTable.id, id))
+      .returning();
+    // Attach any delivery files
+    if (files && files.length > 0) {
+      for (const f of files) {
+        await db.insert(portalProjectFilesTable).values({ projectId: id, name: f.name, url: f.url, sizeBytes: 0, uploadedBy: "admin" });
+      }
+    }
+    await db.insert(portalMessagesTable).values({ portalUserId: project.portalUserId, projectId: id, sender: "admin", body: deliveryMsg });
+    await db.insert(portalNotificationsTable).values({
+      portalUserId: project.portalUserId, type: "info",
+      title: "Project delivered!", body: deliveryMsg.slice(0, 200),
+    });
+    if (clientEmail) await notifyClient(clientEmail, `[Darklightz] Project delivered: ${project.title}`, emailProjectDelivered(clientName, project.title, deliveryMsg));
+    res.json(updated);
+    return;
+  }
+
+  if (action === "complete") {
+    const [updated] = await db.update(portalProjectsTable)
+      .set({ status: "completed", progressPct: 100, updatedAt: new Date() })
+      .where(eq(portalProjectsTable.id, id))
+      .returning();
+    await db.insert(portalNotificationsTable).values({
+      portalUserId: project.portalUserId, type: "progress",
+      title: "Project completed!", body: `"${project.title}" has been marked as completed. Thank you!`,
+    });
+    const reviewUrl = `${process.env.SITE_URL || "https://darklight-studio.vercel.app"}/submit-review`;
+    if (clientEmail) {
+      await notifyClient(clientEmail, `[Darklightz] "${project.title}" is complete! 🎉`, emailProjectCompleted(clientName, project.title));
+      // Send review invite separately
+      await notifyClient(clientEmail, `[Darklightz] How was your experience? — ${project.title}`, emailReviewInvite(clientName, project.title, reviewUrl));
+    }
+    res.json(updated);
+    return;
+  }
+
+  if (action === "reopen") {
+    const [updated] = await db.update(portalProjectsTable)
+      .set({ status: "active", updatedAt: new Date() })
+      .where(eq(portalProjectsTable.id, id))
+      .returning();
+    await db.insert(portalNotificationsTable).values({
+      portalUserId: project.portalUserId, type: "progress",
+      title: "Project reopened", body: `"${project.title}" has been reopened.`,
+    });
+    res.json(updated);
+    return;
+  }
+
+  if (action === "archive") {
+    const [updated] = await db.update(portalProjectsTable)
+      .set({ status: "archived", updatedAt: new Date() })
+      .where(eq(portalProjectsTable.id, id))
+      .returning();
+    res.json(updated);
+    return;
+  }
+
+  res.status(400).json({ error: "Unknown action" });
 });
 
 export default router;

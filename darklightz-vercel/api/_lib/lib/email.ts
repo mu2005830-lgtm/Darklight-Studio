@@ -155,3 +155,64 @@ export function emailProjectCompleted(clientName: string, projectTitle: string):
     <p style="color:#aaa;font-size:13px;">Log in to your portal to download your deliverables and leave a review.</p>
   `);
 }
+
+export function emailReadyForReview(clientName: string, projectTitle: string): string {
+  return baseTemplate(`
+    <p style="color:#e5e5e5;font-size:16px;">✅ Your project is ready for review!</p>
+    <p style="color:#ccc;">Hi ${clientName || "there"},</p>
+    <p style="color:#ccc;">We've completed the work on <strong style="color:#fff;">${projectTitle}</strong> and it's now ready for your review.</p>
+    <table style="border-collapse:collapse;width:100%;margin:16px 0;">
+      <tr><td style="padding:8px 0;color:#888;width:140px;">Project</td><td style="color:#fff;">${projectTitle}</td></tr>
+    </table>
+    <p style="color:#ccc;">Please log in to your portal to:</p>
+    <ul style="color:#aaa;font-size:13px;line-height:1.8;">
+      <li>Review the deliverables</li>
+      <li>Leave comments or feedback</li>
+      <li>Request changes if needed</li>
+      <li>Approve the work</li>
+    </ul>
+    <p style="color:#aaa;font-size:13px;">Log in to your portal to get started.</p>
+  `);
+}
+
+export function emailProjectDelivered(clientName: string, projectTitle: string, message: string): string {
+  return baseTemplate(`
+    <p style="color:#e5e5e5;font-size:16px;">📦 Your project has been delivered!</p>
+    <p style="color:#ccc;">Hi ${clientName || "there"},</p>
+    <p style="color:#ccc;">Your project <strong style="color:#fff;">${projectTitle}</strong> has been delivered. Here's a message from the team:</p>
+    <div style="background:#111;border-left:3px solid #333;padding:12px 16px;margin:16px 0;color:#ccc;font-style:italic;">${message}</div>
+    <p style="color:#aaa;font-size:13px;">Log in to your portal to download all files and deliverables.</p>
+  `);
+}
+
+export function emailReviewInvite(clientName: string, projectTitle: string, reviewUrl: string): string {
+  return baseTemplate(`
+    <p style="color:#e5e5e5;font-size:16px;">⭐ How was your experience?</p>
+    <p style="color:#ccc;">Hi ${clientName || "there"},</p>
+    <p style="color:#ccc;">We're thrilled to have completed <strong style="color:#fff;">${projectTitle}</strong> for you. We'd love to hear your feedback!</p>
+    <p style="margin:24px 0;">
+      <a href="${reviewUrl}" style="background:#fff;color:#000;padding:12px 24px;text-decoration:none;font-weight:700;letter-spacing:1px;font-size:13px;">Leave a Review</a>
+    </p>
+    <p style="color:#aaa;font-size:12px;">Your review helps us improve and helps other clients make informed decisions. Thank you for trusting Darklightz Studio!</p>
+  `);
+}
+
+export function emailRequestInfo(clientName: string, projectTitle: string, details: string): string {
+  return baseTemplate(`
+    <p style="color:#e5e5e5;font-size:16px;">📋 We need more information</p>
+    <p style="color:#ccc;">Hi ${clientName || "there"},</p>
+    <p style="color:#ccc;">To continue work on <strong style="color:#fff;">${projectTitle}</strong>, we need some additional information from you:</p>
+    <div style="background:#111;border-left:3px solid #444;padding:12px 16px;margin:16px 0;color:#ccc;">${details}</div>
+    <p style="color:#aaa;font-size:13px;">Please log in to your portal and reply to this request, or send us a message directly.</p>
+  `);
+}
+
+export function emailRequestFiles(clientName: string, projectTitle: string, details: string): string {
+  return baseTemplate(`
+    <p style="color:#e5e5e5;font-size:16px;">📁 Missing files needed</p>
+    <p style="color:#ccc;">Hi ${clientName || "there"},</p>
+    <p style="color:#ccc;">We're missing some files required to continue work on <strong style="color:#fff;">${projectTitle}</strong>:</p>
+    <div style="background:#111;border-left:3px solid #444;padding:12px 16px;margin:16px 0;color:#ccc;">${details}</div>
+    <p style="color:#aaa;font-size:13px;">Please log in to your portal and upload the required files at your earliest convenience.</p>
+  `);
+}

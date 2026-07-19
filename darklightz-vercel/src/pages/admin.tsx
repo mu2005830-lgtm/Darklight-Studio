@@ -1489,17 +1489,20 @@ function useAdminPortal<T>(path: string, key: string | null) {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  pending: "text-neutral-400 border-neutral-700",
-  active: "text-blue-400 border-blue-900",
+  pending:     "text-neutral-400 border-neutral-700",
+  active:      "text-blue-400 border-blue-900",
   in_progress: "text-amber-400 border-amber-900",
-  completed: "text-green-400 border-green-900",
-  cancelled: "text-red-400 border-red-900",
-  open: "text-amber-400 border-amber-900",
-  closed: "text-neutral-500 border-neutral-700",
-  draft: "text-neutral-500 border-neutral-700",
-  sent: "text-amber-400 border-amber-900",
-  paid: "text-green-400 border-green-900",
-  overdue: "text-red-400 border-red-900",
+  review:      "text-purple-400 border-purple-900",
+  delivered:   "text-cyan-400 border-cyan-900",
+  completed:   "text-green-400 border-green-900",
+  cancelled:   "text-red-400 border-red-900",
+  archived:    "text-neutral-600 border-neutral-800",
+  open:        "text-amber-400 border-amber-900",
+  closed:      "text-neutral-500 border-neutral-700",
+  draft:       "text-neutral-500 border-neutral-700",
+  sent:        "text-amber-400 border-amber-900",
+  paid:        "text-green-400 border-green-900",
+  overdue:     "text-red-400 border-red-900",
 }
 function SBadge({ s }: { s: string }) {
   return <span className={`text-[10px] font-mono uppercase px-2 py-0.5 border ${STATUS_BADGE[s] ?? "text-neutral-500 border-neutral-700"}`}>{s.replace(/_/g," ")}</span>
@@ -1531,6 +1534,15 @@ function PortalCRMSection() {
   const [invModal, setInvModal] = React.useState<{ userId: number } | null>(null)
   const [invForm, setInvForm] = React.useState({ title: "", amountCents: "", currency: "PKR", status: "sent", issuedAt: "", dueAt: "", invoiceUrl: "" })
 
+  // Workflow action modals
+  const [workflowModal, setWorkflowModal] = React.useState<{
+    projectId: number; projectTitle: string; portalUserId: number;
+    action: "notify-client"|"request-info"|"request-files"|"deliver"
+  } | null>(null)
+  const [workflowMsg, setWorkflowMsg] = React.useState("")
+  const [workflowFiles, setWorkflowFiles] = React.useState<{name:string;url:string}[]>([])
+  const [workflowBusy, setWorkflowBusy] = React.useState(false)
+
   const h = { headers: { "x-admin-key": adminKey, "Content-Type": "application/json" } }
 
   async function apiGet<T>(path: string): Promise<T> {
@@ -1547,6 +1559,15 @@ function PortalCRMSection() {
     const r = await fetch(`${base}/api/admin/portal/${path}`, { method: "PATCH", ...h, body: JSON.stringify(body) })
     if (!r.ok) throw new Error(`${r.status} ${await r.text()}`)
     return r.json()
+  }
+
+  async function runWorkflow(projectId: number, action: string, message?: string, files?: {name:string;url:string}[]) {
+    setWorkflowBusy(true)
+    try {
+      await apiPost(`projects/${projectId}/workflow`, { action, message, files })
+      loadTab("projects")
+    } catch(e: unknown) { alert(e instanceof Error ? e.message : "Error") }
+    finally { setWorkflowBusy(false) }
   }
 
   async function loadTab(t: typeof tab) {
@@ -1777,6 +1798,83 @@ function PortalCRMSection() {
       )}
 
 
+      {/* Workflow action modal (notify / request-info / request-files / deliver) */}
+      {workflowModal && (
+        <div className="border border-white/15 bg-white/[0.03] p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
+              {{
+                "notify-client": "Notify Client",
+                "request-info": "Request Information",
+                "request-files": "Request Missing Files",
+                "deliver": "Deliver Project",
+              }[workflowModal.action]}
+              <span className="text-neutral-500 font-normal normal-case ml-2">— {workflowModal.projectTitle}</span>
+            </h3>
+            <Button size="sm" variant="outline" onClick={() => { setWorkflowModal(null); setWorkflowMsg(""); setWorkflowFiles([]) }}
+              className="border-white/15 text-neutral-400 hover:text-white text-xs">✕</Button>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">
+                {workflowModal.action === "deliver" ? "Delivery Message" : "Message"}
+              </label>
+              <Textarea
+                value={workflowMsg}
+                onChange={e => setWorkflowMsg(e.target.value)}
+                rows={4}
+                placeholder={
+                  workflowModal.action === "notify-client"  ? "Write a message to the client…" :
+                  workflowModal.action === "request-info"   ? "Describe what information you need…" :
+                  workflowModal.action === "request-files"  ? "List the files you need from the client…" :
+                  "Write a delivery message to the client… (files, access details, next steps)"
+                }
+                className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2 resize-none"
+              />
+            </div>
+
+            {workflowModal.action === "deliver" && (
+              <div>
+                <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Delivery Files (optional)</label>
+                <div className="space-y-2 mt-2">
+                  {workflowFiles.map((f, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input value={f.name} onChange={e => setWorkflowFiles(prev => prev.map((x,j)=>j===i?{...x,name:e.target.value}:x))}
+                        placeholder="File name (e.g. Website ZIP)" className="flex-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-1.5" />
+                      <input value={f.url} onChange={e => setWorkflowFiles(prev => prev.map((x,j)=>j===i?{...x,url:e.target.value}:x))}
+                        placeholder="URL or upload link" className="flex-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-1.5" />
+                      <button onClick={() => setWorkflowFiles(prev => prev.filter((_,j)=>j!==i))}
+                        className="px-2 text-neutral-500 hover:text-red-400 transition-colors text-sm">✕</button>
+                    </div>
+                  ))}
+                  <button onClick={() => setWorkflowFiles(prev => [...prev, {name:"",url:""}])}
+                    className="text-[10px] font-mono uppercase tracking-wider text-neutral-500 hover:text-white transition-colors border border-white/10 px-3 py-1.5">
+                    + Add File
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <Button
+                disabled={workflowBusy || !workflowMsg.trim()}
+                onClick={async () => {
+                  const files = workflowModal.action === "deliver" ? workflowFiles.filter(f=>f.name&&f.url) : undefined
+                  await runWorkflow(workflowModal.projectId, workflowModal.action, workflowMsg, files)
+                  setWorkflowModal(null); setWorkflowMsg(""); setWorkflowFiles([])
+                }}
+                className="bg-white text-black hover:bg-neutral-200 text-sm"
+              >
+                {workflowBusy ? "Sending…" : workflowModal.action === "deliver" ? "Deliver Project" : "Send"}
+              </Button>
+              <Button variant="outline" onClick={() => { setWorkflowModal(null); setWorkflowMsg(""); setWorkflowFiles([]) }}
+                className="border-white/15 text-neutral-400 hover:text-white">Cancel</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Client detail panel */}
       {selectedClient && (
         <div className="border border-white/10 bg-white/[0.02] p-6 mb-6">
@@ -1834,24 +1932,121 @@ function PortalCRMSection() {
 
       {/* ── Projects tab ───────────────────────────────────────────────── */}
       {tab === "projects" && !loading && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {projects.length === 0 ? (
             <p className="text-neutral-500 text-sm py-8 text-center">No projects yet.</p>
-          ) : projects.map(p => (
-            <div key={p.id} className={`border border-white/10 bg-white/[0.02] px-5 py-4 ${editProject?.id===p.id?"border-white/20":""}`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white font-medium">{p.title}</p>
-                  <p className="text-xs text-neutral-500 mt-0.5">{p.serviceName} {p.orderId&&`· #${p.orderId}`} · {p.progressPct}% · {p.assignedTeamMember||"Unassigned"}</p>
+          ) : projects.map(p => {
+            const isDone     = p.status === "completed" || p.status === "archived"
+            const canReopen  = isDone || p.status === "cancelled"
+            const canComplete = ["review","delivered","active","in_progress"].includes(p.status)
+
+            return (
+              <div key={p.id} className={`border bg-white/[0.02] ${editProject?.id===p.id?"border-white/25":"border-white/10"}`}>
+                {/* Project header row */}
+                <div className="flex items-start justify-between px-5 py-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <p className="text-sm text-white font-medium">{p.title}</p>
+                      <SBadge s={p.status} />
+                    </div>
+                    <p className="text-xs text-neutral-500 mt-0.5">
+                      {[p.serviceName, p.orderId && `#${p.orderId}`, `${p.progressPct}%`, p.assignedTeamMember||"Unassigned"].filter(Boolean).join(" · ")}
+                    </p>
+                    {p.latestUpdate && <p className="text-xs text-neutral-600 mt-1 line-clamp-1 italic">{p.latestUpdate}</p>}
+                  </div>
+                  {/* Update form toggle */}
+                  <Button size="sm" onClick={()=>setEditProject(editProject?.id===p.id?null:p)}
+                    variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs ml-4 shrink-0">
+                    {editProject?.id===p.id ? "Close" : "Edit"}
+                  </Button>
                 </div>
-                <div className="flex items-center gap-2">
-                  <SBadge s={p.status} />
-                  <Button size="sm" onClick={()=>setEditProject(editProject?.id===p.id?null:p)} variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs">Update</Button>
+
+                {/* Action buttons */}
+                <div className="px-5 pb-4 flex flex-wrap gap-1.5">
+                  {/* Save Draft */}
+                  <button onClick={async()=>{
+                    const note = prompt("Draft note / latest update:")
+                    if(!note) return
+                    await runWorkflow(p.id,"save-draft",note)
+                  }} className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 border border-white/10 text-neutral-500 hover:text-white hover:border-white/25 transition-colors">
+                    Save Draft
+                  </button>
+
+                  {/* Notify Client */}
+                  <button onClick={()=>{setWorkflowModal({projectId:p.id,projectTitle:p.title,portalUserId:p.portalUserId,action:"notify-client"});setWorkflowMsg("")}}
+                    className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 border border-white/10 text-neutral-500 hover:text-white hover:border-white/25 transition-colors">
+                    Notify Client
+                  </button>
+
+                  {/* Request Info */}
+                  <button onClick={()=>{setWorkflowModal({projectId:p.id,projectTitle:p.title,portalUserId:p.portalUserId,action:"request-info"});setWorkflowMsg("")}}
+                    className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 border border-white/10 text-neutral-500 hover:text-white hover:border-white/25 transition-colors">
+                    Request Info
+                  </button>
+
+                  {/* Request Files */}
+                  <button onClick={()=>{setWorkflowModal({projectId:p.id,projectTitle:p.title,portalUserId:p.portalUserId,action:"request-files"});setWorkflowMsg("")}}
+                    className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 border border-white/10 text-neutral-500 hover:text-white hover:border-white/25 transition-colors">
+                    Request Files
+                  </button>
+
+                  {/* Ready for Review */}
+                  {!isDone && p.status !== "review" && (
+                    <button onClick={async()=>{
+                      if(!confirm(`Mark "${p.title}" as Ready for Review? The client will be notified.`)) return
+                      await runWorkflow(p.id,"ready-for-review")
+                    }} className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 border border-purple-900 text-purple-400 hover:bg-purple-950/30 transition-colors">
+                      Ready for Review
+                    </button>
+                  )}
+
+                  {/* Deliver Project */}
+                  {!isDone && (
+                    <button onClick={()=>{setWorkflowModal({projectId:p.id,projectTitle:p.title,portalUserId:p.portalUserId,action:"deliver"});setWorkflowMsg("");setWorkflowFiles([])}}
+                      className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 border border-cyan-900 text-cyan-400 hover:bg-cyan-950/30 transition-colors">
+                      Deliver Project
+                    </button>
+                  )}
+
+                  {/* Send Invoice */}
+                  <button onClick={()=>setInvModal({userId:p.portalUserId})}
+                    className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 border border-white/10 text-neutral-500 hover:text-white hover:border-white/25 transition-colors">
+                    Send Invoice
+                  </button>
+
+                  {/* Mark Completed */}
+                  {canComplete && (
+                    <button onClick={async()=>{
+                      if(!confirm(`Mark "${p.title}" as Completed? This will lock the project, email the client, and send a review invite.`)) return
+                      await runWorkflow(p.id,"complete")
+                    }} className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 border border-green-900 text-green-400 hover:bg-green-950/30 transition-colors">
+                      ✓ Mark Completed
+                    </button>
+                  )}
+
+                  {/* Reopen */}
+                  {canReopen && (
+                    <button onClick={async()=>{
+                      if(!confirm(`Reopen "${p.title}"?`)) return
+                      await runWorkflow(p.id,"reopen")
+                    }} className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 border border-blue-900 text-blue-400 hover:bg-blue-950/30 transition-colors">
+                      ↺ Reopen
+                    </button>
+                  )}
+
+                  {/* Archive */}
+                  {!isDone && (
+                    <button onClick={async()=>{
+                      if(!confirm(`Archive "${p.title}"? The project will be locked.`)) return
+                      await runWorkflow(p.id,"archive")
+                    }} className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 border border-white/10 text-neutral-600 hover:text-neutral-400 hover:border-white/20 transition-colors">
+                      Archive
+                    </button>
+                  )}
                 </div>
               </div>
-              {p.latestUpdate && <p className="text-xs text-neutral-600 mt-2 line-clamp-1">{p.latestUpdate}</p>}
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
