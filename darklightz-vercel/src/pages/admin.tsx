@@ -49,6 +49,8 @@ import {
   HelpCircle, Building2, Mail, Calendar, Settings,
   Link as LinkIcon, Plus, Pencil, Trash2, LogOut, Lock,
   Eye, EyeOff, Save, AlertCircle, Upload, X,
+  Download, RotateCcw, AlertTriangle, ArrowUpDown, Maximize2,
+  FolderInput, Copy, RefreshCw, Check, Trash,
 } from "lucide-react"
 
 // ============================================================================
@@ -1945,33 +1947,81 @@ function PortalCRMSection() {
 }
 
 // ============================================================================
-// Media Center Section
+// Media Center Section — professional CMS-style asset manager
 // ============================================================================
 
-const MEDIA_FOLDERS = [
-  "Hero Images", "Studio Story", "Portfolio", "Case Studies",
-  "Journal", "Services", "Team", "Testimonials", "Client Logos",
-  "SEO Images", "Invoices", "Documents", "Brand Assets", "uploads",
+const MEDIA_FOLDERS: { label: string; path: string }[] = [
+  { label: "Hero Images",  path: "Hero Images" },
+  { label: "Studio Story", path: "Studio Story" },
+  { label: "Portfolio",    path: "Portfolio" },
+  { label: "Case Studies", path: "Case Studies" },
+  { label: "Journal",      path: "Journal" },
+  { label: "Services",     path: "Services" },
+  { label: "Team",         path: "Team" },
+  { label: "Testimonials", path: "Testimonials" },
+  { label: "Client Logos", path: "Client Logos" },
+  { label: "SEO Images",   path: "SEO Images" },
+  { label: "Invoices",     path: "Invoices" },
+  { label: "Documents",    path: "Documents" },
+  { label: "Brand Assets", path: "Brand Assets" },
+  { label: "uploads",      path: "uploads" },
 ]
 
 type MediaFile = {
   name: string; path: string; isFolder: boolean;
-  size: number; mimetype: string; createdAt: string; publicUrl: string;
+  size: number; mimetype: string; createdAt: string; updatedAt: string;
+  publicUrl: string; folder?: string;
 }
+
+type SortKey = "date" | "name" | "size"
+
+type UsageRecord = { table: string; id: number; label: string; section: string }
 
 function MediaCenterSection() {
   const adminKey = sessionStorage.getItem(SESSION_KEY) ?? ""
   const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? ""
-  const [folder, setFolder] = React.useState("")
+
+  // ── Core state ─────────────────────────────────────────────────────────────
+  const [folder, setFolder] = React.useState("__all__")
   const [files, setFiles] = React.useState<MediaFile[]>([])
   const [loading, setLoading] = React.useState(false)
   const [uploading, setUploading] = React.useState(false)
   const [search, setSearch] = React.useState("")
-  const [copied, setCopied] = React.useState<string | null>(null)
+  const [sort, setSort] = React.useState<SortKey>("date")
   const [error, setError] = React.useState("")
+
+  // ── UI state ───────────────────────────────────────────────────────────────
+  const [copied, setCopied] = React.useState<string | null>(null)
+  const [preview, setPreview] = React.useState<MediaFile | null>(null)
+  const [previewUsages, setPreviewUsages] = React.useState<UsageRecord[]>([])
+  const [previewUsageLoading, setPreviewUsageLoading] = React.useState(false)
+  const [previewDims, setPreviewDims] = React.useState<{ w: number; h: number } | null>(null)
+
+  // ── Rename dialog ──────────────────────────────────────────────────────────
+  const [renameFile, setRenameFile] = React.useState<MediaFile | null>(null)
+  const [renameVal, setRenameVal] = React.useState("")
+  const [renameBusy, setRenameBusy] = React.useState(false)
+
+  // ── Move dialog ────────────────────────────────────────────────────────────
+  const [moveFile, setMoveFile] = React.useState<MediaFile | null>(null)
+  const [moveDest, setMoveDest] = React.useState(MEDIA_FOLDERS[0].path)
+  const [moveBusy, setMoveBusy] = React.useState(false)
+
+  // ── Replace ────────────────────────────────────────────────────────────────
+  const [replaceTarget, setReplaceTarget] = React.useState<MediaFile | null>(null)
+
+  // ── Delete confirmation (when in use) ─────────────────────────────────────
+  const [deleteTarget, setDeleteTarget] = React.useState<MediaFile | null>(null)
+  const [deleteUsages, setDeleteUsages] = React.useState<UsageRecord[]>([])
+  const [deleteUsageLoading, setDeleteUsageLoading] = React.useState(false)
+
   const uploadInputRef = React.useRef<HTMLInputElement>(null)
+  const replaceInputRef = React.useRef<HTMLInputElement>(null)
   const h = { "x-admin-key": adminKey }
 
+  const isTrash = folder === "__trash__"
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
   async function load(f: string) {
     setLoading(true); setError("")
     try {
@@ -1985,98 +2035,264 @@ function MediaCenterSection() {
 
   React.useEffect(() => { load(folder) }, [folder])
 
-  async function handleUpload(fileList: FileList | null) {
-    if (!fileList) return
-    setUploading(true)
-    for (const file of Array.from(fileList)) {
-      const fd = new FormData()
-      fd.append("file", file)
-      fd.append("folder", folder || "uploads")
-      const r = await fetch(`${base}/api/admin/media/upload`, { method: "POST", headers: h, body: fd })
-      if (!r.ok) { setError(`Failed to upload ${file.name}`); continue }
-    }
-    setUploading(false)
-    load(folder)
-  }
-
-  async function handleDelete(path: string, name: string) {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
-    const r = await fetch(`${base}/api/admin/media`, {
-      method: "DELETE",
-      headers: { ...h, "Content-Type": "application/json" },
-      body: JSON.stringify({ path }),
-    })
-    if (r.ok) load(folder)
-    else setError("Delete failed")
-  }
-
-  function copyUrl(url: string) {
-    navigator.clipboard.writeText(url)
-    setCopied(url)
-    setTimeout(() => setCopied(null), 2000)
-  }
-
   function formatBytes(bytes: number) {
-    if (bytes === 0) return "—"
+    if (!bytes) return "—"
     if (bytes < 1024) return `${bytes} B`
     if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`
     return `${(bytes / 1048576).toFixed(1)} MB`
   }
 
-  const isImage = (m: string) => m.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(m)
+  const isImage = (f: MediaFile) =>
+    f.mimetype.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|svg|avif)$/i.test(f.name)
 
-  const filtered = files.filter(f =>
-    !f.isFolder && f.name.toLowerCase().includes(search.toLowerCase())
-  )
+  function copyUrl(url: string) {
+    navigator.clipboard.writeText(url.split("?")[0])
+    setCopied(url)
+    setTimeout(() => setCopied(null), 2000)
+  }
+
+  async function downloadFile(file: MediaFile) {
+    try {
+      const r = await fetch(file.publicUrl)
+      const blob = await r.blob()
+      const a = document.createElement("a")
+      a.href = URL.createObjectURL(blob)
+      a.download = file.name
+      a.click()
+      URL.revokeObjectURL(a.href)
+    } catch { setError("Download failed") }
+  }
+
+  async function fetchUsage(url: string): Promise<UsageRecord[]> {
+    try {
+      const r = await fetch(`${base}/api/admin/media/usage?url=${encodeURIComponent(url)}`, { headers: h })
+      if (!r.ok) return []
+      const d = await r.json()
+      return d.usages ?? []
+    } catch { return [] }
+  }
+
+  // ── Upload ─────────────────────────────────────────────────────────────────
+  async function handleUpload(fileList: FileList | null) {
+    if (!fileList) return
+    setUploading(true); setError("")
+    const uploadFolder = folder === "__all__" || folder === "__trash__" ? "uploads" : folder
+    for (const file of Array.from(fileList)) {
+      const fd = new FormData()
+      fd.append("file", file)
+      fd.append("folder", uploadFolder)
+      const r = await fetch(`${base}/api/admin/media/upload`, { method: "POST", headers: h, body: fd })
+      if (!r.ok) { const d = await r.json(); setError(`Failed to upload ${file.name}: ${d.error ?? r.status}`); continue }
+    }
+    setUploading(false)
+    load(folder)
+  }
+
+  // ── Replace in-place ───────────────────────────────────────────────────────
+  async function handleReplace(fileList: FileList | null) {
+    if (!fileList || !replaceTarget) return
+    const file = fileList[0]
+    const fd = new FormData()
+    fd.append("file", file)
+    fd.append("path", replaceTarget.path)
+    setUploading(true); setError("")
+    const r = await fetch(`${base}/api/admin/media/replace`, { method: "POST", headers: h, body: fd })
+    setUploading(false)
+    if (!r.ok) { const d = await r.json(); setError(`Replace failed: ${d.error ?? r.status}`); return }
+    setReplaceTarget(null)
+    load(folder)
+  }
+
+  // ── Soft delete → trash ────────────────────────────────────────────────────
+  async function initiateDelete(file: MediaFile) {
+    setDeleteTarget(file)
+    setDeleteUsages([])
+    setDeleteUsageLoading(true)
+    const usages = await fetchUsage(file.publicUrl)
+    setDeleteUsages(usages)
+    setDeleteUsageLoading(false)
+  }
+
+  async function confirmTrash() {
+    if (!deleteTarget) return
+    const r = await fetch(`${base}/api/admin/media/trash`, {
+      method: "POST",
+      headers: { ...h, "Content-Type": "application/json" },
+      body: JSON.stringify({ path: deleteTarget.path }),
+    })
+    if (!r.ok) { const d = await r.json(); setError(d.error ?? "Delete failed"); }
+    setDeleteTarget(null)
+    if (preview?.path === deleteTarget.path) setPreview(null)
+    load(folder)
+  }
+
+  // ── Restore from trash ─────────────────────────────────────────────────────
+  async function handleRestore(file: MediaFile) {
+    const r = await fetch(`${base}/api/admin/media/restore`, {
+      method: "POST",
+      headers: { ...h, "Content-Type": "application/json" },
+      body: JSON.stringify({ path: file.path }),
+    })
+    if (!r.ok) { const d = await r.json(); setError(d.error ?? "Restore failed"); return }
+    load(folder)
+  }
+
+  // ── Permanent delete ───────────────────────────────────────────────────────
+  async function handlePermanentDelete(file: MediaFile) {
+    if (!confirm(`Permanently delete "${file.name}"? This cannot be undone.`)) return
+    const r = await fetch(`${base}/api/admin/media`, {
+      method: "DELETE",
+      headers: { ...h, "Content-Type": "application/json" },
+      body: JSON.stringify({ path: file.path }),
+    })
+    if (!r.ok) { const d = await r.json(); setError(d.error ?? "Delete failed"); return }
+    load(folder)
+  }
+
+  // ── Rename ────────────────────────────────────────────────────────────────
+  async function handleRename() {
+    if (!renameFile || !renameVal.trim()) return
+    setRenameBusy(true)
+    const parts = renameFile.path.split("/")
+    parts[parts.length - 1] = renameVal.trim()
+    const newPath = parts.join("/")
+    const r = await fetch(`${base}/api/admin/media/move`, {
+      method: "POST",
+      headers: { ...h, "Content-Type": "application/json" },
+      body: JSON.stringify({ from: renameFile.path, to: newPath }),
+    })
+    setRenameBusy(false)
+    if (!r.ok) { const d = await r.json(); setError(d.error ?? "Rename failed"); return }
+    setRenameFile(null)
+    load(folder)
+  }
+
+  // ── Move ──────────────────────────────────────────────────────────────────
+  async function handleMove() {
+    if (!moveFile) return
+    setMoveBusy(true)
+    const filename = moveFile.path.split("/").pop() ?? moveFile.name
+    const newPath = `${moveDest}/${filename}`
+    const r = await fetch(`${base}/api/admin/media/move`, {
+      method: "POST",
+      headers: { ...h, "Content-Type": "application/json" },
+      body: JSON.stringify({ from: moveFile.path, to: newPath }),
+    })
+    setMoveBusy(false)
+    if (!r.ok) { const d = await r.json(); setError(d.error ?? "Move failed"); return }
+    setMoveFile(null)
+    load(folder)
+  }
+
+  // ── Duplicate ─────────────────────────────────────────────────────────────
+  async function handleDuplicate(file: MediaFile) {
+    const r = await fetch(`${base}/api/admin/media/duplicate`, {
+      method: "POST",
+      headers: { ...h, "Content-Type": "application/json" },
+      body: JSON.stringify({ path: file.path }),
+    })
+    if (!r.ok) { const d = await r.json(); setError(d.error ?? "Duplicate failed"); return }
+    load(folder)
+  }
+
+  // ── Preview modal open ────────────────────────────────────────────────────
+  async function openPreview(file: MediaFile) {
+    setPreview(file)
+    setPreviewUsages([])
+    setPreviewDims(null)
+    setPreviewUsageLoading(true)
+    if (isImage(file)) {
+      const img = new window.Image()
+      img.onload = () => setPreviewDims({ w: img.naturalWidth, h: img.naturalHeight })
+      img.src = file.publicUrl
+    }
+    const usages = await fetchUsage(file.publicUrl)
+    setPreviewUsages(usages)
+    setPreviewUsageLoading(false)
+  }
+
+  // ── Filtered + sorted ─────────────────────────────────────────────────────
+  const filtered = React.useMemo(() => {
+    const term = search.toLowerCase()
+    const list = files.filter(f => !f.isFolder && f.name.toLowerCase().includes(term))
+    return [...list].sort((a, b) => {
+      if (sort === "name") return a.name.localeCompare(b.name)
+      if (sort === "size") return b.size - a.size
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+  }, [files, search, sort])
+
+  // ── Shared button styles ──────────────────────────────────────────────────
+  const iconBtn = "p-1.5 border border-white/10 text-neutral-500 hover:text-white hover:border-white/30 transition-colors"
+  const iconBtnDanger = "p-1.5 border border-white/10 text-neutral-500 hover:text-red-400 hover:border-red-400/30 transition-colors"
 
   return (
     <div>
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <SectionHeader
         title="Media Center"
         action={
           <div className="flex items-center gap-2">
             <Input
-              className="bg-black border-white/10 text-white text-sm h-8 w-48"
+              className="bg-black border-white/10 text-white text-sm h-8 w-40"
               placeholder="Search files…"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
+            {/* Sort */}
+            <div className="flex items-center gap-1 border border-white/10 px-2 h-8">
+              <ArrowUpDown className="w-3 h-3 text-neutral-600" />
+              <select
+                value={sort}
+                onChange={e => setSort(e.target.value as SortKey)}
+                className="bg-transparent text-neutral-400 text-[10px] font-mono uppercase tracking-wider outline-none cursor-pointer"
+              >
+                <option value="date">Date</option>
+                <option value="name">Name</option>
+                <option value="size">Size</option>
+              </select>
+            </div>
             <Button
               size="sm"
-              className="bg-white text-black hover:bg-neutral-200 gap-1.5"
-              disabled={uploading}
+              variant="outline"
+              className="border-white/15 text-neutral-400 hover:text-white h-8"
+              onClick={() => load(folder)}
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              size="sm"
+              className="bg-white text-black hover:bg-neutral-200 gap-1.5 h-8"
+              disabled={uploading || isTrash}
               onClick={() => uploadInputRef.current?.click()}
             >
               <Upload className="w-3.5 h-3.5" />
               {uploading ? "Uploading…" : "Upload"}
             </Button>
-            <input
-              ref={uploadInputRef} type="file" multiple className="hidden"
-              onChange={e => { handleUpload(e.target.files); e.target.value = "" }}
-            />
+            <input ref={uploadInputRef} type="file" multiple className="hidden"
+              onChange={e => { handleUpload(e.target.files); e.target.value = "" }} />
+            <input ref={replaceInputRef} type="file" className="hidden"
+              onChange={e => { handleReplace(e.target.files); e.target.value = "" }} />
           </div>
         }
       />
 
-      {/* Folder tabs */}
+      {/* ── Folder tabs ────────────────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-1.5 mb-6">
-        <button
-          onClick={() => setFolder("")}
-          className={`text-[10px] uppercase tracking-wider font-mono px-3 py-1.5 border transition-colors ${folder === "" ? "bg-white text-black border-white" : "border-white/15 text-neutral-500 hover:text-white hover:border-white/30"}`}
-        >
-          All
-        </button>
-        {MEDIA_FOLDERS.map(f => (
-          <button
-            key={f}
-            onClick={() => setFolder(f)}
-            className={`text-[10px] uppercase tracking-wider font-mono px-3 py-1.5 border transition-colors ${folder === f ? "bg-white text-black border-white" : "border-white/15 text-neutral-500 hover:text-white hover:border-white/30"}`}
+        {[{ label: "All", path: "__all__" }, ...MEDIA_FOLDERS, { label: "🗑 Trash", path: "__trash__" }].map(f => (
+          <button key={f.path} onClick={() => setFolder(f.path)}
+            className={`text-[10px] uppercase tracking-wider font-mono px-3 py-1.5 border transition-colors ${
+              folder === f.path
+                ? f.path === "__trash__" ? "bg-red-950 text-red-300 border-red-800" : "bg-white text-black border-white"
+                : f.path === "__trash__" ? "border-red-900/30 text-neutral-600 hover:text-red-400 hover:border-red-800/50" : "border-white/15 text-neutral-500 hover:text-white hover:border-white/30"
+            }`}
           >
-            {f}
+            {f.label}
           </button>
         ))}
       </div>
 
+      {/* ── Error banner ───────────────────────────────────────────────────── */}
       {error && (
         <div className="border border-red-500/30 bg-red-500/5 p-4 mb-6">
           <p className="text-red-400 text-xs font-mono leading-relaxed">{error}</p>
@@ -2084,41 +2300,58 @@ function MediaCenterSection() {
             <div className="mt-3 space-y-1 text-[11px] text-neutral-400">
               <p className="font-semibold text-white">How to fix:</p>
               <p>1. Go to <span className="text-white font-mono">vercel.com → darklightz → darklight-studio → Settings → Environment Variables</span></p>
-              <p>2. Add <span className="text-white font-mono">SUPABASE_SERVICE_ROLE_KEY</span> — get it from Supabase → Settings → API → service_role secret</p>
-              <p>3. Click <span className="text-white font-mono">Save</span>, then go to Deployments and click <span className="text-white font-mono">Redeploy</span> on the latest deployment</p>
+              <p>2. Add <span className="text-white font-mono">SUPABASE_SERVICE_ROLE_KEY</span> — from Supabase → Settings → API → service_role secret</p>
+              <p>3. Save, then Redeploy on the latest deployment.</p>
             </div>
           )}
           {error.includes("Bucket") && (
             <div className="mt-3 space-y-1 text-[11px] text-neutral-400">
               <p className="font-semibold text-white">How to fix:</p>
-              <p>1. Go to Supabase → Storage → Create a new bucket</p>
-              <p>2. Name it exactly: <span className="text-white font-mono">darklightz-media</span></p>
-              <p>3. Set it to <span className="text-white font-mono">Public</span></p>
-              <p>4. Then upload your images here using the Upload button above</p>
+              <p>1. Supabase → Storage → Create bucket named <span className="text-white font-mono">darklightz-media</span> → set Public</p>
             </div>
           )}
         </div>
       )}
 
+      {/* ── Trash notice ───────────────────────────────────────────────────── */}
+      {isTrash && !loading && (
+        <div className="border border-red-900/40 bg-red-950/10 px-4 py-3 mb-5 flex items-center gap-2">
+          <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+          <p className="text-[11px] text-neutral-400">
+            Files in Trash are still stored in Supabase but hidden from the site. Restore to bring them back, or permanently delete to free storage.
+          </p>
+        </div>
+      )}
+
+      {/* ── Grid ───────────────────────────────────────────────────────────── */}
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {[1,2,3,4,5,6].map(i => <div key={i} className="h-40 bg-white/5 animate-pulse" />)}
         </div>
       ) : !error && filtered.length === 0 ? (
         <div className="border border-white/10 bg-white/[0.02] p-12 text-center">
-          <Image className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
-          <p className="text-neutral-500 text-sm">No files in this folder yet.</p>
-          <p className="text-neutral-700 text-xs mt-1">
-            {folder ? `Upload files to the "${folder}" folder using the button above.` : "Select a folder tab and upload files, or upload directly here."}
+          {isTrash
+            ? <Trash className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
+            : <Image className="w-8 h-8 text-neutral-700 mx-auto mb-3" />}
+          <p className="text-neutral-500 text-sm">
+            {isTrash ? "Trash is empty." : "No files in this folder yet."}
           </p>
+          {!isTrash && (
+            <p className="text-neutral-700 text-xs mt-1">
+              {folder === "__all__" ? "Upload files using the button above." : `Upload files to the "${folder}" folder using the button above.`}
+            </p>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {filtered.map(file => (
-            <div key={file.path} className="border border-white/10 bg-white/[0.02] overflow-hidden group">
-              {/* Preview */}
-              <div className="h-32 bg-black flex items-center justify-center overflow-hidden">
-                {isImage(file.mimetype) ? (
+            <div key={file.path} className="border border-white/10 bg-white/[0.02] overflow-hidden group flex flex-col">
+              {/* Thumbnail */}
+              <div
+                className="h-32 bg-black flex items-center justify-center overflow-hidden relative cursor-pointer"
+                onClick={() => openPreview(file)}
+              >
+                {isImage(file) ? (
                   <img src={file.publicUrl} alt={file.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="flex flex-col items-center gap-1">
@@ -2128,39 +2361,309 @@ function MediaCenterSection() {
                     </span>
                   </div>
                 )}
-              </div>
-              {/* Meta */}
-              <div className="p-3">
-                <p className="text-xs text-white truncate mb-1" title={file.name}>{file.name}</p>
-                <p className="text-[10px] text-neutral-600 font-mono">{formatBytes(file.size)}</p>
-                {/* Actions */}
-                <div className="flex gap-1.5 mt-2">
-                  <button
-                    onClick={() => copyUrl(file.publicUrl)}
-                    className="flex-1 text-[10px] uppercase tracking-wider py-1 border border-white/10 text-neutral-500 hover:text-white hover:border-white/30 transition-colors"
-                  >
-                    {copied === file.publicUrl ? "Copied!" : "Copy URL"}
-                  </button>
-                  <a
-                    href={file.publicUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-2 py-1 border border-white/10 text-neutral-500 hover:text-white hover:border-white/30 transition-colors"
-                  >
-                    <Eye className="w-3 h-3" />
-                  </a>
-                  <button
-                    onClick={() => handleDelete(file.path, file.name)}
-                    className="px-2 py-1 border border-white/10 text-neutral-500 hover:text-red-400 hover:border-red-400/30 transition-colors"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+                {/* Folder badge on All tab */}
+                {folder === "__all__" && file.folder && file.folder !== "root" && (
+                  <span className="absolute top-1.5 left-1.5 bg-black/70 text-[9px] font-mono text-neutral-400 px-1.5 py-0.5">
+                    {file.folder}
+                  </span>
+                )}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <Maximize2 className="w-5 h-5 text-white drop-shadow" />
                 </div>
+              </div>
+
+              {/* Meta */}
+              <div className="p-3 flex flex-col gap-1.5 flex-1">
+                <p className="text-xs text-white truncate leading-tight" title={file.name}>{file.name}</p>
+                <div className="flex items-center gap-2 text-[10px] text-neutral-600 font-mono">
+                  <span>{formatBytes(file.size)}</span>
+                  {file.createdAt && (
+                    <span>· {new Date(file.createdAt).toLocaleDateString()}</span>
+                  )}
+                </div>
+
+                {/* Actions */}
+                {isTrash ? (
+                  /* Trash actions */
+                  <div className="flex gap-1.5 mt-1">
+                    <button onClick={() => handleRestore(file)}
+                      className="flex-1 text-[10px] uppercase tracking-wider py-1 border border-white/10 text-neutral-500 hover:text-green-400 hover:border-green-900/50 transition-colors flex items-center justify-center gap-1">
+                      <RotateCcw className="w-3 h-3" /> Restore
+                    </button>
+                    <button onClick={() => handlePermanentDelete(file)}
+                      className="px-2 py-1 border border-white/10 text-neutral-500 hover:text-red-400 hover:border-red-400/30 transition-colors">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  /* Normal actions */
+                  <div className="flex items-center gap-1 mt-1">
+                    {/* Preview/Details */}
+                    <button onClick={() => openPreview(file)} title="Preview & details" className={iconBtn}>
+                      <Eye className="w-3 h-3" />
+                    </button>
+                    {/* Replace */}
+                    <button onClick={() => { setReplaceTarget(file); replaceInputRef.current?.click() }} title="Replace file" className={iconBtn}>
+                      <RefreshCw className="w-3 h-3" />
+                    </button>
+                    {/* Copy URL */}
+                    <button onClick={() => copyUrl(file.publicUrl)} title="Copy URL" className={iconBtn}>
+                      {copied === file.publicUrl ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                    {/* Download */}
+                    <button onClick={() => downloadFile(file)} title="Download" className={iconBtn}>
+                      <Download className="w-3 h-3" />
+                    </button>
+                    {/* Rename */}
+                    <button onClick={() => { setRenameFile(file); setRenameVal(file.name) }} title="Rename" className={iconBtn}>
+                      <Pencil className="w-3 h-3" />
+                    </button>
+                    {/* Move */}
+                    <button onClick={() => { setMoveFile(file); setMoveDest(MEDIA_FOLDERS[0].path) }} title="Move to folder" className={iconBtn}>
+                      <FolderInput className="w-3 h-3" />
+                    </button>
+                    {/* Duplicate */}
+                    <button onClick={() => handleDuplicate(file)} title="Duplicate" className={iconBtn}>
+                      <FileText className="w-3 h-3" />
+                    </button>
+                    {/* Delete → Trash */}
+                    <button onClick={() => initiateDelete(file)} title="Move to Trash" className={iconBtnDanger}>
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* ── Preview / Details modal ─────────────────────────────────────────── */}
+      <Dialog open={!!preview} onOpenChange={open => !open && setPreview(null)}>
+        <DialogContent className="bg-black border border-white/10 text-white max-w-3xl w-full p-0 overflow-hidden">
+          {preview && (
+            <div className="flex flex-col md:flex-row">
+              {/* Image pane */}
+              <div className="md:w-1/2 bg-neutral-950 flex items-center justify-center min-h-48 md:min-h-0">
+                {isImage(preview) ? (
+                  <img src={preview.publicUrl} alt={preview.name}
+                    className="max-w-full max-h-80 md:max-h-full object-contain" />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 p-8">
+                    <FileText className="w-16 h-16 text-neutral-600" />
+                    <span className="text-xs text-neutral-500 font-mono uppercase">{preview.name.split(".").pop()}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Info pane */}
+              <div className="md:w-1/2 p-5 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
+                <div>
+                  <p className="text-white font-medium text-sm leading-tight break-all">{preview.name}</p>
+                  <p className="text-neutral-500 text-[10px] font-mono mt-1">{preview.path}</p>
+                </div>
+
+                {/* Metadata grid */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px]">
+                  {[
+                    ["Size",       formatBytes(preview.size)],
+                    ["Type",       preview.mimetype || "—"],
+                    ["Uploaded",   preview.createdAt ? new Date(preview.createdAt).toLocaleString() : "—"],
+                    ["Folder",     preview.folder && preview.folder !== "root" ? preview.folder : "Root"],
+                    ["Dimensions", previewDims ? `${previewDims.w} × ${previewDims.h} px` : isImage(preview) ? "Loading…" : "—"],
+                    ["Aspect",     previewDims ? (() => {
+                      const g = (a: number, b: number): number => b === 0 ? a : g(b, a % b)
+                      const d = g(previewDims.w, previewDims.h)
+                      return `${previewDims.w/d}:${previewDims.h/d}`
+                    })() : "—"],
+                  ].map(([k, v]) => (
+                    <React.Fragment key={k}>
+                      <span className="text-neutral-600 font-mono uppercase tracking-wider">{k}</span>
+                      <span className="text-neutral-300 break-all">{v}</span>
+                    </React.Fragment>
+                  ))}
+                </div>
+
+                {/* Usage */}
+                <div>
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-neutral-600 mb-2">Used In</p>
+                  {previewUsageLoading ? (
+                    <p className="text-neutral-600 text-xs">Checking…</p>
+                  ) : previewUsages.length === 0 ? (
+                    <p className="text-neutral-600 text-xs">Not used anywhere.</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {previewUsages.map((u, i) => (
+                        <li key={i} className="text-xs text-neutral-300">
+                          <span className="text-neutral-500">{u.section}: </span>{u.label}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap gap-1.5 pt-2 border-t border-white/10">
+                  <Button size="sm" variant="outline"
+                    className="border-white/15 text-neutral-400 hover:text-white text-xs gap-1"
+                    onClick={() => copyUrl(preview.publicUrl)}>
+                    <Copy className="w-3 h-3" />
+                    {copied === preview.publicUrl ? "Copied!" : "Copy URL"}
+                  </Button>
+                  <Button size="sm" variant="outline"
+                    className="border-white/15 text-neutral-400 hover:text-white text-xs gap-1"
+                    onClick={() => downloadFile(preview)}>
+                    <Download className="w-3 h-3" /> Download
+                  </Button>
+                  <Button size="sm" variant="outline"
+                    className="border-white/15 text-neutral-400 hover:text-white text-xs gap-1"
+                    onClick={() => { setReplaceTarget(preview); replaceInputRef.current?.click() }}>
+                    <RefreshCw className="w-3 h-3" /> Replace
+                  </Button>
+                  <Button size="sm" variant="outline"
+                    className="border-white/15 text-neutral-400 hover:text-white text-xs gap-1"
+                    onClick={() => { setRenameFile(preview); setRenameVal(preview.name); setPreview(null) }}>
+                    <Pencil className="w-3 h-3" /> Rename
+                  </Button>
+                  <Button size="sm" variant="outline"
+                    className="border-white/15 text-neutral-400 hover:text-white text-xs gap-1"
+                    onClick={() => { setMoveFile(preview); setMoveDest(MEDIA_FOLDERS[0].path); setPreview(null) }}>
+                    <FolderInput className="w-3 h-3" /> Move
+                  </Button>
+                  <Button size="sm" variant="outline"
+                    className="border-white/15 text-neutral-400 hover:text-white text-xs gap-1"
+                    onClick={() => { handleDuplicate(preview); setPreview(null) }}>
+                    <FileText className="w-3 h-3" /> Duplicate
+                  </Button>
+                  <Button size="sm" variant="outline"
+                    className="border-red-900/40 text-red-500 hover:text-red-300 hover:border-red-700 text-xs gap-1"
+                    onClick={() => { initiateDelete(preview); setPreview(null) }}>
+                    <Trash2 className="w-3 h-3" /> Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Delete confirmation dialog ─────────────────────────────────────── */}
+      <Dialog open={!!deleteTarget} onOpenChange={open => !open && setDeleteTarget(null)}>
+        <DialogContent className="bg-black border border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white text-base font-display">Move to Trash?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-neutral-300 break-all">
+              "<span className="text-white">{deleteTarget?.name}</span>" will be moved to Trash.
+              You can restore it at any time.
+            </p>
+            {deleteUsageLoading && (
+              <p className="text-xs text-neutral-500">Checking if this image is in use…</p>
+            )}
+            {!deleteUsageLoading && deleteUsages.length > 0 && (
+              <div className="border border-amber-900/40 bg-amber-950/10 p-3">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-amber-300 font-medium mb-1">
+                      This image is currently in use on {deleteUsages.length} page{deleteUsages.length !== 1 ? "s" : ""}:
+                    </p>
+                    <ul className="space-y-0.5">
+                      {deleteUsages.map((u, i) => (
+                        <li key={i} className="text-[11px] text-neutral-400">
+                          <span className="text-neutral-300">{u.section}:</span> {u.label}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-[11px] text-neutral-500 mt-2">
+                      Moving it to Trash will leave a broken image on those pages until you assign a replacement.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="flex gap-2 justify-end">
+              <Button size="sm" variant="outline"
+                className="border-white/15 text-neutral-400 hover:text-white text-xs"
+                onClick={() => setDeleteTarget(null)}>
+                Cancel
+              </Button>
+              <Button size="sm"
+                className="bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 text-xs gap-1"
+                onClick={confirmTrash}>
+                <Trash2 className="w-3 h-3" /> Move to Trash
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Rename dialog ──────────────────────────────────────────────────── */}
+      <Dialog open={!!renameFile} onOpenChange={open => !open && setRenameFile(null)}>
+        <DialogContent className="bg-black border border-white/10 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white text-base font-display">Rename File</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              className="bg-black border-white/10 text-white text-sm"
+              value={renameVal}
+              onChange={e => setRenameVal(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleRename()}
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <Button size="sm" variant="outline"
+                className="border-white/15 text-neutral-400 hover:text-white text-xs"
+                onClick={() => setRenameFile(null)}>
+                Cancel
+              </Button>
+              <Button size="sm"
+                className="bg-white text-black hover:bg-neutral-200 text-xs"
+                disabled={renameBusy || !renameVal.trim()}
+                onClick={handleRename}>
+                {renameBusy ? "Renaming…" : "Rename"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Move dialog ────────────────────────────────────────────────────── */}
+      <Dialog open={!!moveFile} onOpenChange={open => !open && setMoveFile(null)}>
+        <DialogContent className="bg-black border border-white/10 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white text-base font-display">Move to Folder</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-xs text-neutral-500 break-all">Moving: <span className="text-white">{moveFile?.name}</span></p>
+            <select
+              value={moveDest}
+              onChange={e => setMoveDest(e.target.value)}
+              className="w-full bg-black border border-white/10 text-white text-sm px-3 py-2 outline-none"
+            >
+              {MEDIA_FOLDERS.map(f => (
+                <option key={f.path} value={f.path}>{f.label}</option>
+              ))}
+            </select>
+            <div className="flex gap-2 justify-end">
+              <Button size="sm" variant="outline"
+                className="border-white/15 text-neutral-400 hover:text-white text-xs"
+                onClick={() => setMoveFile(null)}>
+                Cancel
+              </Button>
+              <Button size="sm"
+                className="bg-white text-black hover:bg-neutral-200 text-xs gap-1"
+                disabled={moveBusy}
+                onClick={handleMove}>
+                <FolderInput className="w-3 h-3" />
+                {moveBusy ? "Moving…" : "Move"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
