@@ -26,6 +26,9 @@ Replit (dev) → git commit → push to GitHub → Vercel (production)
 
 **Why:** If Vercel token is unavailable: push to GitHub, explain what remains, ask the user for the token. Do NOT deploy anywhere else.
 
+## Vercel project rootDirectory
+The Vercel project (`darklight-studio`) must have `rootDirectory: darklightz-vercel` set. It was `null` initially, causing `vite build` to exit 127 (vite not found at archive root). Fixed via PATCH `/v9/projects/darklight-studio`. This is a one-time fix — it persists in the Vercel project settings.
+
 ## Gotchas
 - Always run `vercel link` and deploy from the **monorepo root**, not from `darklightz-vercel/`. Running from inside the subproject makes Vercel look for a nested subfolder that doesn't exist.
 - Always pass `--archive=tgz` — without it, Vercel hits the 15k-file limit in a monorepo.
