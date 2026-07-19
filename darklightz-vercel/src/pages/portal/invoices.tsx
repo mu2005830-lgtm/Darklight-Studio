@@ -50,8 +50,8 @@ export default function PortalInvoices() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
             {[
               { label: "Total Invoices", value: invoices.length.toString() },
-              { label: "Paid", value: formatAmount(totalPaid, "USD") },
-              { label: "Outstanding", value: formatAmount(totalPending, "USD") },
+              { label: "Paid", value: formatAmount(totalPaid, invoices[0]?.currency ?? "PKR") },
+              { label: "Outstanding", value: formatAmount(totalPending, invoices[0]?.currency ?? "PKR") },
             ].map(({ label, value }) => (
               <div key={label} className="border border-white/10 bg-white/[0.02] p-5">
                 <p className="text-xs text-neutral-600 uppercase tracking-wider font-mono mb-2">{label}</p>
@@ -118,17 +118,15 @@ export default function PortalInvoices() {
                   )}>
                     {statusLabel(inv.status)}
                   </span>
-                  {inv.invoiceUrl && (
-                    <a
-                      href={inv.invoiceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-neutral-500 hover:text-white transition-colors"
-                      title="Download invoice"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                    </a>
-                  )}
+                  <a
+                    href={inv.invoiceUrl ?? `/portal/invoices/${inv.id}/print`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-neutral-500 hover:text-white transition-colors"
+                    title={inv.invoiceUrl ? "Download invoice" : "View & download PDF"}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                  </a>
                 </div>
               </div>
             ))}

@@ -346,11 +346,11 @@ function HomeFAQ() {
 
         <Accordion type="single" collapsible className="w-full">
           {[
-            { q: "What is your typical project timeline?", a: "Most dedicated build projects take between 6 to 12 weeks from kickoff to launch, depending on complexity. For our retainer model, we deliver continuous iterations every 48-72 hours." },
-            { q: "Do you only work with tech companies?", a: "While our core expertise aligns perfectly with SaaS and technology products, we partner with any ambitious brand that values premium design and robust engineering." },
-            { q: "Who will be working on my project?", a: "You work directly with the principals of Darklightz. We do not offshore work or hand you off to junior associates. Every pixel and line of code is crafted by senior talent." },
-            { q: "How do you handle revisions?", a: "In our retainer model, revisions are unlimited until you're satisfied. In dedicated builds, we include structured feedback rounds at major milestones to ensure alignment." },
-            { q: "What platforms and frameworks do you specialize in?", a: "We build primarily in the React ecosystem (Next.js, Vite), utilizing Tailwind CSS, Framer Motion, and robust backends like Node.js or edge functions. We select the tool that best serves the product's scale." },
+            { q: "What types of businesses do you work with?", a: "We work with any business that wants a professional online presence — gyms, restaurants, clinics, salons, real estate, clothing brands, perfume brands, e-commerce stores, and local businesses across Pakistan." },
+            { q: "How long does a project take?", a: "Starter Bundle: 5–7 days. Growth Bundle: 10–14 days. Elite Bundle: 18–24 days. Timelines begin once we receive your 30% advance and onboarding materials." },
+            { q: "Who will be working on my project?", a: "You deal directly with the Darklightz Studio team — the people actually doing the work. No middlemen, no hand-offs. Direct communication from day one to launch." },
+            { q: "How do revisions work?", a: "Every bundle includes 3 revision rounds. We work through your feedback round by round until the deliverable meets your expectations. Additional revisions beyond that are available at a modest rate." },
+            { q: "What are your payment terms?", a: "We require a 30% advance to begin work. A live demo is shared before final delivery. The remaining 70% is due before source code ownership is transferred. JazzCash, EasyPaisa, bank transfer, and cards accepted." },
           ].map((faq, i) => (
             <BlurReveal key={i} delay={i * 0.1}>
               <AccordionItem value={`item-${i}`} className="border-border">

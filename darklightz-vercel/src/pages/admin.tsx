@@ -64,6 +64,7 @@ type Section =
   | "contacts" | "bookings"
   | "site-settings" | "social-links"
   | "portal-crm"
+  | "reviews"
 
 // ============================================================================
 // AdminLogin — preserved exactly from original
@@ -1523,7 +1524,7 @@ function PortalCRMSection() {
   const [msgModal, setMsgModal] = React.useState<{ userId: number; projectId?: number } | null>(null)
   const [msgBody, setMsgBody] = React.useState("")
   const [invModal, setInvModal] = React.useState<{ userId: number } | null>(null)
-  const [invForm, setInvForm] = React.useState({ title: "", amountCents: "", currency: "USD", status: "sent", issuedAt: "", dueAt: "" })
+  const [invForm, setInvForm] = React.useState({ title: "", amountCents: "", currency: "PKR", status: "sent", issuedAt: "", dueAt: "" })
 
   const h = { headers: { "x-admin-key": adminKey, "Content-Type": "application/json" } }
 
@@ -1925,6 +1926,156 @@ function PortalCRMSection() {
 }
 
 // ============================================================================
+// Reviews Section
+// ============================================================================
+
+type ReviewItem = {
+  id: number; name: string; company: string | null; rating: number;
+  review: string; status: string; createdAt: string;
+}
+
+function ReviewsSection() {
+  const adminKey = sessionStorage.getItem(SESSION_KEY) ?? ""
+  const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? ""
+  const h = { headers: { "x-admin-key": adminKey, "Content-Type": "application/json" } }
+
+  const [items, setItems] = React.useState<ReviewItem[]>([])
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState("")
+
+  async function load() {
+    setLoading(true); setError("")
+    try {
+      const r = await fetch(`${base}/api/admin/reviews`, { headers: { "x-admin-key": adminKey } })
+      if (!r.ok) throw new Error(`${r.status}`)
+      setItems(await r.json())
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Error") }
+    finally { setLoading(false) }
+  }
+  React.useEffect(() => { load() }, [])
+
+  async function setStatus(id: number, status: string) {
+    try {
+      const r = await fetch(`${base}/api/admin/reviews/${id}`, { method: "PATCH", ...h, body: JSON.stringify({ status }) })
+      if (!r.ok) throw new Error(`${r.status}`)
+      load()
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : "Error") }
+  }
+
+  async function del(id: number) {
+    if (!confirm("Delete this review permanently?")) return
+    try {
+      const r = await fetch(`${base}/api/admin/reviews/${id}`, { method: "DELETE", headers: { "x-admin-key": adminKey } })
+      if (!r.ok) throw new Error(`${r.status}`)
+      load()
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : "Error") }
+  }
+
+  const pending  = items.filter(i => i.status === "pending")
+  const approved = items.filter(i => i.status === "approved")
+  const rejected = items.filter(i => i.status === "rejected")
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-lg font-display font-bold text-white">Reviews</h2>
+          <p className="text-neutral-500 text-sm mt-1">Approve or reject client reviews before they go public.</p>
+        </div>
+        <Button onClick={load} variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs">Refresh</Button>
+      </div>
+
+      {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+      {loading && <p className="text-neutral-500 text-sm">Loading…</p>}
+
+      {/* Pending reviews first */}
+      {!loading && pending.length > 0 && (
+        <div className="mb-8">
+          <p className="text-xs font-mono uppercase tracking-wider text-amber-400 mb-3">{pending.length} Pending Approval</p>
+          <div className="space-y-3">
+            {pending.map(item => (
+              <div key={item.id} className="border border-amber-900/40 bg-amber-950/10 px-5 py-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <p className="text-sm font-semibold text-white">{item.name}</p>
+                      {item.company && <p className="text-xs text-neutral-500">{item.company}</p>}
+                      <p className="text-xs text-amber-400">{"★".repeat(item.rating)}{"☆".repeat(5-item.rating)}</p>
+                    </div>
+                    <p className="text-sm text-neutral-300 italic">"{item.review}"</p>
+                    <p className="text-xs text-neutral-600 font-mono mt-2">{new Date(item.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <Button size="sm" onClick={() => setStatus(item.id, "approved")} className="bg-green-900/50 hover:bg-green-900 border border-green-800 text-green-300 text-xs">Approve</Button>
+                    <Button size="sm" onClick={() => setStatus(item.id, "rejected")} className="bg-red-950/50 hover:bg-red-950 border border-red-900 text-red-400 text-xs">Reject</Button>
+                    <Button size="sm" onClick={() => del(item.id)} variant="outline" className="border-white/10 text-neutral-600 hover:text-red-400 hover:border-red-900 text-xs">Delete</Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Approved */}
+      {!loading && approved.length > 0 && (
+        <div className="mb-8">
+          <p className="text-xs font-mono uppercase tracking-wider text-green-400 mb-3">{approved.length} Approved — Public</p>
+          <div className="space-y-2">
+            {approved.map(item => (
+              <div key={item.id} className="border border-white/10 bg-white/[0.02] px-5 py-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <p className="text-sm font-semibold text-white">{item.name}</p>
+                      {item.company && <p className="text-xs text-neutral-500">{item.company}</p>}
+                      <p className="text-xs text-yellow-400">{"★".repeat(item.rating)}</p>
+                    </div>
+                    <p className="text-xs text-neutral-500 italic mt-1 line-clamp-1">"{item.review}"</p>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <Button size="sm" onClick={() => setStatus(item.id, "pending")} variant="outline" className="border-white/15 text-neutral-400 hover:text-white text-xs">Unpublish</Button>
+                    <Button size="sm" onClick={() => del(item.id)} variant="outline" className="border-white/10 text-neutral-600 hover:text-red-400 hover:border-red-900 text-xs">Delete</Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Rejected */}
+      {!loading && rejected.length > 0 && (
+        <div>
+          <p className="text-xs font-mono uppercase tracking-wider text-neutral-500 mb-3">{rejected.length} Rejected</p>
+          <div className="space-y-2">
+            {rejected.map(item => (
+              <div key={item.id} className="border border-white/5 bg-white/[0.01] px-5 py-4 opacity-50">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm text-neutral-400">{item.name} {item.company ? `· ${item.company}` : ""}</p>
+                    <p className="text-xs text-neutral-600 italic mt-1 line-clamp-1">"{item.review}"</p>
+                  </div>
+                  <Button size="sm" onClick={() => del(item.id)} variant="outline" className="border-white/10 text-neutral-600 hover:text-red-400 hover:border-red-900 text-xs shrink-0">Delete</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!loading && items.length === 0 && (
+        <div className="border border-white/10 p-12 text-center">
+          <Star className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
+          <p className="text-neutral-500 text-sm">No reviews yet.</p>
+          <p className="text-neutral-700 text-xs mt-1">Share the link <span className="text-neutral-500">/submit-review</span> with clients.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
 // Sidebar
 // ============================================================================
 
@@ -1946,6 +2097,7 @@ const NAV: NavItem[] = [
   { id: "site-settings", label: "Site Settings",icon: Settings,        group: "Settings" },
   { id: "social-links",  label: "Social Links", icon: LinkIcon,        group: "Settings" },
   { id: "portal-crm",   label: "Client Portal", icon: Users,           group: "Portal CRM" },
+  { id: "reviews",      label: "Reviews",       icon: Star,            group: "CRM" },
 ]
 
 function Sidebar({ active, setActive, onLogout }: { active: Section; setActive: (s: Section) => void; onLogout: () => void }) {
@@ -2026,6 +2178,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     "site-settings": <SiteSettingsSection />,
     "social-links":  <SocialLinksSection />,
     "portal-crm":    <PortalCRMSection />,
+    reviews:         <ReviewsSection />,
   }
 
   return (

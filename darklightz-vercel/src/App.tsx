@@ -31,6 +31,12 @@ import Contact from '@/pages/contact';
 import BookACall from '@/pages/book-a-call';
 import AdminDashboard from '@/pages/admin';
 import NotFound from '@/pages/not-found';
+import PrivacyPolicy from '@/pages/privacy';
+import TermsOfService from '@/pages/terms';
+import RefundPolicy from '@/pages/refund-policy';
+import CookiePolicy from '@/pages/cookie-policy';
+import SubmitReview from '@/pages/submit-review';
+import InvoicePrint from '@/pages/portal/invoice-print';
 
 // ── Portal pages ──────────────────────────────────────────────────────────
 import PortalLogin from '@/pages/portal/login';
@@ -93,6 +99,13 @@ function Router() {
       <Route path="/book-a-call" component={BookACall} />
       <Route path="/admin" component={AdminDashboard} />
 
+      {/* ── Legal pages ───────────────────────────────────────────────── */}
+      <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/terms" component={TermsOfService} />
+      <Route path="/refund-policy" component={RefundPolicy} />
+      <Route path="/cookie-policy" component={CookiePolicy} />
+      <Route path="/submit-review" component={SubmitReview} />
+
       {/* ── Client Portal — public (auth pages) ──────────────────────── */}
       <Route path="/portal/login" component={PortalLogin} />
       <Route path="/portal/signup" component={PortalSignup} />
@@ -141,6 +154,7 @@ function Router() {
           </RequirePortalAuth>
         )}
       </Route>
+      <Route path="/portal/invoices/:id/print" component={InvoicePrint} />
 
       <Route component={NotFound} />
     </Switch>

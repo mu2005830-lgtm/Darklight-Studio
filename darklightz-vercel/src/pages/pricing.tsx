@@ -97,11 +97,11 @@ const WHY_US = [
 const FAQS = [
   {
     q: "What payment methods do you accept?",
-    a: "We accept bank transfer, JazzCash, EasyPaisa, and major credit/debit cards. A 50% deposit is required to start, with the remainder due on delivery.",
+    a: "We accept bank transfer, JazzCash, EasyPaisa, and major credit/debit cards. A 30% advance payment is required to start work, with the remaining 70% due before source code ownership is transferred.",
   },
   {
     q: "Can I pay in installments?",
-    a: "Yes. All bundles support a 50/50 split — 50% to begin, 50% on delivery. For Elite Bundle, a 3-part split (33%/33%/34%) is also available on request.",
+    a: "Yes. All bundles follow a 30/70 split — 30% to begin, 70% on delivery after you've reviewed the live demo. For larger projects, a custom payment schedule can be arranged on request.",
   },
   {
     q: "Can I mix services from different bundles or add extras?",

@@ -54,8 +54,8 @@ export default function About() {
               transition={{ duration: 0.8 }}
               className="text-5xl md:text-8xl font-display font-bold tracking-tighter mb-8 leading-[1.05]"
             >
-              We don't build MVP.<br />
-              <span className="text-muted-foreground/50">We build MMP.</span>
+              Where Ideas Become<br />
+              <span className="text-muted-foreground/50">Digital Success.</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
@@ -63,7 +63,7 @@ export default function About() {
               transition={{ delay: 0.2, duration: 0.8 }}
               className="text-2xl text-muted-foreground leading-relaxed"
             >
-              Minimum <span className="text-foreground font-bold">Magnificent</span> Product.
+              A startup digital agency built on premium output, honest work, and real results.
             </motion.p>
           </div>
 
@@ -75,7 +75,6 @@ export default function About() {
                   alt="Studio vibe"
                   className="w-full h-full object-cover grayscale opacity-80 mix-blend-luminosity"
                   onError={(e) => {
-                    // Fallback if image not generated yet
                     e.currentTarget.src = "https://images.unsplash.com/photo-1600508513693-8a301ec9c704?q=80&w=2070&auto=format&fit=crop"
                   }}
                 />
@@ -89,17 +88,17 @@ export default function About() {
               <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
                 <BlurReveal delay={0.1}>
                   <p>
-                    Darklightz was founded on a simple premise: most software is aggressively mediocre. The industry standard has drifted toward bloated templates, slow load times, and disjointed experiences.
+                    Darklightz Studio was founded in 2026 by a passionate team of digital professionals with one clear mission: help businesses in Pakistan build a powerful, professional online presence through premium digital solutions.
                   </p>
                 </BlurReveal>
                 <BlurReveal delay={0.2}>
                   <p>
-                    We exist to counter that. We are a tight-knit collective of senior designers and engineers who have spent the last decade building core products for leading tech companies.
+                    Based in Walton, Lahore, we work with local businesses across Pakistan — and remotely worldwide — delivering websites, branding, SEO, content creation, and digital strategies that generate real business growth.
                   </p>
                 </BlurReveal>
                 <BlurReveal delay={0.3}>
                   <p>
-                    When you hire us, you aren't handed off to junior associates. You work directly with the principals. We embed in your vision, strip away the excess, and deliver products that feel undeniably premium.
+                    When you work with us, you deal directly with the people doing the work. No layers, no hand-offs. Just honest expertise, fast turnaround, and genuine care for your success.
                   </p>
                 </BlurReveal>
               </div>
@@ -119,11 +118,10 @@ export default function About() {
             
             <div className="max-w-4xl mx-auto">
               {[
-                { year: "2018", title: "Foundation", desc: "Darklightz began as a small boutique consultancy in San Francisco, focused strictly on high-performance web applications." },
-                { year: "2020", title: "The Pivot to Premium", desc: "We ceased all template-based work, committing entirely to bespoke, engineered-from-scratch digital products." },
-                { year: "2021", title: "International Scale", desc: "Expanded our distributed core team across three continents, maintaining our zero-handoff philosophy." },
-                { year: "2023", title: "Enterprise Systems", desc: "Shipped core design systems and frontends for three Fortune 500 tech clients." },
-                { year: "2024", title: "Cinematic Precision", desc: "Launched our new aesthetic paradigm, merging high-performance engineering with cinematic motion design." }
+                { year: "2026", title: "Founded", desc: "Darklightz Studio was established in Walton, Lahore, with a mission to help Pakistani businesses build a professional online presence through premium, modern digital solutions." },
+                { year: "2026", title: "First Live Project", desc: "Delivered our debut live project — W Luxury Perfumes by Raja Waqar — a premium branding and web experience that set the benchmark for the quality we deliver on every engagement." },
+                { year: "2026", title: "Expanding Across Pakistan", desc: "Opened our service area to all of Pakistan — remote-first, with on-site availability in Lahore. Serving gyms, restaurants, clinics, salons, real estate, clothing brands, and e-commerce stores." },
+                { year: "2026 →", title: "Going International", desc: "With a strong local foundation in place, international expansion is the next chapter. Our vision: become one of Pakistan's most trusted digital agencies before scaling globally." },
               ].map((item, i) => (
                 <TimelineItem key={i} i={i} year={item.year} title={item.title} desc={item.desc} />
               ))}
@@ -146,18 +144,18 @@ export default function About() {
                 {[
                   {
                     num: "01",
-                    title: "Ruthless Subtraction",
-                    desc: "Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away. We eliminate the unnecessary.",
+                    title: "Quality Over Shortcuts",
+                    desc: "We don't use generic templates or cut corners. Every deliverable is built from scratch to match your brand and your goals — no exceptions.",
                   },
                   {
                     num: "02",
-                    title: "Motion as Meaning",
-                    desc: "Animation is not decoration. It is context, hierarchy, and spatial understanding. We engineer motion at 60fps.",
+                    title: "Results-Driven",
+                    desc: "A beautiful website means nothing if it doesn't generate business. Every decision we make — design, copy, SEO, performance — is aimed at one thing: your growth.",
                   },
                   {
                     num: "03",
-                    title: "Code is Design",
-                    desc: "The boundary between design and engineering is artificial. We design in code, ensuring what you approve is exactly what ships.",
+                    title: "Transparent Partnership",
+                    desc: "You'll always know exactly where your project stands. Direct communication, clear timelines, honest pricing, and no surprises — that's how we work.",
                   },
                 ].map((principle, i) => (
                   <BlurReveal delay={i * 0.1} key={principle.num}>

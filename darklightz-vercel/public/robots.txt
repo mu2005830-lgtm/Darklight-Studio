@@ -1,2 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /portal/
+
+Sitemap: https://darklight-studio.vercel.app/sitemap.xml

@@ -16,3 +16,5 @@ export * from "./clients.js";
 export * from "./inquiries.js";
 // Client Portal — Phase 3
 export * from "./portal.js";
+// Reviews System
+export * from "./reviews.js";

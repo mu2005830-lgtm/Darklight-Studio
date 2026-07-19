@@ -22,6 +22,8 @@ import uploadRouter from "./upload.js";
 // Client Portal — Phase 3
 import portalRouter from "./portal.js";
 import adminPortalRouter from "./admin-portal.js";
+// Reviews System
+import reviewsRouter from "./reviews.js";
 
 const router: IRouter = Router();
 
@@ -48,5 +50,6 @@ router.use(uploadRouter);
 // Client Portal — Phase 3
 router.use(portalRouter);
 router.use(adminPortalRouter);
+router.use(reviewsRouter);
 
 export default router;

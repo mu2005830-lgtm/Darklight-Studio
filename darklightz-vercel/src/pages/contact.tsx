@@ -67,14 +67,23 @@ export default function Contact() {
               <div className="space-y-8 border-t border-border pt-12">
                 <div>
                   <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-muted-foreground/70 mb-2">Email</div>
-                  <a href="mailto:hello@darklightz.com" className="text-xl font-medium text-white hover:text-muted-foreground transition-colors">hello@darklightz.com</a>
+                  <a href="mailto:darklightzstudiu@gmail.com" className="text-xl font-medium text-white hover:text-muted-foreground transition-colors">darklightzstudiu@gmail.com</a>
+                </div>
+                <div>
+                  <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-muted-foreground/70 mb-2">Phone / WhatsApp</div>
+                  <a href="https://wa.me/923350501287" target="_blank" rel="noopener noreferrer" className="text-xl font-medium text-white hover:text-muted-foreground transition-colors">+92 335 0501287</a>
                 </div>
                 <div>
                   <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-muted-foreground/70 mb-2">Location</div>
                   <address className="not-italic text-xl font-medium text-white">
-                    San Francisco, CA<br />
-                    Remote Worldwide
+                    Walton, Lahore<br />
+                    Punjab, Pakistan<br />
+                    <span className="text-muted-foreground text-base">Remote &amp; On-site (Lahore)</span>
                   </address>
+                </div>
+                <div>
+                  <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-muted-foreground/70 mb-2">Business Hours</div>
+                  <p className="text-xl font-medium text-white">Open 24/7 — avg. response within 10–60 min</p>
                 </div>
               </div>
             </div>
@@ -103,7 +112,7 @@ export default function Contact() {
                     </motion.div>
                     <h3 className="text-3xl font-display font-bold mb-4">Message Received</h3>
                     <p className="text-muted-foreground mb-8 max-w-md">
-                      Thank you for reaching out. A principal will review your inquiry and get back to you within 24 hours.
+                      Thank you for reaching out. We'll review your inquiry and get back to you within 10–60 minutes.
                     </p>
                     <Button
                       variant="outline"
@@ -136,7 +145,7 @@ export default function Contact() {
                                 <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Name *</FormLabel>
                                 <FormControl>
                                   <Input 
-                                    placeholder="John Doe" 
+                                    placeholder="Your Name" 
                                     className="bg-black/50 border-border focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300"
                                     {...field} 
                                   />
@@ -153,7 +162,7 @@ export default function Contact() {
                                 <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Email *</FormLabel>
                                 <FormControl>
                                   <Input 
-                                    placeholder="john@example.com" 
+                                    placeholder="yourname@email.com" 
                                     type="email" 
                                     className="bg-black/50 border-border focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300"
                                     {...field} 
@@ -171,10 +180,10 @@ export default function Contact() {
                             name="company"
                             render={({ field }) => (
                               <FormItem className="group/field relative">
-                                <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Company</FormLabel>
+                                <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Business / Brand</FormLabel>
                                 <FormControl>
                                   <Input 
-                                    placeholder="Acme Inc." 
+                                    placeholder="Your Business Name" 
                                     className="bg-black/50 border-border focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300"
                                     {...field} 
                                   />
@@ -188,7 +197,7 @@ export default function Contact() {
                             name="budget"
                             render={({ field }) => (
                               <FormItem className="group/field relative">
-                                <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Budget Range</FormLabel>
+                                <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Budget Range (PKR)</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger className="bg-black/50 border-border focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300">
@@ -196,10 +205,10 @@ export default function Contact() {
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent className="bg-background border-border">
-                                    <SelectItem value="< $25k" className="focus:bg-muted/50 focus:text-white">&lt; $25k</SelectItem>
-                                    <SelectItem value="$25k - $50k" className="focus:bg-muted/50 focus:text-white">$25k - $50k</SelectItem>
-                                    <SelectItem value="$50k - $100k" className="focus:bg-muted/50 focus:text-white">$50k - $100k</SelectItem>
-                                    <SelectItem value="$100k+" className="focus:bg-muted/50 focus:text-white">$100k+</SelectItem>
+                                    <SelectItem value="Under PKR 25,000" className="focus:bg-muted/50 focus:text-white">Under PKR 25,000</SelectItem>
+                                    <SelectItem value="PKR 25,000 – 50,000" className="focus:bg-muted/50 focus:text-white">PKR 25,000 – 50,000</SelectItem>
+                                    <SelectItem value="PKR 50,000 – 1,00,000" className="focus:bg-muted/50 focus:text-white">PKR 50,000 – 1,00,000</SelectItem>
+                                    <SelectItem value="PKR 1,00,000+" className="focus:bg-muted/50 focus:text-white">PKR 1,00,000+</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -216,7 +225,7 @@ export default function Contact() {
                               <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px] group-focus-within/field:text-white transition-colors">Message *</FormLabel>
                               <FormControl>
                                 <Textarea
-                                  placeholder="Tell us about your project goals..."
+                                  placeholder="Tell us about your project, business, and what you want to achieve..."
                                   className="min-h-[150px] resize-none bg-black/50 border-border focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all duration-300"
                                   {...field}
                                 />

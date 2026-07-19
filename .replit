@@ -26,6 +26,7 @@ channel = "stable-25_05"
 
 [userenv.shared]
 ADMIN_NOTIFICATION_EMAIL = "darklightzstudiu@gmail.com"
-FROM_EMAIL = "Darklightz Studio <darklightzstudiu@gmail.com>"
+FROM_EMAIL = "onboarding@resend.dev"
 SUPABASE_URL = "https://clhmisxqjinlcgmxhhsd.supabase.co"
 VITE_SUPABASE_URL = "https://clhmisxqjinlcgmxhhsd.supabase.co"
+ALLOWED_ORIGIN = "https://darklight-studio.vercel.app"
