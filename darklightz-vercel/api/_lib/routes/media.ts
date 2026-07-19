@@ -22,6 +22,17 @@ function getSupabase() {
 
 router.get("/admin/media", requireAdminKey, async (req, res): Promise<void> => {
   const folder = typeof req.query.folder === "string" ? req.query.folder : "";
+
+  // Diagnostic: tell the client whether required env vars are present
+  const keyConfigured = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!keyConfigured) {
+    res.status(503).json({
+      error: "SUPABASE_SERVICE_ROLE_KEY is not set in Vercel environment variables. Go to Vercel → Project → Settings → Environment Variables and add it, then redeploy.",
+      configured: false,
+    });
+    return;
+  }
+
   const supabase = getSupabase();
 
   const { data, error } = await supabase.storage.from(BUCKET).list(folder || undefined, {
@@ -29,7 +40,7 @@ router.get("/admin/media", requireAdminKey, async (req, res): Promise<void> => {
     sortBy: { column: "created_at", order: "desc" },
   });
 
-  if (error) { res.status(500).json({ error: error.message }); return; }
+  if (error) { res.status(500).json({ error: `Supabase error: ${error.message} — Bucket: "${BUCKET}"` }); return; }
 
   // Separate folders (items with no metadata = folder placeholders) from files
   const files = (data ?? []).map((item) => {

@@ -1976,9 +1976,9 @@ function MediaCenterSection() {
     setLoading(true); setError("")
     try {
       const r = await fetch(`${base}/api/admin/media?folder=${encodeURIComponent(f)}`, { headers: h })
-      if (!r.ok) throw new Error(await r.text())
       const d = await r.json()
-      setFiles(d.files)
+      if (!r.ok) throw new Error(d.error ?? `HTTP ${r.status}`)
+      setFiles(d.files ?? [])
     } catch (e: unknown) { setError(e instanceof Error ? e.message : "Error loading files") }
     finally { setLoading(false) }
   }
@@ -2077,17 +2077,40 @@ function MediaCenterSection() {
         ))}
       </div>
 
-      {error && <p className="text-red-400 text-xs mb-4">{error}</p>}
+      {error && (
+        <div className="border border-red-500/30 bg-red-500/5 p-4 mb-6">
+          <p className="text-red-400 text-xs font-mono leading-relaxed">{error}</p>
+          {error.includes("SUPABASE_SERVICE_ROLE_KEY") && (
+            <div className="mt-3 space-y-1 text-[11px] text-neutral-400">
+              <p className="font-semibold text-white">How to fix:</p>
+              <p>1. Go to <span className="text-white font-mono">vercel.com → darklightz → darklight-studio → Settings → Environment Variables</span></p>
+              <p>2. Add <span className="text-white font-mono">SUPABASE_SERVICE_ROLE_KEY</span> — get it from Supabase → Settings → API → service_role secret</p>
+              <p>3. Click <span className="text-white font-mono">Save</span>, then go to Deployments and click <span className="text-white font-mono">Redeploy</span> on the latest deployment</p>
+            </div>
+          )}
+          {error.includes("Bucket") && (
+            <div className="mt-3 space-y-1 text-[11px] text-neutral-400">
+              <p className="font-semibold text-white">How to fix:</p>
+              <p>1. Go to Supabase → Storage → Create a new bucket</p>
+              <p>2. Name it exactly: <span className="text-white font-mono">darklightz-media</span></p>
+              <p>3. Set it to <span className="text-white font-mono">Public</span></p>
+              <p>4. Then upload your images here using the Upload button above</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {[1,2,3,4,5,6].map(i => <div key={i} className="h-40 bg-white/5 animate-pulse" />)}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : !error && filtered.length === 0 ? (
         <div className="border border-white/10 bg-white/[0.02] p-12 text-center">
           <Image className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
           <p className="text-neutral-500 text-sm">No files in this folder yet.</p>
-          <p className="text-neutral-700 text-xs mt-1">Upload files using the button above.</p>
+          <p className="text-neutral-700 text-xs mt-1">
+            {folder ? `Upload files to the "${folder}" folder using the button above.` : "Select a folder tab and upload files, or upload directly here."}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
