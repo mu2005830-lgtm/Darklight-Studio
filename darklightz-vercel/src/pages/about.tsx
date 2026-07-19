@@ -71,12 +71,9 @@ export default function About() {
             <div ref={containerRef} className="overflow-hidden rounded-[2px]">
               <motion.div style={{ y: imageY }} className="aspect-[3/4] bg-neutral-900 border border-border h-[120%] -mt-[10%]">
                 <img
-                  src="/images/about-team-abstract.jpg"
-                  alt="Studio vibe"
+                  src="https://images.unsplash.com/photo-1593640495253-23196b27a87f?q=80&w=2070&auto=format&fit=crop"
+                  alt="Darklightz Studio — premium digital workspace"
                   className="w-full h-full object-cover grayscale opacity-80 mix-blend-luminosity"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://images.unsplash.com/photo-1600508513693-8a301ec9c704?q=80&w=2070&auto=format&fit=crop"
-                  }}
                 />
               </motion.div>
             </div>

@@ -125,6 +125,27 @@ export function emailStatusChanged(
   `);
 }
 
+export function emailClientUploadedFile(
+  clientName: string,
+  projectTitle: string,
+  fileName: string,
+): string {
+  const now = new Date();
+  const date = now.toLocaleDateString("en-PK", { day: "2-digit", month: "long", year: "numeric" });
+  const time = now.toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" });
+  return baseTemplate(`
+    <p style="color:#e5e5e5;">A client has uploaded a new file to their project.</p>
+    <table style="border-collapse:collapse;width:100%;margin:16px 0;">
+      <tr><td style="padding:8px 0;color:#888;width:140px;">Client</td><td style="color:#fff;">${clientName}</td></tr>
+      <tr><td style="padding:8px 0;color:#888;">Project</td><td style="color:#fff;">${projectTitle}</td></tr>
+      <tr><td style="padding:8px 0;color:#888;">File</td><td style="color:#fff;">${fileName}</td></tr>
+      <tr><td style="padding:8px 0;color:#888;">Date</td><td style="color:#fff;">${date}</td></tr>
+      <tr><td style="padding:8px 0;color:#888;">Time</td><td style="color:#fff;">${time}</td></tr>
+    </table>
+    <p style="color:#aaa;font-size:13px;">Log in to the admin panel to view the uploaded file inside the client's project.</p>
+  `);
+}
+
 export function emailProjectCompleted(clientName: string, projectTitle: string): string {
   return baseTemplate(`
     <p style="color:#e5e5e5;font-size:16px;">🎉 Your project has been completed!</p>

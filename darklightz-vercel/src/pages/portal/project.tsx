@@ -1,5 +1,6 @@
+import { useRef, useState } from "react"
 import { useParams, useLocation } from "wouter"
-import { usePortalProject, useRequestProjectUpdate } from "@/lib/portal-api"
+import { usePortalProject, useRequestProjectUpdate, useUploadProjectFile } from "@/lib/portal-api"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -7,8 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import {
-  ArrowLeft, Calendar, User2, Hash, RefreshCw, Download,
-  CheckCircle2, Circle, Clock, AlertTriangle,
+  Calendar, User2, Hash, RefreshCw, Download,
+  CheckCircle2, Circle, Clock, AlertTriangle, Upload, FileUp,
 } from "lucide-react"
 import { Link } from "wouter"
 import { toast } from "sonner"
@@ -36,6 +37,9 @@ export default function PortalProject() {
   const projectId = parseInt(id ?? "0", 10)
   const { data, isLoading, error } = usePortalProject(projectId)
   const requestUpdate = useRequestProjectUpdate()
+  const uploadFile = useUploadProjectFile(projectId)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [dragOver, setDragOver] = useState(false)
 
   if (isLoading) {
     return (
@@ -68,6 +72,18 @@ export default function PortalProject() {
   async function handleRequestUpdate() {
     await requestUpdate.mutateAsync(projectId)
     toast.success("Update requested — we'll be in touch soon.")
+  }
+
+  async function handleFileUpload(files: FileList | null) {
+    if (!files || files.length === 0) return
+    for (const file of Array.from(files)) {
+      try {
+        await uploadFile.mutateAsync(file)
+        toast.success(`"${file.name}" uploaded successfully.`)
+      } catch {
+        toast.error(`Failed to upload "${file.name}". Please try again.`)
+      }
+    }
   }
 
   return (
@@ -211,36 +227,93 @@ export default function PortalProject() {
         </div>
 
         {/* Right: Files */}
-        <div className="space-y-4">
-          <h2 className="text-sm font-semibold text-white uppercase tracking-wider">
-            Delivered Files
-          </h2>
-          {data.files.length === 0 ? (
-            <div className="border border-white/10 bg-white/[0.02] p-6 text-center">
-              <Download className="w-6 h-6 text-neutral-700 mx-auto mb-2" />
-              <p className="text-neutral-600 text-xs">No files yet</p>
+        <div className="space-y-6">
+          {/* Admin-delivered files */}
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold text-white uppercase tracking-wider">
+              Delivered Files
+            </h2>
+            {data.files.filter(f => f.uploadedBy === "admin").length === 0 ? (
+              <div className="border border-white/10 bg-white/[0.02] p-6 text-center">
+                <Download className="w-6 h-6 text-neutral-700 mx-auto mb-2" />
+                <p className="text-neutral-600 text-xs">No deliverables yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {data.files.filter(f => f.uploadedBy === "admin").map((file) => (
+                  <a
+                    key={file.id}
+                    href={file.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-4 border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20 transition-all group"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm text-white truncate">{file.name}</p>
+                      <p className="text-xs text-neutral-600 font-mono mt-0.5">
+                        {format(new Date(file.createdAt), "MMM d, yyyy")}
+                      </p>
+                    </div>
+                    <Download className="w-4 h-4 text-neutral-600 group-hover:text-white shrink-0 ml-3 transition-colors" />
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Client file upload */}
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold text-white uppercase tracking-wider">
+              Upload Files
+            </h2>
+            <div
+              className={cn(
+                "border-2 border-dashed p-6 text-center transition-colors cursor-pointer",
+                dragOver ? "border-white/40 bg-white/[0.04]" : "border-white/10 hover:border-white/25"
+              )}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={e => { e.preventDefault(); setDragOver(false); handleFileUpload(e.dataTransfer.files) }}
+            >
+              <FileUp className="w-6 h-6 text-neutral-600 mx-auto mb-2" />
+              <p className="text-xs text-neutral-400 mb-1">
+                {uploadFile.isPending ? "Uploading…" : "Drop files here or click to browse"}
+              </p>
+              <p className="text-[10px] text-neutral-600">Logos, images, PDFs, Word docs, ZIPs, brand assets — up to 50 MB</p>
             </div>
-          ) : (
-            <div className="space-y-2">
-              {data.files.map((file) => (
-                <a
-                  key={file.id}
-                  href={file.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between p-4 border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20 transition-all group"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm text-white group-hover:text-white truncate">{file.name}</p>
-                    <p className="text-xs text-neutral-600 font-mono mt-0.5">
-                      {format(new Date(file.createdAt), "MMM d, yyyy")}
-                    </p>
-                  </div>
-                  <Download className="w-4 h-4 text-neutral-600 group-hover:text-white shrink-0 ml-3 transition-colors" />
-                </a>
-              ))}
-            </div>
-          )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={e => { handleFileUpload(e.target.files); e.target.value = "" }}
+            />
+
+            {/* Client-uploaded files */}
+            {data.files.filter(f => f.uploadedBy === "client").length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[10px] text-neutral-600 uppercase tracking-wider font-mono">Your uploads</p>
+                {data.files.filter(f => f.uploadedBy === "client").map((file) => (
+                  <a
+                    key={file.id}
+                    href={file.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-3 border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] transition-all group"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm text-white truncate">{file.name}</p>
+                      <p className="text-xs text-neutral-600 font-mono mt-0.5">
+                        {format(new Date(file.createdAt), "MMM d, yyyy")}
+                      </p>
+                    </div>
+                    <Upload className="w-3.5 h-3.5 text-neutral-600 shrink-0 ml-3" />
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </PortalLayout>

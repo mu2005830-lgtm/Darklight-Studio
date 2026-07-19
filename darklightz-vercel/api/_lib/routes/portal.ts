@@ -5,6 +5,8 @@
  */
 import { Router, type IRouter } from "express";
 import { eq, and, desc } from "drizzle-orm";
+import multer from "multer";
+import { createClient } from "@supabase/supabase-js";
 import { db } from "../db/index.js";
 import {
   portalUsersTable,
@@ -25,8 +27,11 @@ import {
   emailUpdateRequested,
   emailNewMessage,
   emailRevisionSubmitted,
+  emailClientUploadedFile,
 } from "../lib/email.js";
 import { z } from "zod/v4";
+
+const portalUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
 
 const router: IRouter = Router();
 
@@ -140,6 +145,74 @@ router.post("/portal/projects/:id/request-update", async (req, res): Promise<voi
 
   res.json({ ok: true });
 });
+
+// ── Client file upload ─────────────────────────────────────────────────────
+
+router.post(
+  "/portal/projects/:id/files",
+  requirePortalAuth,
+  portalUpload.single("file"),
+  async (req, res): Promise<void> => {
+    const projectId = parseInt(req.params.id, 10);
+    if (isNaN(projectId)) { res.status(400).json({ error: "Invalid project id" }); return; }
+    if (!req.file) { res.status(400).json({ error: "No file provided" }); return; }
+
+    // Verify project belongs to user
+    const [project] = await db
+      .select()
+      .from(portalProjectsTable)
+      .where(
+        and(
+          eq(portalProjectsTable.id, projectId),
+          eq(portalProjectsTable.portalUserId, req.portalUser!.id),
+        ),
+      );
+    if (!project) { res.status(404).json({ error: "Project not found" }); return; }
+
+    // Upload to Supabase Storage
+    const supabase = createClient(
+      process.env.SUPABASE_URL ?? "https://clhmisxqjinlcgmxhhsd.supabase.co",
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    );
+    const safeName = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const storagePath = `portal-uploads/${projectId}/${Date.now()}-${safeName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("darklightz-media")
+      .upload(storagePath, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: false,
+      });
+    if (uploadError) { res.status(500).json({ error: uploadError.message }); return; }
+
+    const { data: urlData } = supabase.storage.from("darklightz-media").getPublicUrl(storagePath);
+    const publicUrl = urlData.publicUrl;
+
+    // Insert into portal_project_files
+    const [file] = await db
+      .insert(portalProjectFilesTable)
+      .values({
+        projectId,
+        name: req.file.originalname,
+        url: publicUrl,
+        sizeBytes: req.file.size,
+        uploadedBy: "client",
+      })
+      .returning();
+
+    // Email admin
+    await notifyAdmin(
+      `[Portal] Client file upload: ${project.title}`,
+      emailClientUploadedFile(
+        req.portalUser!.name || req.portalUser!.email,
+        project.title,
+        req.file.originalname,
+      ),
+    );
+
+    res.status(201).json(file);
+  },
+);
 
 // ── Messages ──────────────────────────────────────────────────────────────
 

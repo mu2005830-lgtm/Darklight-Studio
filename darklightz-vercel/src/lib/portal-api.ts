@@ -5,6 +5,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { customFetch } from "./api-client/custom-fetch";
+import { supabase } from "./supabase";
 
 const base = () => (import.meta.env.BASE_URL ?? "").replace(/\/$/, "");
 
@@ -293,6 +294,29 @@ export function useCloseTicket() {
     mutationFn: (id: number) =>
       customFetch<PortalTicket>(`${base()}/api/portal/tickets/${id}/close`, { method: "PATCH" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: portalKeys.tickets() }),
+  });
+}
+
+// ── Hooks — Project file upload ────────────────────────────────────────────
+
+export function useUploadProjectFile(projectId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const form = new FormData();
+      form.append("file", file);
+      const BASE = base();
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token ?? "";
+      const res = await fetch(`${BASE}/api/portal/projects/${projectId}/files`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json() as Promise<PortalProjectFile>;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: portalKeys.project(projectId) }),
   });
 }
 

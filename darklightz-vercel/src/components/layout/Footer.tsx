@@ -67,6 +67,7 @@ export function Footer() {
                 <li><Link href="/about" className="hover:text-foreground transition-colors block">About Us</Link></li>
                 <li><Link href="/blog" className="hover:text-foreground transition-colors block">Journal</Link></li>
                 <li><Link href="/contact" className="hover:text-foreground transition-colors block">Contact</Link></li>
+                <li><Link href="/submit-review" className="hover:text-foreground transition-colors block">Leave a Review</Link></li>
               </ul>
             </div>
             <div>

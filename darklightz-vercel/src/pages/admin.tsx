@@ -65,6 +65,7 @@ type Section =
   | "site-settings" | "social-links"
   | "portal-crm"
   | "reviews"
+  | "media-center"
 
 // ============================================================================
 // AdminLogin — preserved exactly from original
@@ -1524,7 +1525,7 @@ function PortalCRMSection() {
   const [msgModal, setMsgModal] = React.useState<{ userId: number; projectId?: number } | null>(null)
   const [msgBody, setMsgBody] = React.useState("")
   const [invModal, setInvModal] = React.useState<{ userId: number } | null>(null)
-  const [invForm, setInvForm] = React.useState({ title: "", amountCents: "", currency: "PKR", status: "sent", issuedAt: "", dueAt: "" })
+  const [invForm, setInvForm] = React.useState({ title: "", amountCents: "", currency: "PKR", status: "sent", issuedAt: "", dueAt: "", invoiceUrl: "" })
 
   const h = { headers: { "x-admin-key": adminKey, "Content-Type": "application/json" } }
 
@@ -1740,19 +1741,37 @@ function PortalCRMSection() {
         <div className="border border-white/15 bg-white/[0.03] p-6 mb-6">
           <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Create Invoice</h3>
           <div className="grid grid-cols-2 gap-3 mb-3">
-            {([["title","Title","Invoice for..."],["amountCents","Amount (cents)","10000"],["currency","Currency","USD"],["status","Status","sent"],["issuedAt","Issued At","2025-01-01"],["dueAt","Due At","2025-02-01"]] as const).map(([k,lbl,ph])=>(
+            {([["title","Title","Invoice for..."],["amountCents","Amount (cents)","10000"],["currency","Currency","PKR"],["status","Status","sent"],["issuedAt","Issued At","2025-01-01"],["dueAt","Due At","2025-02-01"]] as const).map(([k,lbl,ph])=>(
               <div key={k}>
                 <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">{lbl}</label>
                 <input value={(invForm as Record<string,string>)[k]} onChange={e=>setInvForm({...invForm,[k]:e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2" placeholder={ph} />
               </div>
             ))}
           </div>
+          <div className="mb-3">
+            <label className="text-xs text-neutral-500 uppercase tracking-wider font-mono">Custom Invoice PDF URL (optional)</label>
+            <div className="flex gap-2 mt-1">
+              <input value={invForm.invoiceUrl} onChange={e=>setInvForm({...invForm,invoiceUrl:e.target.value})} className="flex-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2" placeholder="https://… or upload a PDF below" />
+              <label className="flex items-center gap-1.5 px-3 py-2 bg-white/5 border border-white/10 text-white text-xs cursor-pointer hover:bg-white/10 transition-colors whitespace-nowrap">
+                <Upload className="w-3 h-3"/>Upload PDF
+                <input type="file" accept=".pdf" className="hidden" onChange={async e=>{
+                  const f=e.target.files?.[0]; if(!f) return;
+                  const fd=new FormData(); fd.append("file",f); fd.append("folder","Invoices");
+                  const r=await fetch(`${base}/api/admin/media/upload`,{method:"POST",headers:{"x-admin-key":adminKey},body:fd});
+                  if(r.ok){const d=await r.json();setInvForm(p=>({...p,invoiceUrl:d.url}))}
+                  else alert("Upload failed"); e.target.value="";
+                }}/>
+              </label>
+            </div>
+            <p className="text-[10px] text-neutral-600 mt-1">When set, clients see a direct download link instead of the generated invoice view.</p>
+          </div>
           <div className="flex gap-2">
-            <Button onClick={async()=>{ await apiPost("invoices",{portalUserId:invModal.userId,...invForm,amountCents:parseInt(invForm.amountCents||"0")}); setInvModal(null);setInvForm({title:"",amountCents:"",currency:"USD",status:"sent",issuedAt:"",dueAt:""}); loadTab("invoices") }} className="bg-white text-black hover:bg-neutral-200 text-sm">Create Invoice</Button>
+            <Button onClick={async()=>{ await apiPost("invoices",{portalUserId:invModal.userId,...invForm,amountCents:parseInt(invForm.amountCents||"0")}); setInvModal(null);setInvForm({title:"",amountCents:"",currency:"PKR",status:"sent",issuedAt:"",dueAt:"",invoiceUrl:""}); loadTab("invoices") }} className="bg-white text-black hover:bg-neutral-200 text-sm">Create Invoice</Button>
             <Button variant="outline" onClick={()=>setInvModal(null)} className="border-white/15 text-neutral-400 hover:text-white">Cancel</Button>
           </div>
         </div>
       )}
+
 
       {/* Client detail panel */}
       {selectedClient && (
@@ -1919,6 +1938,204 @@ function PortalCRMSection() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
+// Media Center Section
+// ============================================================================
+
+const MEDIA_FOLDERS = [
+  "Hero Images", "Studio Story", "Portfolio", "Case Studies",
+  "Journal", "Services", "Team", "Testimonials", "Client Logos",
+  "SEO Images", "Invoices", "Documents", "Brand Assets", "uploads",
+]
+
+type MediaFile = {
+  name: string; path: string; isFolder: boolean;
+  size: number; mimetype: string; createdAt: string; publicUrl: string;
+}
+
+function MediaCenterSection() {
+  const adminKey = sessionStorage.getItem(SESSION_KEY) ?? ""
+  const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? ""
+  const [folder, setFolder] = React.useState("")
+  const [files, setFiles] = React.useState<MediaFile[]>([])
+  const [loading, setLoading] = React.useState(false)
+  const [uploading, setUploading] = React.useState(false)
+  const [search, setSearch] = React.useState("")
+  const [copied, setCopied] = React.useState<string | null>(null)
+  const [error, setError] = React.useState("")
+  const uploadInputRef = React.useRef<HTMLInputElement>(null)
+  const h = { "x-admin-key": adminKey }
+
+  async function load(f: string) {
+    setLoading(true); setError("")
+    try {
+      const r = await fetch(`${base}/api/admin/media?folder=${encodeURIComponent(f)}`, { headers: h })
+      if (!r.ok) throw new Error(await r.text())
+      const d = await r.json()
+      setFiles(d.files)
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Error loading files") }
+    finally { setLoading(false) }
+  }
+
+  React.useEffect(() => { load(folder) }, [folder])
+
+  async function handleUpload(fileList: FileList | null) {
+    if (!fileList) return
+    setUploading(true)
+    for (const file of Array.from(fileList)) {
+      const fd = new FormData()
+      fd.append("file", file)
+      fd.append("folder", folder || "uploads")
+      const r = await fetch(`${base}/api/admin/media/upload`, { method: "POST", headers: h, body: fd })
+      if (!r.ok) { setError(`Failed to upload ${file.name}`); continue }
+    }
+    setUploading(false)
+    load(folder)
+  }
+
+  async function handleDelete(path: string, name: string) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
+    const r = await fetch(`${base}/api/admin/media`, {
+      method: "DELETE",
+      headers: { ...h, "Content-Type": "application/json" },
+      body: JSON.stringify({ path }),
+    })
+    if (r.ok) load(folder)
+    else setError("Delete failed")
+  }
+
+  function copyUrl(url: string) {
+    navigator.clipboard.writeText(url)
+    setCopied(url)
+    setTimeout(() => setCopied(null), 2000)
+  }
+
+  function formatBytes(bytes: number) {
+    if (bytes === 0) return "—"
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / 1048576).toFixed(1)} MB`
+  }
+
+  const isImage = (m: string) => m.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(m)
+
+  const filtered = files.filter(f =>
+    !f.isFolder && f.name.toLowerCase().includes(search.toLowerCase())
+  )
+
+  return (
+    <div>
+      <SectionHeader
+        title="Media Center"
+        action={
+          <div className="flex items-center gap-2">
+            <Input
+              className="bg-black border-white/10 text-white text-sm h-8 w-48"
+              placeholder="Search files…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <Button
+              size="sm"
+              className="bg-white text-black hover:bg-neutral-200 gap-1.5"
+              disabled={uploading}
+              onClick={() => uploadInputRef.current?.click()}
+            >
+              <Upload className="w-3.5 h-3.5" />
+              {uploading ? "Uploading…" : "Upload"}
+            </Button>
+            <input
+              ref={uploadInputRef} type="file" multiple className="hidden"
+              onChange={e => { handleUpload(e.target.files); e.target.value = "" }}
+            />
+          </div>
+        }
+      />
+
+      {/* Folder tabs */}
+      <div className="flex flex-wrap gap-1.5 mb-6">
+        <button
+          onClick={() => setFolder("")}
+          className={`text-[10px] uppercase tracking-wider font-mono px-3 py-1.5 border transition-colors ${folder === "" ? "bg-white text-black border-white" : "border-white/15 text-neutral-500 hover:text-white hover:border-white/30"}`}
+        >
+          All
+        </button>
+        {MEDIA_FOLDERS.map(f => (
+          <button
+            key={f}
+            onClick={() => setFolder(f)}
+            className={`text-[10px] uppercase tracking-wider font-mono px-3 py-1.5 border transition-colors ${folder === f ? "bg-white text-black border-white" : "border-white/15 text-neutral-500 hover:text-white hover:border-white/30"}`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {error && <p className="text-red-400 text-xs mb-4">{error}</p>}
+
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {[1,2,3,4,5,6].map(i => <div key={i} className="h-40 bg-white/5 animate-pulse" />)}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="border border-white/10 bg-white/[0.02] p-12 text-center">
+          <Image className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
+          <p className="text-neutral-500 text-sm">No files in this folder yet.</p>
+          <p className="text-neutral-700 text-xs mt-1">Upload files using the button above.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {filtered.map(file => (
+            <div key={file.path} className="border border-white/10 bg-white/[0.02] overflow-hidden group">
+              {/* Preview */}
+              <div className="h-32 bg-black flex items-center justify-center overflow-hidden">
+                {isImage(file.mimetype) ? (
+                  <img src={file.publicUrl} alt={file.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex flex-col items-center gap-1">
+                    <FileText className="w-8 h-8 text-neutral-600" />
+                    <span className="text-[10px] text-neutral-600 font-mono uppercase">
+                      {file.name.split(".").pop() || "file"}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {/* Meta */}
+              <div className="p-3">
+                <p className="text-xs text-white truncate mb-1" title={file.name}>{file.name}</p>
+                <p className="text-[10px] text-neutral-600 font-mono">{formatBytes(file.size)}</p>
+                {/* Actions */}
+                <div className="flex gap-1.5 mt-2">
+                  <button
+                    onClick={() => copyUrl(file.publicUrl)}
+                    className="flex-1 text-[10px] uppercase tracking-wider py-1 border border-white/10 text-neutral-500 hover:text-white hover:border-white/30 transition-colors"
+                  >
+                    {copied === file.publicUrl ? "Copied!" : "Copy URL"}
+                  </button>
+                  <a
+                    href={file.publicUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2 py-1 border border-white/10 text-neutral-500 hover:text-white hover:border-white/30 transition-colors"
+                  >
+                    <Eye className="w-3 h-3" />
+                  </a>
+                  <button
+                    onClick={() => handleDelete(file.path, file.name)}
+                    className="px-2 py-1 border border-white/10 text-neutral-500 hover:text-red-400 hover:border-red-400/30 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -2098,6 +2315,7 @@ const NAV: NavItem[] = [
   { id: "social-links",  label: "Social Links", icon: LinkIcon,        group: "Settings" },
   { id: "portal-crm",   label: "Client Portal", icon: Users,           group: "Portal CRM" },
   { id: "reviews",      label: "Reviews",       icon: Star,            group: "CRM" },
+  { id: "media-center", label: "Media Center",  icon: Image,           group: "Settings" },
 ]
 
 function Sidebar({ active, setActive, onLogout }: { active: Section; setActive: (s: Section) => void; onLogout: () => void }) {
@@ -2179,6 +2397,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     "social-links":  <SocialLinksSection />,
     "portal-crm":    <PortalCRMSection />,
     reviews:         <ReviewsSection />,
+    "media-center":  <MediaCenterSection />,
   }
 
   return (

@@ -24,6 +24,8 @@ import portalRouter from "./portal.js";
 import adminPortalRouter from "./admin-portal.js";
 // Reviews System
 import reviewsRouter from "./reviews.js";
+// Media Center
+import mediaRouter from "./media.js";
 
 const router: IRouter = Router();
 
@@ -51,5 +53,6 @@ router.use(uploadRouter);
 router.use(portalRouter);
 router.use(adminPortalRouter);
 router.use(reviewsRouter);
+router.use(mediaRouter);
 
 export default router;
