@@ -32,6 +32,8 @@ The Vercel project (`darklight-studio`) must have `rootDirectory: darklightz-ver
 ## Gotchas
 - Always run `vercel link` and deploy from the **monorepo root**, not from `darklightz-vercel/`. Running from inside the subproject makes Vercel look for a nested subfolder that doesn't exist.
 - Always pass `--archive=tgz` — without it, Vercel hits the 15k-file limit in a monorepo.
+- **Never run `npm install` inside `darklightz-vercel/`** — `darklightz-vercel` is a pnpm workspace member; running npm install creates a `package-lock.json` (gitignored but present on disk) that makes Vercel detect npm instead of pnpm, causing a hard npm crash ("Exit handler never called!"). If it happens, delete `package-lock.json` before deploying. Run `pnpm install` from the workspace root instead.
+- **`--cwd` creates a new Vercel project** — passing `--cwd /path/to/darklightz-vercel` makes Vercel look for `.vercel/project.json` inside that dir and creates a new project if not found. Always deploy from repo root without `--cwd`; copy `.vercel/project.json` to `darklightz-vercel/.vercel/` if needed.
 - Check `vercel.json` rewrites: catch-all SPA rewrite must not swallow `/api/*` routes.
 - After deploy, verify with `curl` on both page routes and `/api/*` routes before declaring success.
 - Never print `$VERCEL_TOKEN` or run `env | grep -i vercel`.
