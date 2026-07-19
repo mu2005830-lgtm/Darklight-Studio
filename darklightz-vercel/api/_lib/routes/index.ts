@@ -26,6 +26,8 @@ import adminPortalRouter from "./admin-portal.js";
 import reviewsRouter from "./reviews.js";
 // Media Center
 import mediaRouter from "./media.js";
+// SQL Editor
+import sqlRouter from "./sql.js";
 
 const router: IRouter = Router();
 
@@ -54,5 +56,6 @@ router.use(portalRouter);
 router.use(adminPortalRouter);
 router.use(reviewsRouter);
 router.use(mediaRouter);
+router.use(sqlRouter);
 
 export default router;

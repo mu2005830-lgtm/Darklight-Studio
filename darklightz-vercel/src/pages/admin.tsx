@@ -50,7 +50,8 @@ import {
   Link as LinkIcon, Plus, Pencil, Trash2, LogOut, Lock,
   Eye, EyeOff, Save, AlertCircle, Upload, X,
   Download, RotateCcw, AlertTriangle, ArrowUpDown, Maximize2,
-  FolderInput, Copy, RefreshCw, Check, Trash,
+  FolderInput, Copy, RefreshCw, Check, Trash, Terminal, Play,
+  ChevronDown, ChevronRight, Clock,
 } from "lucide-react"
 
 // ============================================================================
@@ -68,6 +69,7 @@ type Section =
   | "portal-crm"
   | "reviews"
   | "media-center"
+  | "sql-editor"
 
 // ============================================================================
 // AdminLogin — preserved exactly from original
@@ -2819,6 +2821,293 @@ function ReviewsSection() {
 }
 
 // ============================================================================
+// SQL Editor Section
+// ============================================================================
+
+type SqlResult = {
+  command: string
+  rowCount: number
+  columns: string[]
+  rows: Record<string, unknown>[]
+}
+
+const QUICK_QUERIES = [
+  { label: "All tables",       sql: "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;" },
+  { label: "portfolio_projects", sql: "SELECT * FROM portfolio_projects ORDER BY sort_order LIMIT 50;" },
+  { label: "case_studies",     sql: "SELECT * FROM case_studies ORDER BY sort_order LIMIT 50;" },
+  { label: "blog_posts",       sql: "SELECT id, title, category, published_at FROM blog_posts ORDER BY published_at DESC LIMIT 50;" },
+  { label: "services",         sql: "SELECT id, title, category, sort_order FROM services ORDER BY sort_order LIMIT 50;" },
+  { label: "testimonials",     sql: "SELECT * FROM testimonials LIMIT 50;" },
+  { label: "team_members",     sql: "SELECT * FROM team_members ORDER BY sort_order LIMIT 50;" },
+  { label: "clients",          sql: "SELECT * FROM clients ORDER BY sort_order LIMIT 50;" },
+  { label: "pricing_plans",    sql: "SELECT * FROM pricing_plans ORDER BY sort_order LIMIT 50;" },
+  { label: "site_settings",    sql: "SELECT * FROM site_settings LIMIT 1;" },
+  { label: "contact_submissions", sql: "SELECT id, name, email, status, created_at FROM contact_submissions ORDER BY created_at DESC LIMIT 50;" },
+  { label: "bookings",         sql: "SELECT id, name, email, service, status, created_at FROM bookings ORDER BY created_at DESC LIMIT 50;" },
+]
+
+function SqlEditorSection() {
+  const adminKey = sessionStorage.getItem(SESSION_KEY) ?? ""
+  const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? ""
+  const h = { "x-admin-key": adminKey, "Content-Type": "application/json" }
+
+  const [query, setQuery] = React.useState("SELECT table_name\nFROM information_schema.tables\nWHERE table_schema = 'public'\nORDER BY table_name;")
+  const [running, setRunning] = React.useState(false)
+  const [results, setResults] = React.useState<SqlResult[]>([])
+  const [execMs, setExecMs] = React.useState<number | null>(null)
+  const [error, setError] = React.useState("")
+  const [history, setHistory] = React.useState<string[]>([])
+  const [histOpen, setHistOpen] = React.useState(false)
+  const [quickOpen, setQuickOpen] = React.useState(false)
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+
+  async function runQuery() {
+    if (!query.trim()) return
+    setRunning(true); setError(""); setResults([]); setExecMs(null)
+    try {
+      const r = await fetch(`${base}/api/admin/sql`, {
+        method: "POST",
+        headers: h,
+        body: JSON.stringify({ query: query.trim() }),
+      })
+      const d = await r.json()
+      if (!r.ok || !d.ok) {
+        setError(d.error ?? `HTTP ${r.status}`)
+        setExecMs(d.executionMs ?? null)
+      } else {
+        setResults(d.results ?? [])
+        setExecMs(d.executionMs ?? null)
+        setHistory(prev => [query.trim(), ...prev.filter(q => q !== query.trim())].slice(0, 20))
+      }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Network error")
+    }
+    setRunning(false)
+  }
+
+  function handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault()
+      runQuery()
+    }
+    // Tab → 2 spaces
+    if (e.key === "Tab") {
+      e.preventDefault()
+      const el = e.currentTarget
+      const start = el.selectionStart
+      const end = el.selectionEnd
+      const next = query.substring(0, start) + "  " + query.substring(end)
+      setQuery(next)
+      requestAnimationFrame(() => { el.selectionStart = el.selectionEnd = start + 2 })
+    }
+  }
+
+  function formatCell(val: unknown): string {
+    if (val === null || val === undefined) return "NULL"
+    if (typeof val === "object") return JSON.stringify(val)
+    return String(val)
+  }
+
+  const totalRows = results.reduce((s, r) => s + r.rowCount, 0)
+
+  return (
+    <div>
+      <SectionHeader
+        title="SQL Editor"
+        action={
+          <div className="flex items-center gap-2">
+            {/* Quick queries */}
+            <div className="relative">
+              <button
+                onClick={() => { setQuickOpen(o => !o); setHistOpen(false) }}
+                className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider px-3 py-1.5 border border-white/15 text-neutral-500 hover:text-white hover:border-white/30 transition-colors"
+              >
+                Quick Queries <ChevronDown className="w-3 h-3" />
+              </button>
+              {quickOpen && (
+                <div className="absolute right-0 top-full mt-1 z-50 w-56 bg-[#0a0a0a] border border-white/10 shadow-xl">
+                  {QUICK_QUERIES.map(q => (
+                    <button key={q.label} onClick={() => { setQuery(q.sql); setQuickOpen(false); textareaRef.current?.focus() }}
+                      className="w-full text-left px-3 py-2 text-xs text-neutral-400 hover:text-white hover:bg-white/5 transition-colors font-mono border-b border-white/5 last:border-0">
+                      {q.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* History */}
+            {history.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={() => { setHistOpen(o => !o); setQuickOpen(false) }}
+                  className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider px-3 py-1.5 border border-white/15 text-neutral-500 hover:text-white hover:border-white/30 transition-colors"
+                >
+                  <Clock className="w-3 h-3" /> History
+                </button>
+                {histOpen && (
+                  <div className="absolute right-0 top-full mt-1 z-50 w-96 bg-[#0a0a0a] border border-white/10 shadow-xl max-h-64 overflow-y-auto">
+                    {history.map((q, i) => (
+                      <button key={i} onClick={() => { setQuery(q); setHistOpen(false); textareaRef.current?.focus() }}
+                        className="w-full text-left px-3 py-2 text-[10px] text-neutral-500 hover:text-white hover:bg-white/5 transition-colors font-mono border-b border-white/5 last:border-0 truncate block">
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Run */}
+            <Button
+              size="sm"
+              className="bg-white text-black hover:bg-neutral-200 gap-1.5"
+              disabled={running || !query.trim()}
+              onClick={runQuery}
+            >
+              <Play className="w-3.5 h-3.5" />
+              {running ? "Running…" : "Run"}
+            </Button>
+          </div>
+        }
+      />
+
+      {/* Info bar */}
+      <div className="flex items-center gap-3 mb-2 text-[10px] font-mono text-neutral-600">
+        <span className="flex items-center gap-1"><Terminal className="w-3 h-3" /> PostgreSQL</span>
+        <span>·</span>
+        <span>Ctrl+Enter to run</span>
+        <span>·</span>
+        <span>Tab for indent</span>
+      </div>
+
+      {/* Editor */}
+      <div className="border border-white/10 mb-4">
+        <textarea
+          ref={textareaRef}
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onKeyDown={handleKey}
+          className="w-full bg-[#050505] text-green-300 font-mono text-sm p-4 resize-y outline-none min-h-40 leading-relaxed placeholder:text-neutral-700"
+          placeholder="-- Write your SQL here&#10;SELECT * FROM services LIMIT 10;"
+          spellCheck={false}
+          autoCapitalize="off"
+          autoCorrect="off"
+        />
+        <div className="border-t border-white/10 px-3 py-1.5 flex items-center justify-between bg-black/50">
+          <span className="text-[10px] text-neutral-700 font-mono">{query.split("\n").length} lines · {query.length} chars</span>
+          <button
+            onClick={() => setQuery("")}
+            className="text-[10px] text-neutral-700 hover:text-neutral-400 transition-colors font-mono uppercase tracking-wider"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="border border-red-500/30 bg-red-950/10 p-4 mb-4 font-mono">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-red-400 text-xs font-semibold mb-1">Query Error</p>
+              <p className="text-red-300 text-xs leading-relaxed whitespace-pre-wrap">{error}</p>
+            </div>
+          </div>
+          {execMs !== null && (
+            <p className="text-neutral-600 text-[10px] mt-2 font-mono">Executed in {execMs}ms</p>
+          )}
+        </div>
+      )}
+
+      {/* Results */}
+      {results.length > 0 && (
+        <div className="space-y-4">
+          {/* Stats bar */}
+          <div className="flex items-center gap-4 text-[10px] font-mono text-neutral-500">
+            <span className="text-green-400">✓ Query succeeded</span>
+            <span>{totalRows} row{totalRows !== 1 ? "s" : ""} returned</span>
+            {execMs !== null && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{execMs}ms</span>}
+            {results.length > 1 && <span>{results.length} result sets</span>}
+          </div>
+
+          {results.map((result, ri) => (
+            <div key={ri} className="border border-white/10 overflow-hidden">
+              {/* Result header */}
+              <div className="flex items-center justify-between px-3 py-2 bg-white/[0.02] border-b border-white/10">
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">{result.command}</span>
+                  <span className="text-[10px] font-mono text-neutral-600">{result.rowCount} row{result.rowCount !== 1 ? "s" : ""}</span>
+                  {result.columns.length > 0 && (
+                    <span className="text-[10px] font-mono text-neutral-700">{result.columns.length} col{result.columns.length !== 1 ? "s" : ""}</span>
+                  )}
+                </div>
+                {/* Copy as JSON */}
+                <button
+                  onClick={() => navigator.clipboard.writeText(JSON.stringify(result.rows, null, 2))}
+                  className="text-[10px] font-mono text-neutral-600 hover:text-white transition-colors uppercase tracking-wider"
+                >
+                  Copy JSON
+                </button>
+              </div>
+
+              {result.columns.length === 0 ? (
+                <p className="px-4 py-3 text-xs text-neutral-500 font-mono">{result.command} — {result.rowCount} row{result.rowCount !== 1 ? "s" : ""} affected.</p>
+              ) : result.rows.length === 0 ? (
+                <p className="px-4 py-3 text-xs text-neutral-500">No rows returned.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs font-mono min-w-max">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        <th className="px-3 py-2 text-left text-[10px] text-neutral-600 w-10 select-none font-normal">#</th>
+                        {result.columns.map(col => (
+                          <th key={col} className="px-3 py-2 text-left text-[10px] uppercase tracking-wider text-neutral-500 font-medium whitespace-nowrap">
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {result.rows.map((row, rowIdx) => (
+                        <tr key={rowIdx} className="border-b border-white/5 hover:bg-white/[0.02]">
+                          <td className="px-3 py-1.5 text-neutral-700 text-[10px] select-none">{rowIdx + 1}</td>
+                          {result.columns.map(col => {
+                            const val = row[col]
+                            const isNull = val === null || val === undefined
+                            const isNum = typeof val === "number"
+                            const isBool = typeof val === "boolean"
+                            return (
+                              <td key={col} className={`px-3 py-1.5 whitespace-nowrap max-w-xs truncate ${
+                                isNull ? "text-neutral-700 italic" : isNum ? "text-blue-300" : isBool ? "text-amber-300" : "text-neutral-200"
+                              }`} title={formatCell(val)}>
+                                {isNull ? "NULL" : isBool ? String(val) : formatCell(val)}
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!running && !error && results.length === 0 && (
+        <div className="border border-white/10 bg-white/[0.02] p-12 text-center">
+          <Terminal className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
+          <p className="text-neutral-500 text-sm">Write a query and press Run (or Ctrl+Enter)</p>
+          <p className="text-neutral-700 text-xs mt-1">Results appear here as a table. Use Quick Queries for common lookups.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
 // Sidebar
 // ============================================================================
 
@@ -2842,10 +3131,11 @@ const NAV: NavItem[] = [
   { id: "portal-crm",   label: "Client Portal", icon: Users,           group: "Portal CRM" },
   { id: "reviews",      label: "Reviews",       icon: Star,            group: "CRM" },
   { id: "media-center", label: "Media Center",  icon: Image,           group: "Settings" },
+  { id: "sql-editor",   label: "SQL Editor",    icon: Terminal,        group: "Database" },
 ]
 
 function Sidebar({ active, setActive, onLogout }: { active: Section; setActive: (s: Section) => void; onLogout: () => void }) {
-  const groups = ["Overview", "Content", "CRM", "Settings", "Portal CRM"]
+  const groups = ["Overview", "Content", "CRM", "Settings", "Portal CRM", "Database"]
 
   return (
     <aside className="w-56 shrink-0 bg-[#050505] border-r border-white/10 flex flex-col h-screen sticky top-0 overflow-y-auto">
@@ -2924,6 +3214,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     "portal-crm":    <PortalCRMSection />,
     reviews:         <ReviewsSection />,
     "media-center":  <MediaCenterSection />,
+    "sql-editor":    <SqlEditorSection />,
   }
 
   return (
