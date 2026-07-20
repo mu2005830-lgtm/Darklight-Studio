@@ -58,7 +58,9 @@ export async function notifyAdmin(subject: string, _html?: string): Promise<void
 
 /**
  * Send a transactional email to a client via EmailJS.
- * Uses template_o2q56z1 which expects: {{email}} (To), {{name}}, {{title}}.
+ * Uses template_o2q56z1 which expects: {{to_email}} (To), {{name}}, {{title}}.
+ * NOTE: must pass `to_email` (not `email`) — EmailJS's REST API only honours
+ * its reserved `to_email` key for dynamic recipient substitution server-side.
  * Never throws — logs the error instead.
  */
 export async function notifyClient(
@@ -69,9 +71,9 @@ export async function notifyClient(
 ): Promise<void> {
   try {
     await sendViaEmailJS(EJS_AUTOREPLY, {
-      email: clientEmail,
-      name:  clientName || "Valued Client",
-      title: subject,
+      to_email: clientEmail,
+      name:     clientName || "Valued Client",
+      title:    subject,
     });
     console.log("[email] notifyClient ✓ to:", clientEmail);
   } catch (err) {

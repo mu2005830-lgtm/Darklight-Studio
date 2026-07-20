@@ -58,12 +58,14 @@ router.post("/bookings", async (req, res): Promise<void> => {
   }
 
   // 3. Confirmation email to the customer
-  // template_o2q56z1 variables: {{email}} (To), {{name}}, {{title}}
+  // template_o2q56z1 variables: {{to_email}} (To), {{name}}, {{title}}
+  // NOTE: must use `to_email` — EmailJS REST API only honours its reserved
+  // `to_email` key for dynamic recipient substitution server-side.
   try {
     await sendViaEmailJS(EJS_AUTOREPLY, {
-      email: parsed.data.email,
-      name:  parsed.data.name,
-      title: parsed.data.service,
+      to_email: parsed.data.email,
+      name:     parsed.data.name,
+      title:    parsed.data.service,
     });
     console.log("[booking] Customer confirmation sent ✓ to:", parsed.data.email);
     emailStatus.customerConfirmation = "sent";

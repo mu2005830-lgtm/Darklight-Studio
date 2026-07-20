@@ -57,12 +57,14 @@ router.post("/contact", async (req, res): Promise<void> => {
   }
 
   // 3. Auto-reply to the customer
-  // template_o2q56z1 variables: {{email}} (To), {{name}}, {{title}}
+  // template_o2q56z1 variables: {{to_email}} (To), {{name}}, {{title}}
+  // NOTE: must use `to_email` — EmailJS REST API only honours its reserved
+  // `to_email` key for dynamic recipient substitution server-side.
   try {
     await sendViaEmailJS(EJS_AUTOREPLY, {
-      email: parsed.data.email,
-      name:  parsed.data.name,
-      title: "Your inquiry",
+      to_email: parsed.data.email,
+      name:     parsed.data.name,
+      title:    "Your inquiry",
     });
     console.log("[contact] Auto-reply sent ✓ to:", parsed.data.email);
     emailStatus.autoReply = "sent";

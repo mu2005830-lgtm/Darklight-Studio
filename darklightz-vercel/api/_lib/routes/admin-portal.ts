@@ -224,11 +224,13 @@ router.patch("/admin/portal/projects/:id", async (req, res): Promise<void> => {
         const completionHtml = emailProjectCompleted(client.name, updated.title);
         const now = new Date();
         try {
-          // template_o2q56z1 expects: {{email}} (To), {{name}}, {{title}}
+          // template_o2q56z1 expects: {{to_email}} (To), {{name}}, {{title}}
+          // NOTE: must use `to_email` — EmailJS REST API only honours its
+          // reserved `to_email` key for dynamic recipient substitution server-side.
           await sendViaEmailJS(EJS_AUTOREPLY_TPL, {
-            email: client.email,
-            name:  client.name || "Valued Client",
-            title: `"${updated.title}" is complete! 🎉`,
+            to_email: client.email,
+            name:     client.name || "Valued Client",
+            title:    `"${updated.title}" is complete! 🎉`,
           });
           console.log("[portal] Completion email sent ✓ to:", client.email);
         } catch (emailErr) {
