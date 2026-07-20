@@ -37,29 +37,17 @@ router.post("/contact", async (req, res): Promise<void> => {
     hour: "2-digit", minute: "2-digit", hour12: true,
   });
 
-  const sharedParams: Record<string, string> = {
-    from_name:      parsed.data.name,
-    from_email:     parsed.data.email,
-    reply_to:       parsed.data.email,
-    company:        parsed.data.company  || "Not provided",
-    budget:         parsed.data.budget   || "Not specified",
-    message:        parsed.data.message,
-    date_time:      dateTime,
-    website_url:    "https://darklight-studio.vercel.app",
-    // Provide empty values for template variables shared with the booking template
-    service:        "",
-    preferred_date: "",
-  };
-
   const emailStatus: Record<string, string> = {};
 
   // 2. Notify admin (darklightzstudiu@gmail.com)
+  // template_xege7fl variables: {{name}}, {{email}}, {{title}}, {{time}}, {{message}}
   try {
     await sendViaEmailJS(EJS_NOTIFY, {
-      ...sharedParams,
-      to_email: ADMIN_EMAIL,
-      to_name:  "Darklightz Studio",
-      subject:  `New inquiry from ${parsed.data.name}`,
+      name:    parsed.data.name,
+      email:   parsed.data.email,
+      title:   `New inquiry from ${parsed.data.name}`,
+      time:    dateTime,
+      message: parsed.data.message,
     });
     console.log("[contact] Admin notification sent ✓");
     emailStatus.adminNotification = "sent";
@@ -69,12 +57,12 @@ router.post("/contact", async (req, res): Promise<void> => {
   }
 
   // 3. Auto-reply to the customer
+  // template_o2q56z1 variables: {{email}} (To), {{name}}, {{title}}
   try {
     await sendViaEmailJS(EJS_AUTOREPLY, {
-      ...sharedParams,
-      to_email: parsed.data.email,
-      to_name:  parsed.data.name,
-      subject:  "Thank you for contacting Darklightz Studio!",
+      email: parsed.data.email,
+      name:  parsed.data.name,
+      title: "Your inquiry",
     });
     console.log("[contact] Auto-reply sent ✓ to:", parsed.data.email);
     emailStatus.autoReply = "sent";

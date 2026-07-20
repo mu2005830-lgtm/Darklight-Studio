@@ -41,21 +41,14 @@ router.post("/bookings", async (req, res): Promise<void> => {
   const emailStatus: Record<string, string> = {};
 
   // 2. Notify admin (darklightzstudiu@gmail.com)
+  // template_xege7fl variables: {{name}}, {{email}}, {{title}}, {{time}}, {{message}}
   try {
     await sendViaEmailJS(EJS_NOTIFY, {
-      to_email:       ADMIN_EMAIL,
-      to_name:        "Darklightz Studio",
-      from_name:      parsed.data.name,
-      from_email:     parsed.data.email,
-      reply_to:       parsed.data.email,
-      subject:        `New booking request from ${parsed.data.name}`,
-      message:        `New booking received!\n\nService: ${parsed.data.service}\nPreferred Date: ${preferredDateStr}\nCompany: ${parsed.data.company || "Not provided"}\nMessage: ${parsed.data.message || "None"}\n\nContact: ${parsed.data.email}`,
-      company:        parsed.data.company  || "Not provided",
-      budget:         "",
-      service:        parsed.data.service,
-      preferred_date: preferredDateStr,
-      date_time:      dateTime,
-      website_url:    "https://darklight-studio.vercel.app",
+      name:    parsed.data.name,
+      email:   parsed.data.email,
+      title:   `New booking — ${parsed.data.service}`,
+      time:    dateTime,
+      message: `Service: ${parsed.data.service}\nPreferred Date: ${preferredDateStr}\nCompany: ${parsed.data.company || "Not provided"}\nMessage: ${parsed.data.message || "None"}`,
     });
     console.log("[booking] Admin notification sent ✓ to:", ADMIN_EMAIL);
     emailStatus.adminNotification = "sent";
@@ -65,21 +58,12 @@ router.post("/bookings", async (req, res): Promise<void> => {
   }
 
   // 3. Confirmation email to the customer
+  // template_o2q56z1 variables: {{email}} (To), {{name}}, {{title}}
   try {
     await sendViaEmailJS(EJS_AUTOREPLY, {
-      to_email:       parsed.data.email,
-      to_name:        parsed.data.name,
-      from_name:      "Darklightz Studio",
-      from_email:     ADMIN_EMAIL,
-      reply_to:       ADMIN_EMAIL,
-      subject:        "Your booking request has been received — Darklightz Studio",
-      message:        `Hi ${parsed.data.name},\n\nThank you for booking a call with Darklightz Studio!\n\nWe've received your request for "${parsed.data.service}" on ${preferredDateStr}.\n\nOur team will review your request and reach out within 24 hours to confirm the time slot.\n\nIf you have any questions in the meantime, just reply to this email.\n\nBest regards,\nDarklightz Studio`,
-      company:        parsed.data.company  || "Not provided",
-      budget:         "",
-      service:        parsed.data.service,
-      preferred_date: preferredDateStr,
-      date_time:      dateTime,
-      website_url:    "https://darklight-studio.vercel.app",
+      email: parsed.data.email,
+      name:  parsed.data.name,
+      title: parsed.data.service,
     });
     console.log("[booking] Customer confirmation sent ✓ to:", parsed.data.email);
     emailStatus.customerConfirmation = "sent";
