@@ -22,6 +22,8 @@ import { requireAdminKey } from "../lib/auth.js";
 import {
   notifyClient,
   notifyAdmin,
+  sendViaEmailJS,
+  ADMIN_EMAIL,
   emailNewMessage,
   emailStatusChanged,
   emailProjectCompleted,
@@ -31,6 +33,25 @@ import {
   emailRequestInfo,
   emailRequestFiles,
 } from "../lib/email.js";
+
+// Template ID for customer-facing auto-reply (defined locally to avoid exporting from email.ts)
+const EJS_AUTOREPLY_TPL = "template_o2q56z1";
+
+/** Convert an HTML email template to readable plain text for the EmailJS {{message}} slot. */
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<\/tr>/gi, "\n")
+    .replace(/<\/td>/gi, " | ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&mdash;/g, "—")
+    .replace(/&amp;/g, "&")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
 import { z } from "zod/v4";
 
 const router: IRouter = Router();
@@ -198,7 +219,37 @@ router.patch("/admin/portal/projects/:id", async (req, res): Promise<void> => {
 
     if (client) {
       if (parsed.data.status === "completed") {
-        await notifyClient(client.email, `[Darklightz] "${updated.title}" is complete!`, emailProjectCompleted(client.name, updated.title));
+        // Use sendViaEmailJS directly so failures are surfaced in the response
+        // rather than silently swallowed by notifyClient.
+        const completionHtml = emailProjectCompleted(client.name, updated.title);
+        const now = new Date();
+        try {
+          await sendViaEmailJS(EJS_AUTOREPLY_TPL, {
+            to_email:    client.email,
+            to_name:     client.name || "Valued Client",
+            from_name:   "Darklightz Studio",
+            from_email:  ADMIN_EMAIL,
+            reply_to:    ADMIN_EMAIL,
+            subject:     `[Darklightz] "${updated.title}" is complete! 🎉`,
+            message:     htmlToPlainText(completionHtml),
+            company:     "",
+            budget:      "",
+            service:     updated.serviceName || "",
+            preferred_date: "",
+            date_time:   now.toLocaleString("en-PK", {
+              day: "2-digit", month: "long", year: "numeric",
+              hour: "2-digit", minute: "2-digit", hour12: true,
+            }),
+            website_url: "https://darklight-studio.vercel.app",
+          });
+          console.log("[portal] Completion email sent ✓ to:", client.email);
+        } catch (emailErr) {
+          console.error("[portal] Completion email FAILED for", client.email, ":", emailErr);
+          // DB is committed — return the updated project with an emailError so the
+          // Admin Dashboard can show a warning instead of failing silently.
+          res.json({ ...updated, emailError: String(emailErr) });
+          return;
+        }
       } else {
         await notifyClient(client.email, `[Darklightz] Project status update: ${updated.title}`, emailStatusChanged(client.name, updated.title, parsed.data.status));
       }

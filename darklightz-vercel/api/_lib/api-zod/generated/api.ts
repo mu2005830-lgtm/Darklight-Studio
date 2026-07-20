@@ -234,7 +234,11 @@ export const CreateBookingResponse = zod.object({
   "email": zod.string(),
   "company": zod.string(),
   "service": zod.string(),
-  "preferredDate": zod.string(),
+  // Drizzle returns a JS Date from Postgres; coerce to ISO string for the API response.
+  "preferredDate": zod.preprocess(
+    (val) => (val instanceof Date ? val.toISOString() : val),
+    zod.string(),
+  ),
   "message": zod.string(),
   "status": zod.string(),
   "createdAt": zod.coerce.date()

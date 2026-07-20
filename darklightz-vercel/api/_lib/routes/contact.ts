@@ -38,14 +38,17 @@ router.post("/contact", async (req, res): Promise<void> => {
   });
 
   const sharedParams: Record<string, string> = {
-    from_name:   parsed.data.name,
-    from_email:  parsed.data.email,
-    reply_to:    parsed.data.email,
-    company:     parsed.data.company  || "Not provided",
-    budget:      parsed.data.budget   || "Not specified",
-    message:     parsed.data.message,
-    date_time:   dateTime,
-    website_url: "https://darklight-studio.vercel.app",
+    from_name:      parsed.data.name,
+    from_email:     parsed.data.email,
+    reply_to:       parsed.data.email,
+    company:        parsed.data.company  || "Not provided",
+    budget:         parsed.data.budget   || "Not specified",
+    message:        parsed.data.message,
+    date_time:      dateTime,
+    website_url:    "https://darklight-studio.vercel.app",
+    // Provide empty values for template variables shared with the booking template
+    service:        "",
+    preferred_date: "",
   };
 
   const emailStatus: Record<string, string> = {};
