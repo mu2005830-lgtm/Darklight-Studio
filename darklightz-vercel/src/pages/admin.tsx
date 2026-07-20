@@ -1326,6 +1326,7 @@ const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   seoTitle: "Darklightz Studio", seoDescription: "", ogImageUrl: "", faviconUrl: "",
   heroTitle: "", heroSubtitle: "", heroCtaText: "", heroCtaUrl: "",
   primaryColor: "#ffffff", accentColor: "#ffffff", fontHeading: "Syne", fontBody: "Plus Jakarta Sans",
+  studioStoryImageUrl: "",
 }
 
 function SiteSettingsSection() {
@@ -1343,6 +1344,7 @@ function SiteSettingsSection() {
         contactEmail: settings.contactEmail, contactPhone: settings.contactPhone,
         contactAddress: settings.contactAddress,
         whatsappNumber: (settings as any).whatsappNumber ?? "+923351468615",
+        studioStoryImageUrl: settings.studioStoryImageUrl ?? "",
         seoTitle: settings.seoTitle, seoDescription: settings.seoDescription, ogImageUrl: settings.ogImageUrl, faviconUrl: settings.faviconUrl,
         heroTitle: settings.heroTitle, heroSubtitle: settings.heroSubtitle, heroCtaText: settings.heroCtaText, heroCtaUrl: settings.heroCtaUrl,
         primaryColor: settings.primaryColor, accentColor: settings.accentColor, fontHeading: settings.fontHeading, fontBody: settings.fontBody,
@@ -1377,6 +1379,16 @@ function SiteSettingsSection() {
           </div>
           <FormField label="Tagline"><Input className={inputCls} value={form.tagline ?? ""} onChange={f("tagline")} /></FormField>
           <FormField label="Logo URL"><ImageUpload value={form.logoUrl ?? ""} onChange={url => setForm(p => ({ ...p, logoUrl: url }))} /></FormField>
+        </div>
+
+        <div className="bg-[#050505] border border-white/10 p-6 space-y-4">
+          <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-4">Studio Story</h3>
+          <FormField label="Studio Story Image">
+            <ImageUpload value={form.studioStoryImageUrl ?? ""} onChange={url => setForm(p => ({ ...p, studioStoryImageUrl: url }))} />
+          </FormField>
+          <p className="text-[10px] text-neutral-600 leading-relaxed">
+            This image appears on the About / Studio page. Upload via Media Center → Studio Story folder, then paste the URL here.
+          </p>
         </div>
 
         <div className="bg-[#050505] border border-white/10 p-6 space-y-4">

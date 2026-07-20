@@ -25,6 +25,7 @@ export interface SiteSettings {
   heroCtaText: string;
   heroCtaUrl: string;
   whatsappNumber: string;
+  studioStoryImageUrl: string;
   updatedAt: string;
 }
 

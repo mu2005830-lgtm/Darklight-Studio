@@ -30,6 +30,7 @@ const DEFAULT_SETTINGS = {
   heroCtaText: "",
   heroCtaUrl: "",
   whatsappNumber: "+923351468615",
+  studioStoryImageUrl: "",
   updatedAt: new Date(),
 };
 

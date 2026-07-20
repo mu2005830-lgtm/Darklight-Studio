@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { PublicLayout } from "@/components/layout/PublicLayout"
-import { useCreateContactSubmission } from "@/lib/api-client"
+import { useCreateContactSubmission, useGetSiteSettings } from "@/lib/api-client"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -27,6 +27,11 @@ const formSchema = z.object({
 export default function Contact() {
   const [isSuccess, setIsSuccess] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const { data: settings } = useGetSiteSettings()
+  const contactEmail = settings?.contactEmail || "darklightzstudiu@gmail.com"
+  const whatsappNumber = settings?.whatsappNumber || "+923350501287"
+  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`
+  const contactAddress = settings?.contactAddress || "Walton, Lahore, Punjab, Pakistan"
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,7 +57,7 @@ export default function Contact() {
       onError: (err: unknown) => {
         const msg = err instanceof Error
           ? err.message
-          : "Something went wrong. Please try again or email us directly at darklightzstudiu@gmail.com."
+          : `Something went wrong. Please try again or email us directly at ${contactEmail}.`
         setSubmitError(msg)
       },
     })
@@ -80,11 +85,11 @@ export default function Contact() {
               <div className="space-y-8 border-t border-border pt-12">
                 <div>
                   <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-muted-foreground/70 mb-2">Email</div>
-                  <a href="mailto:darklightzstudiu@gmail.com" className="text-xl font-medium text-white hover:text-muted-foreground transition-colors">darklightzstudiu@gmail.com</a>
+                  <a href={`mailto:${contactEmail}`} className="text-xl font-medium text-white hover:text-muted-foreground transition-colors">{contactEmail}</a>
                 </div>
                 <div>
                   <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-muted-foreground/70 mb-2">Phone / WhatsApp</div>
-                  <a href="https://wa.me/923350501287" target="_blank" rel="noopener noreferrer" className="text-xl font-medium text-white hover:text-muted-foreground transition-colors">+92 335 0501287</a>
+                  <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="text-xl font-medium text-white hover:text-muted-foreground transition-colors">{whatsappNumber}</a>
                 </div>
                 <div>
                   <div className="text-[9px] font-display uppercase tracking-[0.25em] font-bold text-muted-foreground/70 mb-2">Location</div>

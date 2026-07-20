@@ -1,7 +1,13 @@
 import { Link } from "wouter"
 import { SilverDivider } from "@/components/effects"
+import { useGetSiteSettings } from "@/lib/api-client"
 
 export function Footer() {
+  const { data: settings } = useGetSiteSettings()
+  const contactEmail = settings?.contactEmail || "darklightzstudiu@gmail.com"
+  const whatsappNumber = settings?.whatsappNumber || "+923350501287"
+  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`
+
   return (
     <footer className="bg-background pt-24 md:pt-32 pb-12 px-6 border-t border-border relative z-10">
       <SilverDivider />
@@ -30,7 +36,7 @@ export function Footer() {
               </a>
               {/* WhatsApp */}
               <a
-                href="https://wa.me/923350501287"
+                href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
@@ -79,8 +85,8 @@ export function Footer() {
                 <span>Book a free consultation</span>
               </Link>
               <div className="mt-6 space-y-3 text-sm text-muted-foreground">
-                <a href="mailto:darklightzstudiu@gmail.com" className="hover:text-foreground transition-colors block">darklightzstudiu@gmail.com</a>
-                <a href="https://wa.me/923350501287" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors block">+92 335 0501287</a>
+                <a href={`mailto:${contactEmail}`} className="hover:text-foreground transition-colors block">{contactEmail}</a>
+                <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors block">{whatsappNumber}</a>
               </div>
             </div>
           </div>

@@ -67,7 +67,7 @@ export default function BlogPostDetail() {
           </div>
 
           <div className="prose prose-invert prose-lg max-w-3xl mx-auto">
-            {post.content.split("\n\n").map((paragraph, idx) => (
+            {(post.content ?? "").split("\n\n").map((paragraph, idx) => (
               <p key={idx} className="text-neutral-300 leading-relaxed mb-6">
                 {paragraph}
               </p>

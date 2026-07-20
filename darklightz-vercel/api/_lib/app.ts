@@ -47,10 +47,10 @@ app.use("/api", router);
 // and returns a consistent JSON shape instead of leaking stack traces.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  const message =
-    err instanceof Error ? err.message : "An unexpected error occurred.";
   logger.error({ err }, "Unhandled route error");
-  res.status(500).json({ error: message });
+  // Never send internal error details to clients in production.
+  // Full error is captured in server logs via logger.error above.
+  res.status(500).json({ error: "An unexpected error occurred." });
 });
 
 export default app;

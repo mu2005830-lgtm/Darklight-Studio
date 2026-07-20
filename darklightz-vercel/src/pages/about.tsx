@@ -2,6 +2,10 @@ import { PublicLayout } from "@/components/layout/PublicLayout"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { SilverDivider, FloatingOrbsBackground, BlurReveal } from "@/components/effects"
 import { useRef } from "react"
+import { useGetSiteSettings } from "@/lib/api-client"
+
+const FALLBACK_STORY_IMAGE =
+  "https://images.unsplash.com/photo-1593640495253-23196b27a87f?q=80&w=2070&auto=format&fit=crop"
 
 const TimelineItem = ({ year, title, desc, i }: { year: string, title: string, desc: string, i: number }) => {
   return (
@@ -41,6 +45,8 @@ export default function About() {
   const containerRef = useRef(null)
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start end", "end start"] })
   const imageY = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"])
+  const { data: settings } = useGetSiteSettings()
+  const storyImage = settings?.studioStoryImageUrl || FALLBACK_STORY_IMAGE
 
   return (
     <PublicLayout>
@@ -71,7 +77,7 @@ export default function About() {
             <div ref={containerRef} className="overflow-hidden rounded-[2px]">
               <motion.div style={{ y: imageY }} className="aspect-[3/4] bg-neutral-900 border border-border h-[120%] -mt-[10%]">
                 <img
-                  src="https://images.unsplash.com/photo-1593640495253-23196b27a87f?q=80&w=2070&auto=format&fit=crop"
+                  src={storyImage}
                   alt="Darklightz Studio — premium digital workspace"
                   className="w-full h-full object-cover grayscale opacity-80 mix-blend-luminosity"
                 />

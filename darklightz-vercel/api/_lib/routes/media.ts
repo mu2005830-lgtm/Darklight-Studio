@@ -26,10 +26,9 @@ const KNOWN_FOLDERS = [
 ];
 
 function getSupabase() {
-  return createClient(
-    process.env.SUPABASE_URL ?? "https://clhmisxqjinlcgmxhhsd.supabase.co",
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  const url = process.env.SUPABASE_URL;
+  if (!url) throw new Error("SUPABASE_URL environment variable is not configured.");
+  return createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 }
 
 type StorageFile = {
@@ -107,8 +106,8 @@ router.get("/admin/media", requireAdminKey, async (req, res): Promise<void> => {
       const files = await listFolderFiles(supabase, folder);
       res.json({ folder, files });
     }
-  } catch (e: unknown) {
-    res.status(500).json({ error: e instanceof Error ? e.message : "Unknown error" });
+  } catch {
+    res.status(500).json({ error: "Failed to list media files." });
   }
 });
 
@@ -129,7 +128,7 @@ router.post("/admin/media/upload", requireAdminKey, upload.single("file"), async
     .from(BUCKET)
     .upload(filename, req.file.buffer, { contentType: req.file.mimetype, upsert: false });
 
-  if (error) { res.status(500).json({ error: error.message }); return; }
+  if (error) { res.status(500).json({ error: "Upload failed. Please try again." }); return; }
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(filename);
   res.json({ url: data.publicUrl, path: filename, name: safeName });
@@ -147,7 +146,7 @@ router.post("/admin/media/replace", requireAdminKey, upload.single("file"), asyn
     .from(BUCKET)
     .upload(filePath, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
 
-  if (error) { res.status(500).json({ error: error.message }); return; }
+  if (error) { res.status(500).json({ error: "Replace failed. Please try again." }); return; }
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(filePath);
   // Append cache-buster so browsers immediately show the new image
@@ -163,7 +162,7 @@ router.post("/admin/media/trash", requireAdminKey, async (req, res): Promise<voi
   const supabase = getSupabase();
   const trashPath = `_trash/${filePath}`;
   const { error } = await supabase.storage.from(BUCKET).move(filePath, trashPath);
-  if (error) { res.status(500).json({ error: error.message }); return; }
+  if (error) { res.status(500).json({ error: "Move to trash failed. Please try again." }); return; }
   res.json({ ok: true, trashPath });
 });
 
@@ -176,7 +175,7 @@ router.post("/admin/media/restore", requireAdminKey, async (req, res): Promise<v
   const supabase = getSupabase();
   const originalPath = trashPath.replace(/^_trash\//, "");
   const { error } = await supabase.storage.from(BUCKET).move(trashPath, originalPath);
-  if (error) { res.status(500).json({ error: error.message }); return; }
+  if (error) { res.status(500).json({ error: "Restore failed. Please try again." }); return; }
   res.json({ ok: true, originalPath });
 });
 
@@ -188,7 +187,7 @@ router.delete("/admin/media", requireAdminKey, async (req, res): Promise<void> =
 
   const supabase = getSupabase();
   const { error } = await supabase.storage.from(BUCKET).remove([path]);
-  if (error) { res.status(500).json({ error: error.message }); return; }
+  if (error) { res.status(500).json({ error: "Delete failed. Please try again." }); return; }
   res.json({ ok: true });
 });
 
@@ -200,7 +199,7 @@ router.post("/admin/media/move", requireAdminKey, async (req, res): Promise<void
 
   const supabase = getSupabase();
   const { error } = await supabase.storage.from(BUCKET).move(from, to);
-  if (error) { res.status(500).json({ error: error.message }); return; }
+  if (error) { res.status(500).json({ error: "Move failed. Please try again." }); return; }
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(to);
   res.json({ ok: true, publicUrl: data.publicUrl });
@@ -214,7 +213,7 @@ router.post("/admin/media/duplicate", requireAdminKey, async (req, res): Promise
 
   const supabase = getSupabase();
   const { data: fileData, error: dlErr } = await supabase.storage.from(BUCKET).download(srcPath);
-  if (dlErr || !fileData) { res.status(500).json({ error: dlErr?.message ?? "Download failed" }); return; }
+  if (dlErr || !fileData) { res.status(500).json({ error: "Duplicate failed: could not download source file." }); return; }
 
   const parts = srcPath.split("/");
   const filename = parts[parts.length - 1];
@@ -228,7 +227,7 @@ router.post("/admin/media/duplicate", requireAdminKey, async (req, res): Promise
     contentType: fileData.type || "application/octet-stream",
     upsert: false,
   });
-  if (upErr) { res.status(500).json({ error: upErr.message }); return; }
+  if (upErr) { res.status(500).json({ error: "Duplicate failed: upload error." }); return; }
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(newPath);
   res.json({ ok: true, path: newPath, url: data.publicUrl, name: `copy-${filename}` });
