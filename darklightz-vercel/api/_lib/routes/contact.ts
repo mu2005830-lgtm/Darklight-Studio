@@ -48,6 +48,8 @@ router.post("/contact", async (req, res): Promise<void> => {
     website_url: "https://darklight-studio.vercel.app",
   };
 
+  const emailStatus: Record<string, string> = {};
+
   // 2. Notify admin (darklightzstudiu@gmail.com)
   try {
     await sendViaEmailJS(EJS_NOTIFY, {
@@ -57,9 +59,10 @@ router.post("/contact", async (req, res): Promise<void> => {
       subject:  `New inquiry from ${parsed.data.name}`,
     });
     console.log("[contact] Admin notification sent ✓");
+    emailStatus.adminNotification = "sent";
   } catch (err) {
     console.error("[contact] Admin notification FAILED:", err);
-    // Do NOT abort — DB entry is saved; log is enough
+    emailStatus.adminNotification = `failed: ${String(err)}`;
   }
 
   // 3. Auto-reply to the customer
@@ -71,11 +74,18 @@ router.post("/contact", async (req, res): Promise<void> => {
       subject:  "Thank you for contacting Darklightz Studio!",
     });
     console.log("[contact] Auto-reply sent ✓ to:", parsed.data.email);
+    emailStatus.autoReply = "sent";
   } catch (err) {
     console.error("[contact] Auto-reply FAILED:", err);
+    emailStatus.autoReply = `failed: ${String(err)}`;
   }
 
-  res.status(201).json(CreateContactSubmissionResponse.parse(submission));
+  // Return email delivery status — visible in the browser network tab
+  // so you can verify emails are reaching EmailJS without needing server logs.
+  res.status(201).json({
+    ...CreateContactSubmissionResponse.parse(submission),
+    _emailStatus: emailStatus,
+  });
 });
 
 export default router;

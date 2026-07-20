@@ -57,26 +57,51 @@ export async function notifyAdmin(subject: string, _html?: string): Promise<void
 
 /**
  * Send a transactional email to a client via EmailJS.
+ * Strips HTML tags from `html` to produce a plain-text message body that gets
+ * substituted into the EmailJS template's {{message}} placeholder.
  * Never throws — logs the error instead.
  */
 export async function notifyClient(
   clientEmail: string,
   subject: string,
-  _html?: string,
+  html?: string,
 ): Promise<void> {
-  // _html kept for backward-compat; real content comes from the EmailJS template
+  // Convert HTML template to readable plain text for the EmailJS {{message}} slot
+  const plainText = html
+    ? html
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/p>/gi, "\n")
+        .replace(/<\/li>/gi, "\n")
+        .replace(/<\/tr>/gi, "\n")
+        .replace(/<\/td>/gi, " | ")
+        .replace(/<[^>]+>/g, "")
+        .replace(/&mdash;/g, "—")
+        .replace(/&amp;/g, "&")
+        .replace(/&nbsp;/g, " ")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim()
+    : subject;
+
   try {
     await sendViaEmailJS(EJS_AUTOREPLY, {
-      to_email:  clientEmail,
-      to_name:   "Valued Client",
+      to_email:    clientEmail,
+      to_name:     "Valued Client",
+      from_name:   "Darklightz Studio",
+      from_email:  ADMIN_EMAIL,
+      reply_to:    ADMIN_EMAIL,
       subject,
-      from_name: "Darklightz Studio",
-      from_email: ADMIN_EMAIL,
-      message:   subject,
+      message:     plainText,
+      company:     "",
+      budget:      "",
+      date_time:   new Date().toLocaleString("en-PK", {
+        day: "2-digit", month: "long", year: "numeric",
+        hour: "2-digit", minute: "2-digit", hour12: true,
+      }),
+      website_url: "https://darklight-studio.vercel.app",
     });
     console.log("[email] notifyClient ✓ to:", clientEmail);
   } catch (err) {
-    console.error("[email] notifyClient FAILED:", err);
+    console.error("[email] notifyClient FAILED to", clientEmail, ":", err);
   }
 }
 

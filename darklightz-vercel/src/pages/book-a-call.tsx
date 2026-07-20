@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CheckCircle2, ArrowRight } from "lucide-react"
+import { CheckCircle2, ArrowRight, AlertCircle } from "lucide-react"
 import { Eyebrow, SilverDivider } from "@/components/effects"
 
 const formSchema = z.object({
@@ -23,6 +23,7 @@ const formSchema = z.object({
 
 export default function BookACall() {
   const [isSuccess, setIsSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const { data: services } = useListServices()
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -40,6 +41,7 @@ export default function BookACall() {
   const { mutate, isPending } = useCreateBooking()
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    setSubmitError(null)
     mutate({
       data: {
         ...values,
@@ -51,6 +53,12 @@ export default function BookACall() {
     }, {
       onSuccess: () => {
         setIsSuccess(true)
+      },
+      onError: (err: unknown) => {
+        const msg = err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again or contact us directly at darklightzstudiu@gmail.com."
+        setSubmitError(msg)
       },
     })
   }
@@ -203,12 +211,20 @@ export default function BookACall() {
                       className="w-full h-14 rounded-full bg-white text-black hover:bg-neutral-200 mt-8 group"
                       disabled={isPending}
                     >
-                      {isPending ? "Submitting..." : (
+                      {isPending ? "Submitting…" : (
                         <span className="flex items-center gap-2">
                           Request Call <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </span>
                       )}
                     </Button>
+
+                    {/* Error message */}
+                    {submitError && (
+                      <div className="flex items-start gap-3 mt-4 p-4 border border-red-900/60 bg-red-950/20 rounded-[2px]">
+                        <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                        <p className="text-sm text-red-300 leading-relaxed">{submitError}</p>
+                      </div>
+                    )}
                   </form>
                 </Form>
               )}
