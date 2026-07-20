@@ -1,4 +1,5 @@
 - [Darklightz deployment rules](darklightz-deployment-rules.md) — never deploy to Replit; GitHub→Vercel only; always run vercel from monorepo root with --archive=tgz.
+- [EmailJS dynamic recipient fix](emailjs-dynamic-recipient.md) — REST API ignores {{email}} in To Email; must use reserved `to_email` key + matching template dashboard change.
 - [Vercel Express catch-all API + Vite SPA rewrites](vercel-express-catchall-spa-rewrites.md) — SPA fallback rewrite can swallow /api routes; zero-config catch-all route can be single-segment only.
 - [PageTransition + CinematicLoader pattern](page-transition-pattern.md) — must wrap CinematicLoader in AnimatePresence; use mode=wait + initial=false for PageTransition.
 - [Lazy loading + AnimatePresence incompatibility](lazy-animatepresence.md) — React.lazy + AnimatePresence mode=wait deadlock; use eager imports instead.
