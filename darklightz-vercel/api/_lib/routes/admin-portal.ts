@@ -228,10 +228,9 @@ router.patch("/admin/portal/projects/:id", async (req, res): Promise<void> => {
           // NOTE: must use `to_email` — EmailJS REST API only honours its
           // reserved `to_email` key for dynamic recipient substitution server-side.
           await sendViaEmailJS(EJS_AUTOREPLY_TPL, {
-            to_email: client.email,
-            name:     client.name || "Valued Client",
-            title:    `"${updated.title}" is complete! 🎉`,
-          });
+            name:  client.name || "Valued Client",
+            title: `"${updated.title}" is complete! 🎉`,
+          }, client.email);
           console.log("[portal] Completion email sent ✓ to:", client.email);
         } catch (emailErr) {
           console.error("[portal] Completion email FAILED for", client.email, ":", emailErr);

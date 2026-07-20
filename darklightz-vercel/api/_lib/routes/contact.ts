@@ -62,10 +62,9 @@ router.post("/contact", async (req, res): Promise<void> => {
   // `to_email` key for dynamic recipient substitution server-side.
   try {
     await sendViaEmailJS(EJS_AUTOREPLY, {
-      to_email: parsed.data.email,
-      name:     parsed.data.name,
-      title:    "Your inquiry",
-    });
+      name:  parsed.data.name,
+      title: "Your inquiry",
+    }, parsed.data.email);
     console.log("[contact] Auto-reply sent ✓ to:", parsed.data.email);
     emailStatus.autoReply = "sent";
   } catch (err) {

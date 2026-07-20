@@ -10,16 +10,24 @@ export const ADMIN_EMAIL = "darklightzstudiu@gmail.com";
 /**
  * Call the EmailJS REST API from the server.
  * Throws on failure — callers must handle/log errors themselves.
+ *
+ * @param toEmail  When provided, placed as a TOP-LEVEL `to_email` field in
+ *                 the request body (not inside template_params). This is the
+ *                 only way the EmailJS REST API honours a dynamic recipient
+ *                 server-side — putting it inside template_params is silently
+ *                 ignored for the To Email routing field.
  */
 export async function sendViaEmailJS(
   templateId: string,
   params: Record<string, string>,
+  toEmail?: string,
 ): Promise<void> {
   const body = JSON.stringify({
     service_id:      EJS_SERVICE,
     template_id:     templateId,
     user_id:         EJS_PUBLIC,
     accessToken:     process.env.EMAILJS_PRIVATE_KEY,
+    ...(toEmail ? { to_email: toEmail } : {}),
     template_params: params,
   });
 
@@ -71,10 +79,9 @@ export async function notifyClient(
 ): Promise<void> {
   try {
     await sendViaEmailJS(EJS_AUTOREPLY, {
-      to_email: clientEmail,
-      name:     clientName || "Valued Client",
-      title:    subject,
-    });
+      name:  clientName || "Valued Client",
+      title: subject,
+    }, clientEmail);
     console.log("[email] notifyClient ✓ to:", clientEmail);
   } catch (err) {
     console.error("[email] notifyClient FAILED to", clientEmail, ":", err);
