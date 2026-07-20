@@ -208,8 +208,9 @@ export const CreateContactSubmissionResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "email": zod.string(),
-  "company": zod.string(),
-  "budget": zod.string(),
+  // These fields are nullable in Postgres; normalise null → "" for the API response.
+  "company": zod.string().nullable().transform(v => v ?? ""),
+  "budget": zod.string().nullable().transform(v => v ?? ""),
   "message": zod.string(),
   "status": zod.string(),
   "createdAt": zod.coerce.date()
@@ -232,14 +233,15 @@ export const CreateBookingResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "email": zod.string(),
-  "company": zod.string(),
+  // These fields are nullable in Postgres; normalise null → "" for the API response.
+  "company": zod.string().nullable().transform(v => v ?? ""),
   "service": zod.string(),
   // Drizzle returns a JS Date from Postgres; coerce to ISO string for the API response.
   "preferredDate": zod.preprocess(
     (val) => (val instanceof Date ? val.toISOString() : val),
     zod.string(),
   ),
-  "message": zod.string(),
+  "message": zod.string().nullable().transform(v => v ?? ""),
   "status": zod.string(),
   "createdAt": zod.coerce.date()
 })
