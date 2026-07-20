@@ -85,7 +85,7 @@ router.get("/admin/reviews", requireAdminKey, async (_req, res): Promise<void> =
 // ── Admin: approve / reject a review ──────────────────────────────────────
 
 router.patch("/admin/reviews/:id", requireAdminKey, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
 
   const schema = z.object({
@@ -107,7 +107,7 @@ router.patch("/admin/reviews/:id", requireAdminKey, async (req, res): Promise<vo
 // ── Admin: delete a review ────────────────────────────────────────────────
 
 router.delete("/admin/reviews/:id", requireAdminKey, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
 
   await db.delete(reviewsTable).where(eq(reviewsTable.id, id));

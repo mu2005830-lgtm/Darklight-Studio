@@ -153,7 +153,7 @@ router.post(
   requirePortalAuth,
   portalUpload.single("file"),
   async (req, res): Promise<void> => {
-    const projectId = parseInt(req.params.id, 10);
+    const projectId = parseInt(String(req.params.id), 10);
     if (isNaN(projectId)) { res.status(400).json({ error: "Invalid project id" }); return; }
     if (!req.file) { res.status(400).json({ error: "No file provided" }); return; }
 
