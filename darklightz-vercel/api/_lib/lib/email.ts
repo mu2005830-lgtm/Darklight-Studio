@@ -58,47 +58,20 @@ export async function notifyAdmin(subject: string, _html?: string): Promise<void
 
 /**
  * Send a transactional email to a client via EmailJS.
- * Strips HTML tags from `html` to produce a plain-text message body that gets
- * substituted into the EmailJS template's {{message}} placeholder.
+ * Uses template_o2q56z1 which expects: {{email}} (To), {{name}}, {{title}}.
  * Never throws — logs the error instead.
  */
 export async function notifyClient(
   clientEmail: string,
   subject: string,
-  html?: string,
+  _html?: string,
+  clientName?: string,
 ): Promise<void> {
-  // Convert HTML template to readable plain text for the EmailJS {{message}} slot
-  const plainText = html
-    ? html
-        .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/<\/p>/gi, "\n")
-        .replace(/<\/li>/gi, "\n")
-        .replace(/<\/tr>/gi, "\n")
-        .replace(/<\/td>/gi, " | ")
-        .replace(/<[^>]+>/g, "")
-        .replace(/&mdash;/g, "—")
-        .replace(/&amp;/g, "&")
-        .replace(/&nbsp;/g, " ")
-        .replace(/\n{3,}/g, "\n\n")
-        .trim()
-    : subject;
-
   try {
     await sendViaEmailJS(EJS_AUTOREPLY, {
-      to_email:    clientEmail,
-      to_name:     "Valued Client",
-      from_name:   "Darklightz Studio",
-      from_email:  ADMIN_EMAIL,
-      reply_to:    ADMIN_EMAIL,
-      subject,
-      message:     plainText,
-      company:     "",
-      budget:      "",
-      date_time:   new Date().toLocaleString("en-PK", {
-        day: "2-digit", month: "long", year: "numeric",
-        hour: "2-digit", minute: "2-digit", hour12: true,
-      }),
-      website_url: "https://darklight-studio.vercel.app",
+      email: clientEmail,
+      name:  clientName || "Valued Client",
+      title: subject,
     });
     console.log("[email] notifyClient ✓ to:", clientEmail);
   } catch (err) {

@@ -224,23 +224,11 @@ router.patch("/admin/portal/projects/:id", async (req, res): Promise<void> => {
         const completionHtml = emailProjectCompleted(client.name, updated.title);
         const now = new Date();
         try {
+          // template_o2q56z1 expects: {{email}} (To), {{name}}, {{title}}
           await sendViaEmailJS(EJS_AUTOREPLY_TPL, {
-            to_email:    client.email,
-            to_name:     client.name || "Valued Client",
-            from_name:   "Darklightz Studio",
-            from_email:  ADMIN_EMAIL,
-            reply_to:    ADMIN_EMAIL,
-            subject:     `[Darklightz] "${updated.title}" is complete! 🎉`,
-            message:     htmlToPlainText(completionHtml),
-            company:     "",
-            budget:      "",
-            service:     updated.serviceName || "",
-            preferred_date: "",
-            date_time:   now.toLocaleString("en-PK", {
-              day: "2-digit", month: "long", year: "numeric",
-              hour: "2-digit", minute: "2-digit", hour12: true,
-            }),
-            website_url: "https://darklight-studio.vercel.app",
+            email: client.email,
+            name:  client.name || "Valued Client",
+            title: `"${updated.title}" is complete! 🎉`,
           });
           console.log("[portal] Completion email sent ✓ to:", client.email);
         } catch (emailErr) {
@@ -251,7 +239,7 @@ router.patch("/admin/portal/projects/:id", async (req, res): Promise<void> => {
           return;
         }
       } else {
-        await notifyClient(client.email, `[Darklightz] Project status update: ${updated.title}`, emailStatusChanged(client.name, updated.title, parsed.data.status));
+        await notifyClient(client.email, `[Darklightz] Project status update: ${updated.title}`, undefined, client.name);
       }
     }
   }
@@ -436,7 +424,8 @@ router.post("/admin/portal/messages", async (req, res): Promise<void> => {
     await notifyClient(
       client.email,
       `[Darklightz] New message: ${projectTitle}`,
-      emailNewMessage(client.name || client.email, "Darklightz Studio", projectTitle, parsed.data.body.slice(0, 200)),
+      undefined,
+      client.name || client.email,
     );
   }
 
@@ -547,9 +536,8 @@ router.post("/admin/portal/tickets/:id/replies", async (req, res): Promise<void>
     await notifyClient(
       client.email,
       `[Darklightz] Reply to your ticket: ${ticket.subject}`,
-      `<p>Darklightz Studio replied to your support ticket.</p>
-       <p><strong>Subject:</strong> ${ticket.subject}</p>
-       <p>${parsed.data.body}</p>`,
+      undefined,
+      client.name || client.email,
     );
   }
 
@@ -699,8 +687,7 @@ router.post("/admin/portal/projects/:id/workflow", async (req, res): Promise<voi
       body: message.slice(0, 200),
     });
     if (clientEmail) {
-      await notifyClient(clientEmail, `[Darklightz] Message: ${project.title}`,
-        emailNewMessage(clientName, "Darklightz Studio", project.title, message.slice(0, 200)));
+      await notifyClient(clientEmail, `[Darklightz] Message: ${project.title}`, undefined, clientName);
     }
     res.json({ ok: true });
     return;
@@ -713,7 +700,7 @@ router.post("/admin/portal/projects/:id/workflow", async (req, res): Promise<voi
       portalUserId: project.portalUserId, type: "info",
       title: "Information requested", body: body.slice(0, 200),
     });
-    if (clientEmail) await notifyClient(clientEmail, `[Darklightz] Information needed: ${project.title}`, emailRequestInfo(clientName, project.title, body));
+    if (clientEmail) await notifyClient(clientEmail, `[Darklightz] Information needed: ${project.title}`, undefined, clientName);
     res.json({ ok: true });
     return;
   }
@@ -725,7 +712,7 @@ router.post("/admin/portal/projects/:id/workflow", async (req, res): Promise<voi
       portalUserId: project.portalUserId, type: "info",
       title: "Files requested", body: body.slice(0, 200),
     });
-    if (clientEmail) await notifyClient(clientEmail, `[Darklightz] Files needed: ${project.title}`, emailRequestFiles(clientName, project.title, body));
+    if (clientEmail) await notifyClient(clientEmail, `[Darklightz] Files needed: ${project.title}`, undefined, clientName);
     res.json({ ok: true });
     return;
   }
@@ -739,7 +726,7 @@ router.post("/admin/portal/projects/:id/workflow", async (req, res): Promise<voi
       portalUserId: project.portalUserId, type: "progress",
       title: "Your project is ready for review!", body: `"${project.title}" is ready. Please log in to review and approve.`,
     });
-    if (clientEmail) await notifyClient(clientEmail, `[Darklightz] Ready for review: ${project.title}`, emailReadyForReview(clientName, project.title));
+    if (clientEmail) await notifyClient(clientEmail, `[Darklightz] Ready for review: ${project.title}`, undefined, clientName);
     res.json(updated);
     return;
   }
@@ -761,7 +748,7 @@ router.post("/admin/portal/projects/:id/workflow", async (req, res): Promise<voi
       portalUserId: project.portalUserId, type: "info",
       title: "Project delivered!", body: deliveryMsg.slice(0, 200),
     });
-    if (clientEmail) await notifyClient(clientEmail, `[Darklightz] Project delivered: ${project.title}`, emailProjectDelivered(clientName, project.title, deliveryMsg));
+    if (clientEmail) await notifyClient(clientEmail, `[Darklightz] Project delivered: ${project.title}`, undefined, clientName);
     res.json(updated);
     return;
   }
@@ -777,9 +764,8 @@ router.post("/admin/portal/projects/:id/workflow", async (req, res): Promise<voi
     });
     const reviewUrl = `${process.env.SITE_URL || "https://darklight-studio.vercel.app"}/submit-review`;
     if (clientEmail) {
-      await notifyClient(clientEmail, `[Darklightz] "${project.title}" is complete! 🎉`, emailProjectCompleted(clientName, project.title));
-      // Send review invite separately
-      await notifyClient(clientEmail, `[Darklightz] How was your experience? — ${project.title}`, emailReviewInvite(clientName, project.title, reviewUrl));
+      await notifyClient(clientEmail, `[Darklightz] "${project.title}" is complete! 🎉`, undefined, clientName);
+      await notifyClient(clientEmail, `[Darklightz] How was your experience? — ${project.title}`, undefined, clientName);
     }
     res.json(updated);
     return;
