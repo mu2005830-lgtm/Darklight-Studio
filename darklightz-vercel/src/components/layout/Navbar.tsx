@@ -2,20 +2,28 @@ import * as React from "react"
 import { Link, useLocation } from "wouter"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
-import { Moon, Sun, Menu, X, LogIn } from "lucide-react"
+import { Moon, Sun, Menu, X, LogIn, ChevronDown } from "lucide-react"
 import { MagneticLink } from "@/components/effects"
 import { useTheme } from "@/lib/theme"
 
-const navLinks = [
-  { href: "/services",       label: "Services"       },
-  { href: "/portfolio",      label: "Work"           },
-  { href: "/case-studies",   label: "Case Studies"   },
-  { href: "/about",          label: "Studio"         },
-  { href: "/pricing",        label: "Pricing"        },
-  { href: "/blog",           label: "Journal"        },
-  { href: "/contact",        label: "Contact"        },
-  { href: "/submit-review",  label: "Leave a Review" },
+// 3 primary links always visible on desktop
+const primaryLinks = [
+  { href: "/services",     label: "Services"     },
+  { href: "/portfolio",    label: "Work"         },
+  { href: "/case-studies", label: "Case Studies" },
 ]
+
+// All remaining links live in the "More" dropdown on desktop
+const moreLinks = [
+  { href: "/about",         label: "Studio"         },
+  { href: "/pricing",       label: "Pricing"        },
+  { href: "/blog",          label: "Journal"        },
+  { href: "/contact",       label: "Contact"        },
+  { href: "/submit-review", label: "Leave a Review" },
+]
+
+// Full list for the mobile full-screen menu
+const allNavLinks = [...primaryLinks, ...moreLinks]
 
 export function Navbar() {
   const [location] = useLocation()
@@ -23,9 +31,22 @@ export function Navbar() {
   const { theme, toggle } = useTheme()
   const isDark = theme === "dark"
   const [mobileOpen, setMobileOpen] = React.useState(false)
+  const [moreOpen, setMoreOpen] = React.useState(false)
+  const moreRef = React.useRef<HTMLDivElement>(null)
 
   // Close mobile menu on route change
-  React.useEffect(() => { setMobileOpen(false) }, [location])
+  React.useEffect(() => { setMobileOpen(false); setMoreOpen(false) }, [location])
+
+  // Close "More" dropdown on outside click
+  React.useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false)
+      }
+    }
+    if (moreOpen) document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [moreOpen])
 
   // Lock body scroll when mobile menu is open
   React.useEffect(() => {
@@ -41,6 +62,9 @@ export function Navbar() {
   const headerHeight  = useTransform(scrollY, [0, 100], ["6rem", "4.5rem"])
 
   const headerBg = isDark ? headerBgDark : headerBgLight
+
+  // Is any "More" link currently active?
+  const moreIsActive = moreLinks.some(l => location.startsWith(l.href))
 
   return (
     <>
@@ -73,9 +97,10 @@ export function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop nav links */}
+          {/* Desktop nav — 3 primary links + "More" dropdown */}
           <nav className="hidden lg:flex items-center gap-10">
-            {navLinks.filter(l => l.href !== "/contact").map((link) => (
+            {/* Primary 3 */}
+            {primaryLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -99,19 +124,71 @@ export function Navbar() {
                 )}
               </Link>
             ))}
+
+            {/* More dropdown */}
+            <div ref={moreRef} className="relative">
+              <button
+                onClick={() => setMoreOpen(o => !o)}
+                className={cn(
+                  "flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold transition-colors relative group",
+                  moreIsActive || moreOpen ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                More
+                <ChevronDown
+                  className={cn("w-3 h-3 transition-transform duration-200", moreOpen && "rotate-180")}
+                />
+                {/* Active indicator when a "More" page is current */}
+                {moreIsActive && !moreOpen && (
+                  <motion.span
+                    layoutId="nav-indicator"
+                    className="absolute -bottom-2 left-0 right-0 h-[1px] bg-foreground"
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+              </button>
+
+              <AnimatePresence>
+                {moreOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                    className={cn(
+                      "absolute top-full left-1/2 -translate-x-1/2 mt-4 w-52 rounded-[4px] overflow-hidden",
+                      "border border-border shadow-2xl",
+                      isDark ? "bg-[rgba(14,14,14,0.96)]" : "bg-[rgba(247,247,247,0.96)]",
+                      "backdrop-blur-xl"
+                    )}
+                  >
+                    {moreLinks.map((link, i) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        data-testid={`link-nav-more-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
+                        className={cn(
+                          "flex items-center justify-between px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold transition-colors group",
+                          i !== moreLinks.length - 1 && "border-b border-border/50",
+                          location.startsWith(link.href)
+                            ? "text-foreground bg-muted/40"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                        )}
+                      >
+                        {link.label}
+                        {location.startsWith(link.href) && (
+                          <span className="w-1 h-1 rounded-full bg-foreground" />
+                        )}
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </nav>
 
           {/* Right actions */}
           <div className="flex items-center gap-3">
-            {/* Desktop-only contact link */}
-            <Link
-              href="/contact"
-              className="hidden xl:block text-[10px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground transition-colors"
-              data-testid="link-nav-contact"
-            >
-              Contact
-            </Link>
-
             {/* Client Portal link */}
             <Link
               href="/portal/login"
@@ -197,22 +274,22 @@ export function Navbar() {
             {/* Spacer for the header bar */}
             <div className="h-24" />
 
-            {/* Nav links */}
+            {/* Nav links — all of them on mobile */}
             <nav className="flex-1 flex flex-col justify-center px-8 gap-1">
-              {navLinks.map((link, i) => (
+              {allNavLinks.map((link, i) => (
                 <motion.div
                   key={link.href}
                   initial={{ opacity: 0, x: -24 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -16 }}
-                  transition={{ duration: 0.3, delay: i * 0.055, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.3, delay: i * 0.045, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <Link
                     href={link.href}
                     data-testid={`link-mobile-nav-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
                     className={cn(
-                      "flex items-center justify-between group py-5 border-b border-border",
-                      "text-3xl font-display font-bold tracking-tighter",
+                      "flex items-center justify-between group py-4 border-b border-border",
+                      "text-2xl font-display font-bold tracking-tighter",
                       location.startsWith(link.href)
                         ? "text-foreground"
                         : "text-muted-foreground hover:text-foreground"
@@ -234,7 +311,7 @@ export function Navbar() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 12 }}
-              transition={{ duration: 0.35, delay: navLinks.length * 0.055 + 0.05 }}
+              transition={{ duration: 0.35, delay: allNavLinks.length * 0.045 + 0.05 }}
               className="px-8 pb-12 flex flex-col gap-3"
             >
               <Link href="/book-a-call" className="block">
