@@ -113,6 +113,9 @@ export default function BookACall() {
                               <Input placeholder="John Doe" {...field} />
                             </FormControl>
                             <FormMessage />
+                            <p className={`text-[10px] mt-0.5 transition-colors ${field.value.length >= 2 ? "text-emerald-500/60" : "text-muted-foreground/40"}`}>
+                              {field.value.length >= 2 ? `✓ ${field.value.length} characters` : `${2 - field.value.length} more character${2 - field.value.length === 1 ? "" : "s"} needed`}
+                            </p>
                           </FormItem>
                         )}
                       />

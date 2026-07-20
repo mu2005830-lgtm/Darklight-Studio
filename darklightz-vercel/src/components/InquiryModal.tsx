@@ -153,6 +153,9 @@ export function InquiryModal({ open, onClose, serviceSlug, serviceTitle, service
                           <FormLabel className={labelCls}>Name *</FormLabel>
                           <FormControl><Input placeholder="Your name" className={inputCls} {...field} /></FormControl>
                           <FormMessage />
+                          <p className={`text-[10px] mt-0.5 transition-colors ${field.value.length >= 2 ? "text-emerald-500/60" : "text-muted-foreground/40"}`}>
+                            {field.value.length >= 2 ? `✓ ${field.value.length} characters` : `${2 - field.value.length} more character${2 - field.value.length === 1 ? "" : "s"} needed`}
+                          </p>
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="email" render={({ field }) => (
@@ -211,6 +214,9 @@ export function InquiryModal({ open, onClose, serviceSlug, serviceTitle, service
                           />
                         </FormControl>
                         <FormMessage />
+                        <p className={`text-[10px] mt-0.5 transition-colors ${field.value.length >= 10 ? "text-emerald-500/60" : "text-muted-foreground/40"}`}>
+                          {field.value.length >= 10 ? `✓ ${field.value.length} characters` : `${10 - field.value.length} more character${10 - field.value.length === 1 ? "" : "s"} needed`}
+                        </p>
                       </FormItem>
                     )} />
 
