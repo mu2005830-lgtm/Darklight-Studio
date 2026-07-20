@@ -7,13 +7,14 @@ import { MagneticLink } from "@/components/effects"
 import { useTheme } from "@/lib/theme"
 
 const navLinks = [
-  { href: "/services",     label: "Services"     },
-  { href: "/portfolio",    label: "Work"         },
-  { href: "/case-studies", label: "Case Studies" },
-  { href: "/about",        label: "Studio"       },
-  { href: "/pricing",      label: "Pricing"      },
-  { href: "/blog",         label: "Journal"      },
-  { href: "/contact",      label: "Contact"      },
+  { href: "/services",       label: "Services"       },
+  { href: "/portfolio",      label: "Work"           },
+  { href: "/case-studies",   label: "Case Studies"   },
+  { href: "/about",          label: "Studio"         },
+  { href: "/pricing",        label: "Pricing"        },
+  { href: "/blog",           label: "Journal"        },
+  { href: "/contact",        label: "Contact"        },
+  { href: "/submit-review",  label: "Leave a Review" },
 ]
 
 export function Navbar() {
