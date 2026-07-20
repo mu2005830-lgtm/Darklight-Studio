@@ -19,6 +19,7 @@ export async function sendViaEmailJS(
     service_id:      EJS_SERVICE,
     template_id:     templateId,
     user_id:         EJS_PUBLIC,
+    accessToken:     process.env.EMAILJS_PRIVATE_KEY,
     template_params: params,
   });
 
