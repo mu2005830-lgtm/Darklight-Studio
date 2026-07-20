@@ -169,7 +169,7 @@ router.patch("/admin/bookings/:id", async (req, res): Promise<void> => {
 
     try {
       await sendViaEmailJS(EJS_AUTOREPLY, {
-        email:      booking.email,
+        to_email:   booking.email,
         to_name:    booking.name,
         from_name:  "Darklightz Studio",
         from_email: ADMIN_EMAIL,

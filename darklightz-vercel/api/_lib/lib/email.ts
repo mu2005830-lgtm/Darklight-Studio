@@ -71,9 +71,9 @@ export async function notifyClient(
 ): Promise<void> {
   try {
     await sendViaEmailJS(EJS_AUTOREPLY, {
-      email: clientEmail,
-      name:  clientName || "Valued Client",
-      title: subject,
+      to_email: clientEmail,
+      name:     clientName || "Valued Client",
+      title:    subject,
     });
     console.log("[email] notifyClient ✓ to:", clientEmail);
   } catch (err) {

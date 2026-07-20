@@ -63,9 +63,9 @@ router.post("/bookings", async (req, res): Promise<void> => {
   // `to_email` key for dynamic recipient substitution server-side.
   try {
     await sendViaEmailJS(EJS_AUTOREPLY, {
-      email: parsed.data.email,
-      name:  parsed.data.name,
-      title: parsed.data.service,
+      to_email: parsed.data.email,
+      name:     parsed.data.name,
+      title:    parsed.data.service,
     });
     console.log("[booking] Customer confirmation sent ✓ to:", parsed.data.email);
     emailStatus.customerConfirmation = "sent";
