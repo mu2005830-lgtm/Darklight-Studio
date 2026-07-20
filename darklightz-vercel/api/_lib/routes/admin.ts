@@ -169,6 +169,7 @@ router.patch("/admin/bookings/:id", async (req, res): Promise<void> => {
 
     try {
       await sendViaEmailJS(EJS_AUTOREPLY, {
+        email:      booking.email,
         to_name:    booking.name,
         from_name:  "Darklightz Studio",
         from_email: ADMIN_EMAIL,
@@ -179,7 +180,7 @@ router.patch("/admin/bookings/:id", async (req, res): Promise<void> => {
         company:    booking.company ?? "Not provided",
         budget:     "",
         website_url: "https://darklight-studio.vercel.app",
-      }, booking.email);
+      });
       console.log(`[booking] ${statusLabel} email sent ✓ to: ${booking.email}`);
     } catch (err) {
       // Log the full error — never silently swallow it
