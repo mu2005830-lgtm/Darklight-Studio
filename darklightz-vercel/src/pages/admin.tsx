@@ -1107,11 +1107,64 @@ function ContactsSection() {
 function BookingsSection() {
   const qc = useQueryClient()
   const { data: bookings = [] } = useListBookings()
-  const updateM = useUpdateBooking({ mutation: { onSuccess: () => qc.invalidateQueries({ queryKey: getListBookingsQueryKey() }) } })
+  const [bookingAlert, setBookingAlert] = React.useState<{ id: number; msg: string; isError: boolean } | null>(null)
+
+  const updateM = useUpdateBooking({
+    mutation: {
+      onSuccess: (data: any, vars: any) => {
+        qc.invalidateQueries({ queryKey: getListBookingsQueryKey() })
+        // Surface email failure if the backend reported one
+        if (data?.emailError) {
+          setBookingAlert({
+            id: vars.id,
+            msg: `Booking updated but email failed: ${data.emailError}`,
+            isError: true,
+          })
+        } else if (vars.data?.status === "confirmed" || vars.data?.status === "completed") {
+          setBookingAlert({
+            id: vars.id,
+            msg: `Status updated to "${vars.data.status}" — email sent to customer ✓`,
+            isError: false,
+          })
+        }
+      },
+      onError: (err: unknown) => {
+        alert(`Failed to update booking: ${err instanceof Error ? err.message : String(err)}`)
+      },
+    }
+  })
+
+  function changeStatus(b: { id: number; email: string; service: string; status: string }, newStatus: string) {
+    if (newStatus === b.status) return
+    const willEmail = newStatus === "confirmed" || newStatus === "completed"
+    if (willEmail) {
+      const label = newStatus === "confirmed" ? "confirmed" : "completed"
+      const ok = window.confirm(
+        `Change status to "${label}"?\n\nThis will immediately send an email notification to:\n${b.email}\n\nContinue?`
+      )
+      if (!ok) return
+    }
+    setBookingAlert(null)
+    updateM.mutate({ id: b.id, data: { status: newStatus as any } })
+  }
 
   return (
     <div>
       <SectionHeader title="Bookings" />
+
+      {/* Alert strip — email success or failure */}
+      {bookingAlert && (
+        <div className={`flex items-start gap-3 px-5 py-3 mb-3 border text-sm ${
+          bookingAlert.isError
+            ? "border-red-900/60 bg-red-950/20 text-red-300"
+            : "border-green-900/60 bg-green-950/20 text-green-300"
+        }`}>
+          <span className="shrink-0 mt-0.5">{bookingAlert.isError ? "⚠" : "✓"}</span>
+          <span>{bookingAlert.msg}</span>
+          <button onClick={() => setBookingAlert(null)} className="ml-auto text-neutral-500 hover:text-white">✕</button>
+        </div>
+      )}
+
       <div className="bg-[#050505] border border-white/10 overflow-x-auto">
         {bookings.length === 0 ? <p className="p-6 text-neutral-500 text-sm">No bookings yet.</p> : (
           <table className="w-full text-sm min-w-[800px]">
@@ -1124,20 +1177,24 @@ function BookingsSection() {
             </tr></thead>
             <tbody>
               {bookings.map(b => (
-                <tr key={b.id} className="border-b border-white/5 hover:bg-white/2">
+                <tr key={b.id} className={`border-b border-white/5 hover:bg-white/[0.02] ${bookingAlert?.id === b.id ? "bg-white/[0.03]" : ""}`}>
                   <td className="p-4 text-white">{b.name}</td>
-                  <td className="p-4 text-neutral-400">{b.email}</td>
+                  <td className="p-4 text-neutral-400 text-xs">{b.email}</td>
                   <td className="p-4 text-neutral-400">{b.service}</td>
                   <td className="p-4 text-neutral-400 text-xs">{format(new Date(b.preferredDate), "MMM d, yyyy")}</td>
                   <td className="p-4">
-                    <Select value={b.status} onValueChange={status => updateM.mutate({ id: b.id, data: { status: status as any } })}>
+                    <Select
+                      value={b.status}
+                      onValueChange={newStatus => changeStatus(b, newStatus)}
+                      disabled={updateM.isPending}
+                    >
                       <SelectTrigger className="h-8 bg-black border-white/10 text-white text-xs w-40">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-[#050505] border-white/10">
                         <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="confirmed">Confirmed — emails client</SelectItem>
+                        <SelectItem value="completed">Completed — emails client</SelectItem>
                         <SelectItem value="cancelled">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>

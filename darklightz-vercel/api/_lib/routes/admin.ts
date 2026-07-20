@@ -23,6 +23,10 @@ import {
   UpdateBookingResponse,
 } from "../api-zod/index.js";
 import { requireAdminKey } from "../lib/auth.js";
+import { sendViaEmailJS, ADMIN_EMAIL } from "../lib/email.js";
+
+// EmailJS auto-reply template (customer-facing)
+const EJS_AUTOREPLY = "template_o2q56z1";
 
 const router: IRouter = Router();
 
@@ -146,6 +150,46 @@ router.patch("/admin/bookings/:id", async (req, res): Promise<void> => {
   if (!booking) {
     res.status(404).json({ error: "Booking not found" });
     return;
+  }
+
+  // Send email to the customer when their booking is confirmed or completed
+  const newStatus = parsed.data.status;
+  if (newStatus === "confirmed" || newStatus === "completed") {
+    const now = new Date();
+    const dateTime = now.toLocaleString("en-PK", {
+      day: "2-digit", month: "long", year: "numeric",
+      hour: "2-digit", minute: "2-digit", hour12: true,
+    });
+
+    const isConfirmed = newStatus === "confirmed";
+    const statusLabel = isConfirmed ? "Booking Confirmed" : "Booking Completed";
+    const messageText = isConfirmed
+      ? `Great news! Your booking for "${booking.service}" has been confirmed. We will be in touch with all the details shortly. Thank you for choosing Darklightz Studio!`
+      : `Your session for "${booking.service}" has been completed. Thank you for working with us! We hope you're delighted with the results. Please don't hesitate to get in touch if you need anything further.`;
+
+    try {
+      await sendViaEmailJS(EJS_AUTOREPLY, {
+        to_email:   booking.email,
+        to_name:    booking.name,
+        from_name:  "Darklightz Studio",
+        from_email: ADMIN_EMAIL,
+        reply_to:   ADMIN_EMAIL,
+        subject:    `[Darklightz] ${statusLabel} — ${booking.service}`,
+        message:    messageText,
+        date_time:  dateTime,
+        company:    booking.company ?? "Not provided",
+        budget:     "",
+        website_url: "https://darklight-studio.vercel.app",
+      });
+      console.log(`[booking] ${statusLabel} email sent ✓ to: ${booking.email}`);
+    } catch (err) {
+      // Log the full error — never silently swallow it
+      console.error(`[booking] ${statusLabel} email FAILED for ${booking.email}:`, err);
+      // Return the updated booking to the admin — DB is committed; email failure
+      // is surfaced in the response so the UI can show a warning.
+      res.json({ ...UpdateBookingResponse.parse(booking), emailError: String(err) });
+      return;
+    }
   }
 
   res.json(UpdateBookingResponse.parse(booking));

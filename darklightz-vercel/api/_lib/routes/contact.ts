@@ -4,9 +4,13 @@ import {
   CreateContactSubmissionBody,
   CreateContactSubmissionResponse,
 } from "../api-zod/index.js";
-import { notifyAdmin } from "../lib/email.js";
+import { sendViaEmailJS, ADMIN_EMAIL } from "../lib/email.js";
 
 const router: IRouter = Router();
+
+// EmailJS template IDs
+const EJS_NOTIFY    = "template_xege7fl"; // notification → admin
+const EJS_AUTOREPLY = "template_o2q56z1"; // auto-reply   → customer
 
 router.post("/contact", async (req, res): Promise<void> => {
   const parsed = CreateContactSubmissionBody.safeParse(req.body);
@@ -15,40 +19,61 @@ router.post("/contact", async (req, res): Promise<void> => {
     return;
   }
 
+  // 1. Save to database
   const [submission] = await db
     .insert(contactSubmissionsTable)
     .values({
-      name: parsed.data.name,
-      email: parsed.data.email,
+      name:    parsed.data.name,
+      email:   parsed.data.email,
       company: parsed.data.company ?? null,
-      budget: parsed.data.budget ?? null,
+      budget:  parsed.data.budget  ?? null,
       message: parsed.data.message,
     })
     .returning();
 
-  // Notify admin of new contact inquiry
-  await notifyAdmin(
-    `[Inquiry] New message from ${parsed.data.name}`,
-    `
-    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0a0a0a;color:#e5e5e5;">
-      <div style="margin-bottom:24px;">
-        <span style="font-size:18px;font-weight:700;letter-spacing:2px;color:#fff;">DARKLIGHTZ STUDIO</span>
-      </div>
-      <p style="color:#e5e5e5;font-size:16px;">New contact form submission received.</p>
-      <table style="border-collapse:collapse;width:100%;margin:16px 0;">
-        <tr><td style="padding:8px 0;color:#888;width:120px;">Name</td><td style="color:#fff;">${parsed.data.name}</td></tr>
-        <tr><td style="padding:8px 0;color:#888;">Email</td><td style="color:#fff;"><a href="mailto:${parsed.data.email}" style="color:#aaa;">${parsed.data.email}</a></td></tr>
-        ${parsed.data.company ? `<tr><td style="padding:8px 0;color:#888;">Business</td><td style="color:#fff;">${parsed.data.company}</td></tr>` : ""}
-        ${parsed.data.budget ? `<tr><td style="padding:8px 0;color:#888;">Budget</td><td style="color:#fff;">${parsed.data.budget}</td></tr>` : ""}
-        <tr><td style="padding:8px 0;color:#888;vertical-align:top;">Message</td><td style="color:#ccc;font-style:italic;">"${parsed.data.message}"</td></tr>
-      </table>
-      <p style="color:#aaa;font-size:13px;">Log in to the Admin Panel to manage this inquiry.</p>
-      <div style="margin-top:32px;padding-top:16px;border-top:1px solid #222;font-size:12px;color:#555;">
-        Darklightz Studio — darklightzstudiu@gmail.com
-      </div>
-    </div>
-    `,
-  );
+  const now = new Date();
+  const dateTime = now.toLocaleString("en-PK", {
+    day: "2-digit", month: "long", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: true,
+  });
+
+  const sharedParams: Record<string, string> = {
+    from_name:   parsed.data.name,
+    from_email:  parsed.data.email,
+    reply_to:    parsed.data.email,
+    company:     parsed.data.company  || "Not provided",
+    budget:      parsed.data.budget   || "Not specified",
+    message:     parsed.data.message,
+    date_time:   dateTime,
+    website_url: "https://darklight-studio.vercel.app",
+  };
+
+  // 2. Notify admin (darklightzstudiu@gmail.com)
+  try {
+    await sendViaEmailJS(EJS_NOTIFY, {
+      ...sharedParams,
+      to_email: ADMIN_EMAIL,
+      to_name:  "Darklightz Studio",
+      subject:  `New inquiry from ${parsed.data.name}`,
+    });
+    console.log("[contact] Admin notification sent ✓");
+  } catch (err) {
+    console.error("[contact] Admin notification FAILED:", err);
+    // Do NOT abort — DB entry is saved; log is enough
+  }
+
+  // 3. Auto-reply to the customer
+  try {
+    await sendViaEmailJS(EJS_AUTOREPLY, {
+      ...sharedParams,
+      to_email: parsed.data.email,
+      to_name:  parsed.data.name,
+      subject:  "Thank you for contacting Darklightz Studio!",
+    });
+    console.log("[contact] Auto-reply sent ✓ to:", parsed.data.email);
+  } catch (err) {
+    console.error("[contact] Auto-reply FAILED:", err);
+  }
 
   res.status(201).json(CreateContactSubmissionResponse.parse(submission));
 });

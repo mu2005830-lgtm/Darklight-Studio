@@ -9,47 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CheckCircle2, ArrowRight } from "lucide-react"
+import { CheckCircle2, ArrowRight, AlertCircle } from "lucide-react"
 import { Eyebrow, TextSliceReveal } from "@/components/effects"
 import { motion, AnimatePresence } from "framer-motion"
-import emailjs from "@emailjs/browser"
-
-// EmailJS credentials — public keys are safe on the frontend (EmailJS design)
-const EJS_SERVICE   = "service_bcnryac"
-const EJS_NOTIFY    = "template_xege7fl"   // notification to you (admin)
-const EJS_AUTOREPLY = "template_o2q56z1"   // auto-reply to customer
-const EJS_PUBLIC    = "ccdOoCFFbQawg-Qeg"
-
-async function sendEmailJS(values: {
-  name: string; email: string; company?: string; budget?: string; message: string
-}) {
-  const now = new Date()
-  const dateTime = now.toLocaleString("en-PK", {
-    day: "2-digit", month: "long", year: "numeric",
-    hour: "2-digit", minute: "2-digit", hour12: true,
-  })
-
-  const params = {
-    from_name:    values.name,
-    from_email:   values.email,
-    reply_to:     values.email,
-    company:      values.company  || "Not provided",
-    budget:       values.budget   || "Not specified",
-    message:      values.message,
-    date_time:    dateTime,
-    website_url:  typeof window !== "undefined" ? window.location.origin : "",
-  }
-
-  try {
-    // 1. Notification to admin
-    await emailjs.send(EJS_SERVICE, EJS_NOTIFY, params, EJS_PUBLIC)
-    // 2. Auto-reply to customer
-    await emailjs.send(EJS_SERVICE, EJS_AUTOREPLY, params, EJS_PUBLIC)
-  } catch (err) {
-    // Silent fail — DB submission already succeeded; log for debugging only
-    console.error("[EmailJS] Failed to send email notification:", err)
-  }
-}
+// Note: EmailJS is now called server-side in the backend contact route.
+// The frontend no longer needs to call EmailJS directly — this prevents
+// double-sends and works even when JS is restricted by ad-blockers.
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -61,6 +26,7 @@ const formSchema = z.object({
 
 export default function Contact() {
   const [isSuccess, setIsSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,11 +42,18 @@ export default function Contact() {
   const { mutate, isPending } = useCreateContactSubmission()
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    setSubmitError(null)
     mutate({ data: values }, {
       onSuccess: () => {
-        // DB saved — fire EmailJS in the background, never block success UI
-        sendEmailJS(values)
+        // Backend now handles both the admin notification and customer auto-reply
+        // via EmailJS REST API — no frontend email call needed.
         setIsSuccess(true)
+      },
+      onError: (err: unknown) => {
+        const msg = err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again or email us directly at darklightzstudiu@gmail.com."
+        setSubmitError(msg)
       },
     })
   }
@@ -282,11 +255,25 @@ export default function Contact() {
                         >
                           <div className="absolute inset-0 bg-neutral-900 transform translate-y-[100%] group-hover/btn:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)]" />
                           <span className="relative z-10 flex items-center justify-center gap-2 group-hover/btn:text-white transition-colors duration-300 font-bold uppercase tracking-[0.2em] text-[10px]">
-                            {isPending ? "Submitting..." : (
+                            {isPending ? "Submitting…" : (
                               <>Send Message <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" /></>
                             )}
                           </span>
                         </Button>
+
+                        {/* Error message */}
+                        {submitError && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-start gap-3 mt-3 p-4 border border-red-900/60 bg-red-950/20 rounded-[2px]"
+                          >
+                            <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                            <p className="text-sm text-red-300 leading-relaxed">
+                              {submitError}
+                            </p>
+                          </motion.div>
+                        )}
                       </form>
                     </Form>
                   </motion.div>

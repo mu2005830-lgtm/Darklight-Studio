@@ -1,55 +1,83 @@
-import { Resend } from "resend";
+// ── EmailJS REST API (no API key needed — uses public key from dashboard) ──
+// All emails go through EmailJS so zero server-side env vars are required.
+const EJS_ENDPOINT  = "https://api.emailjs.com/api/v1.0/email/send";
+const EJS_SERVICE   = "service_bcnryac";
+const EJS_PUBLIC    = "ccdOoCFFbQawg-Qeg";
+const EJS_NOTIFY    = "template_xege7fl";   // admin notification template
+const EJS_AUTOREPLY = "template_o2q56z1";   // customer auto-reply template
+export const ADMIN_EMAIL = "darklightzstudiu@gmail.com";
 
-let _resend: Resend | null = null;
+/**
+ * Call the EmailJS REST API from the server.
+ * Throws on failure — callers must handle/log errors themselves.
+ */
+export async function sendViaEmailJS(
+  templateId: string,
+  params: Record<string, string>,
+): Promise<void> {
+  const body = JSON.stringify({
+    service_id:      EJS_SERVICE,
+    template_id:     templateId,
+    user_id:         EJS_PUBLIC,
+    template_params: params,
+  });
 
-function getResend(): Resend | null {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return null;
-  if (!_resend) _resend = new Resend(key);
-  return _resend;
-}
+  const res = await fetch(EJS_ENDPOINT, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+  });
 
-const FROM_EMAIL =
-  process.env.FROM_EMAIL ?? "Darklightz Studio <noreply@darklightz.studio>";
-const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL ?? "";
-
-export interface EmailPayload {
-  to: string;
-  subject: string;
-  html: string;
-}
-
-/** Send a transactional email. Silently skips if RESEND_API_KEY is unset. */
-export async function sendEmail(payload: EmailPayload): Promise<void> {
-  const resend = getResend();
-  if (!resend) {
-    console.warn("[email] RESEND_API_KEY not set — skipping email.");
-    return;
+  if (!res.ok) {
+    const text = await res.text().catch(() => "(no body)");
+    throw new Error(`EmailJS responded ${res.status}: ${text}`);
   }
+}
+
+/**
+ * Send an admin notification email via EmailJS.
+ * Never throws — logs the error instead.
+ */
+export async function notifyAdmin(subject: string, _html?: string): Promise<void> {
+  // _html kept for backward-compat with old callers; subject used as the label
   try {
-    await resend.emails.send({ from: FROM_EMAIL, ...payload });
+    await sendViaEmailJS(EJS_NOTIFY, {
+      to_email:  ADMIN_EMAIL,
+      to_name:   "Darklightz Studio",
+      subject,
+      from_name: "System",
+      from_email: ADMIN_EMAIL,
+      message:   subject,
+    });
+    console.log("[email] notifyAdmin ✓ subject:", subject);
   } catch (err) {
-    // Email failures must never break the main request flow.
-    console.error("[email] Failed to send email:", err);
+    console.error("[email] notifyAdmin FAILED:", err);
   }
 }
 
-/** Send an email notification to the admin. Skips if ADMIN_NOTIFICATION_EMAIL unset. */
-export async function notifyAdmin(subject: string, html: string): Promise<void> {
-  if (!ADMIN_EMAIL) {
-    console.warn("[email] ADMIN_NOTIFICATION_EMAIL not set — skipping admin notification.");
-    return;
-  }
-  return sendEmail({ to: ADMIN_EMAIL, subject, html });
-}
-
-/** Send a notification email to a client. */
+/**
+ * Send a transactional email to a client via EmailJS.
+ * Never throws — logs the error instead.
+ */
 export async function notifyClient(
   clientEmail: string,
   subject: string,
-  html: string,
+  _html?: string,
 ): Promise<void> {
-  return sendEmail({ to: clientEmail, subject, html });
+  // _html kept for backward-compat; real content comes from the EmailJS template
+  try {
+    await sendViaEmailJS(EJS_AUTOREPLY, {
+      to_email:  clientEmail,
+      to_name:   "Valued Client",
+      subject,
+      from_name: "Darklightz Studio",
+      from_email: ADMIN_EMAIL,
+      message:   subject,
+    });
+    console.log("[email] notifyClient ✓ to:", clientEmail);
+  } catch (err) {
+    console.error("[email] notifyClient FAILED:", err);
+  }
 }
 
 // ── Email templates ───────────────────────────────────────────────────────
