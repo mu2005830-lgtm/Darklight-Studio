@@ -2940,7 +2940,8 @@ function MediaCenterSection() {
 
 type ReviewItem = {
   id: number; name: string; company: string | null; rating: number;
-  review: string; status: string; createdAt: string;
+  review: string; logoUrl: string | null; imageUrl: string | null;
+  status: string; createdAt: string;
 }
 
 function ReviewsSection() {
@@ -3007,6 +3008,9 @@ function ReviewsSection() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
+                      {item.logoUrl && (
+                        <img src={item.logoUrl} alt={item.company ?? item.name} className="w-6 h-6 object-contain rounded bg-white/10 p-0.5" />
+                      )}
                       <p className="text-sm font-semibold text-white">{item.name}</p>
                       {item.company && <p className="text-xs text-neutral-500">{item.company}</p>}
                       <p className="text-xs text-amber-400">{"★".repeat(item.rating)}{"☆".repeat(5-item.rating)}</p>
@@ -3036,6 +3040,9 @@ function ReviewsSection() {
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-3">
+                      {item.logoUrl && (
+                        <img src={item.logoUrl} alt={item.company ?? item.name} className="w-5 h-5 object-contain rounded bg-white/10 p-0.5" />
+                      )}
                       <p className="text-sm font-semibold text-white">{item.name}</p>
                       {item.company && <p className="text-xs text-neutral-500">{item.company}</p>}
                       <p className="text-xs text-yellow-400">{"★".repeat(item.rating)}</p>

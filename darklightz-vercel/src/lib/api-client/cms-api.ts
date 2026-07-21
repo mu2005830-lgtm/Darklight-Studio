@@ -499,6 +499,33 @@ export function useServiceTestimonials(
 }
 
 // ---------------------------------------------------------------------------
+// PUBLIC REVIEWS
+// ---------------------------------------------------------------------------
+
+export type PublicReview = {
+  id: number;
+  name: string;
+  company: string | null;
+  rating: number;
+  review: string;
+  logoUrl: string | null;
+  imageUrl: string | null;
+  createdAt: string;
+};
+
+export const getListReviewsQueryKey = (): QueryKey => ["/api/reviews"];
+
+export function useListReviews(
+  options?: { query?: UseQueryOptions<PublicReview[], ErrorType<unknown>> }
+) {
+  return useQuery<PublicReview[], ErrorType<unknown>>({
+    queryKey: getListReviewsQueryKey(),
+    queryFn: () => customFetch<PublicReview[]>("/api/reviews"),
+    ...options?.query,
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Convenience hook: invalidate all CMS list queries after any mutation.
 // Usage: const invalidateAll = useCmsInvalidator(); then call invalidateAll(key)
 // ---------------------------------------------------------------------------

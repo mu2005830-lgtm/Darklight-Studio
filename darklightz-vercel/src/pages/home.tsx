@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { PublicLayout } from "@/components/layout/PublicLayout"
-import { useListServices, useListPortfolioProjects, useListTestimonials } from "@/lib/api-client"
+import { useListServices, useListPortfolioProjects, useListTestimonials, useListReviews, type PublicReview } from "@/lib/api-client"
 import {
   MagneticButton, MagneticLink, SilverDivider, Eyebrow,
   TextSliceReveal, TiltCard, AnimatedNumber, PremiumBackground, BlurReveal,
@@ -269,6 +269,78 @@ function SocialProof({ testimonial }: { testimonial: { quote: string; name: stri
   )
 }
 
+function ClientReviews({ reviews }: { reviews: PublicReview[] | undefined }) {
+  if (!reviews || reviews.length === 0) return null
+
+  return (
+    <section className="py-32 md:py-48 px-6 bg-background relative z-10 border-t border-border">
+      <div className="max-w-7xl mx-auto">
+        <BlurReveal>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+            <div>
+              <Eyebrow>Client Reviews</Eyebrow>
+              <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tighter mt-4">
+                What Clients Say.
+              </h2>
+            </div>
+            <p className="text-muted-foreground text-sm max-w-xs md:text-right leading-relaxed">
+              Real words from real people who've worked with Darklightz Studio.
+            </p>
+          </div>
+        </BlurReveal>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
+          {reviews.map((review, i) => (
+            <BlurReveal key={review.id} delay={i * 0.05}>
+              <div className="bg-background p-8 h-full flex flex-col gap-6">
+                {/* Stars */}
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      className={`w-3.5 h-3.5 ${s <= review.rating ? "text-white fill-white" : "text-muted-foreground/20 fill-muted-foreground/20"}`}
+                    />
+                  ))}
+                </div>
+
+                {/* Review text */}
+                <p className="text-muted-foreground text-sm leading-relaxed flex-1">
+                  "{review.review}"
+                </p>
+
+                {/* Author */}
+                <div className="flex items-center gap-4 pt-4 border-t border-border">
+                  {review.logoUrl ? (
+                    <div className="w-10 h-10 rounded-[2px] overflow-hidden bg-white/5 flex items-center justify-center shrink-0">
+                      <img
+                        src={review.logoUrl}
+                        alt={review.company ?? review.name}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-[2px] bg-white/5 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-muted-foreground uppercase">
+                        {review.name.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground">{review.name}</p>
+                    {review.company && (
+                      <p className="text-[9px] text-muted-foreground uppercase tracking-[0.15em] mt-0.5">{review.company}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </BlurReveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function Engagement() {
   return (
     <section className="py-32 md:py-48 px-6 bg-background relative z-10">
@@ -397,6 +469,7 @@ export default function Home() {
   const { data: services } = useListServices()
   const { data: projects } = useListPortfolioProjects()
   const { data: testimonials } = useListTestimonials()
+  const { data: reviews } = useListReviews()
 
   return (
     <PublicLayout>
@@ -404,6 +477,7 @@ export default function Home() {
       <Capabilities services={services} />
       <SelectedWork projects={projects} />
       <SocialProof testimonial={testimonials?.[0]} />
+      <ClientReviews reviews={reviews} />
       <Engagement />
       <HomeFAQ />
       <FinalCTA />

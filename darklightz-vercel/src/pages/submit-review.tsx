@@ -16,6 +16,7 @@ const formSchema = z.object({
   company: z.string().optional(),
   rating: z.number().min(1).max(5).default(5),
   review: z.string().min(20, "Review must be at least 20 characters."),
+  logoUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal("")),
 })
 
 export default function SubmitReview() {
@@ -26,7 +27,7 @@ export default function SubmitReview() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: "", company: "", rating: 5, review: "" },
+    defaultValues: { name: "", company: "", rating: 5, review: "", logoUrl: "" },
   })
 
   const rating = form.watch("rating")
@@ -35,10 +36,11 @@ export default function SubmitReview() {
     setIsSubmitting(true)
     setError(null)
     try {
+      const payload = { ...values, logoUrl: values.logoUrl || undefined }
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error("Submission failed. Please try again.")
       setIsSuccess(true)
@@ -110,6 +112,22 @@ export default function SubmitReview() {
                       )}
                     />
                   </div>
+
+                  {/* Logo URL */}
+                  <FormField
+                    control={form.control}
+                    name="logoUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-muted-foreground font-display uppercase tracking-widest text-[10px]">Company Logo URL <span className="normal-case tracking-normal">(optional)</span></FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://your-company.com/logo.png" className="bg-black/50 border-border" {...field} />
+                        </FormControl>
+                        <p className="text-[10px] text-muted-foreground/50 mt-0.5">Paste a link to your company logo — it may appear alongside your review.</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   {/* Star rating */}
                   <FormField
