@@ -216,7 +216,7 @@ export default function Services() {
 
           {/* Category Filter */}
           <BlurReveal delay={0.2}>
-            <div className="flex items-center gap-2 mb-16 border-b border-border pb-8">
+            <div className="flex items-center gap-2 flex-wrap mb-16 border-b border-border pb-8">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link } from "wouter"
 import { ArrowRight, ArrowUpRight, Play, Star } from "lucide-react"
 import { motion } from "framer-motion"
@@ -269,12 +269,46 @@ function SocialProof({ testimonial }: { testimonial: { quote: string; name: stri
   )
 }
 
+function ReviewCard({ review }: { review: PublicReview }) {
+  return (
+    <div className="w-[320px] shrink-0 bg-background border border-border p-7 flex flex-col gap-5">
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((s) => (
+          <Star key={s} className={`w-3 h-3 ${s <= review.rating ? "text-white fill-white" : "text-muted-foreground/20 fill-muted-foreground/20"}`} />
+        ))}
+      </div>
+      <p className="text-muted-foreground text-sm leading-relaxed flex-1 line-clamp-4">"{review.review}"</p>
+      <div className="flex items-center gap-3 pt-4 border-t border-border">
+        {review.logoUrl ? (
+          <div className="w-9 h-9 rounded-[2px] overflow-hidden bg-white/5 flex items-center justify-center shrink-0">
+            <img src={review.logoUrl} alt={review.company ?? review.name} className="w-full h-full object-contain" />
+          </div>
+        ) : (
+          <div className="w-9 h-9 rounded-[2px] bg-white/5 flex items-center justify-center shrink-0">
+            <span className="text-xs font-bold text-muted-foreground uppercase">{review.name.charAt(0)}</span>
+          </div>
+        )}
+        <div>
+          <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground">{review.name}</p>
+          {review.company && <p className="text-[9px] text-muted-foreground uppercase tracking-[0.15em] mt-0.5">{review.company}</p>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ClientReviews({ reviews }: { reviews: PublicReview[] | undefined }) {
+  const [showAll, setShowAll] = useState(false)
   if (!reviews || reviews.length === 0) return null
 
+  // Duplicate enough times to fill the strip seamlessly
+  const copies = reviews.length < 4 ? 6 : reviews.length < 7 ? 3 : 2
+  const strip = Array.from({ length: copies }, () => reviews).flat()
+
   return (
-    <section className="py-32 md:py-48 px-6 bg-background relative z-10 border-t border-border">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-32 md:py-48 bg-background relative z-10 border-t border-border">
+      {/* Header */}
+      <div className="max-w-7xl mx-auto px-6">
         <BlurReveal>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
             <div>
@@ -288,55 +322,69 @@ function ClientReviews({ reviews }: { reviews: PublicReview[] | undefined }) {
             </p>
           </div>
         </BlurReveal>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
-          {reviews.map((review, i) => (
-            <BlurReveal key={review.id} delay={i * 0.05}>
-              <div className="bg-background p-8 h-full flex flex-col gap-6">
-                {/* Stars */}
+      {/* Infinite marquee — full viewport width */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          maskImage: "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
+        }}
+      >
+        <div
+          className="flex gap-4 w-max hover:[animation-play-state:paused]"
+          style={{ animation: `marquee-reviews ${reviews.length * 8}s linear infinite` }}
+        >
+          {strip.map((review, i) => (
+            <ReviewCard key={`${review.id}-${i}`} review={review} />
+          ))}
+        </div>
+      </div>
+
+      {/* View More button */}
+      <div className="max-w-7xl mx-auto px-6 mt-12 flex justify-center">
+        <button
+          onClick={() => setShowAll(v => !v)}
+          className="inline-flex items-center gap-3 border border-border text-[10px] font-bold uppercase tracking-[0.25em] px-10 py-4 hover:bg-foreground hover:text-background transition-all duration-300"
+        >
+          {showAll ? "Show Less" : "View All Reviews"}
+          <ArrowRight className={`w-3.5 h-3.5 transition-transform duration-300 ${showAll ? "rotate-90" : ""}`} />
+        </button>
+      </div>
+
+      {/* Expanded grid */}
+      {showAll && (
+        <div className="max-w-7xl mx-auto px-6 mt-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
+            {reviews.map((review) => (
+              <div key={review.id} className="bg-background p-8 flex flex-col gap-6">
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((s) => (
-                    <Star
-                      key={s}
-                      className={`w-3.5 h-3.5 ${s <= review.rating ? "text-white fill-white" : "text-muted-foreground/20 fill-muted-foreground/20"}`}
-                    />
+                    <Star key={s} className={`w-3.5 h-3.5 ${s <= review.rating ? "text-white fill-white" : "text-muted-foreground/20 fill-muted-foreground/20"}`} />
                   ))}
                 </div>
-
-                {/* Review text */}
-                <p className="text-muted-foreground text-sm leading-relaxed flex-1">
-                  "{review.review}"
-                </p>
-
-                {/* Author */}
+                <p className="text-muted-foreground text-sm leading-relaxed flex-1">"{review.review}"</p>
                 <div className="flex items-center gap-4 pt-4 border-t border-border">
                   {review.logoUrl ? (
                     <div className="w-10 h-10 rounded-[2px] overflow-hidden bg-white/5 flex items-center justify-center shrink-0">
-                      <img
-                        src={review.logoUrl}
-                        alt={review.company ?? review.name}
-                        className="w-full h-full object-contain"
-                      />
+                      <img src={review.logoUrl} alt={review.company ?? review.name} className="w-full h-full object-contain" />
                     </div>
                   ) : (
                     <div className="w-10 h-10 rounded-[2px] bg-white/5 flex items-center justify-center shrink-0">
-                      <span className="text-xs font-bold text-muted-foreground uppercase">
-                        {review.name.charAt(0)}
-                      </span>
+                      <span className="text-xs font-bold text-muted-foreground uppercase">{review.name.charAt(0)}</span>
                     </div>
                   )}
                   <div>
                     <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground">{review.name}</p>
-                    {review.company && (
-                      <p className="text-[9px] text-muted-foreground uppercase tracking-[0.15em] mt-0.5">{review.company}</p>
-                    )}
+                    {review.company && <p className="text-[9px] text-muted-foreground uppercase tracking-[0.15em] mt-0.5">{review.company}</p>}
                   </div>
                 </div>
               </div>
-            </BlurReveal>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   )
 }

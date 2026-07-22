@@ -276,6 +276,11 @@ html.light {
   100% { transform: translateX(300%); }
 }
 
+@keyframes marquee-reviews {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 @layer utilities {
   .clip-diagonal {
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - 2rem), calc(100% - 2rem) 100%, 0 100%);
