@@ -9,69 +9,147 @@ import { cn } from "@/lib/utils"
  */
 
 /* ─── PREMIUM BACKGROUND ───────────────────────────────────────────────────
- * Replaces the old FloatingOrbsBackground / SpotlightBackground.
- * CSS-only: radial gradients + animated grain + a single silver sweep.
- * No canvas, no requestAnimationFrame loops, no heavy libraries.
+ * Canvas-based floating particle field — tiny purple/violet/white dots that
+ * drift slowly across the dark background, replacing the static radial glow.
+ * Pauses via IntersectionObserver when off-screen so only visible instances
+ * consume CPU (at most 1-2 run simultaneously on home.tsx).
+ * Grain overlay + silver sweep are preserved.
  * ─────────────────────────────────────────────────────────────────────────── */
-export const PremiumBackground = ({ className }: { className?: string }) => (
-  <div
-    aria-hidden="true"
-    className={cn("absolute inset-0 overflow-hidden pointer-events-none z-0", className)}
-  >
-    {/* Soft radial glow — top right
-        mix-blend-mode: screen adds colour to the section background,
-        making the glow visible even through solid bg-background/bg-card. */}
+export const PremiumBackground = ({ className }: { className?: string }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    let animId = 0
+    let running = false
+    let w = 0
+    let h = 0
+
+    interface Particle {
+      x: number; y: number; vx: number; vy: number
+      r: number; opacity: number; hue: number; glow: boolean
+    }
+
+    let particles: Particle[] = []
+
+    function spawn() {
+      const count = Math.min(90, Math.floor((w * h) / 10000))
+      particles = Array.from({ length: count }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        r: Math.random() * 1.6 + 0.4,
+        opacity: Math.random() * 0.55 + 0.12,
+        hue: 250 + Math.random() * 45, // blue-violet-purple range
+        glow: Math.random() < 0.2,     // 20% get a soft glow halo
+      }))
+    }
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      const rect = canvas.getBoundingClientRect()
+      w = rect.width || canvas.offsetWidth
+      h = rect.height || canvas.offsetHeight
+      canvas.width = w * dpr
+      canvas.height = h * dpr
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      spawn()
+    }
+
+    function tick() {
+      if (!running) return
+      ctx.clearRect(0, 0, w, h)
+
+      for (const p of particles) {
+        p.x += p.vx
+        p.y += p.vy
+        if (p.x < -2) p.x = w + 2
+        else if (p.x > w + 2) p.x = -2
+        if (p.y < -2) p.y = h + 2
+        else if (p.y > h + 2) p.y = -2
+
+        if (p.glow) {
+          ctx.shadowBlur = 8
+          ctx.shadowColor = `hsla(${p.hue},80%,70%,0.7)`
+        }
+
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+        ctx.fillStyle = `hsla(${p.hue},65%,78%,${p.opacity})`
+        ctx.fill()
+
+        if (p.glow) ctx.shadowBlur = 0
+      }
+
+      animId = requestAnimationFrame(tick)
+    }
+
+    function start() {
+      if (running) return
+      running = true
+      tick()
+    }
+
+    function stop() {
+      running = false
+      cancelAnimationFrame(animId)
+    }
+
+    const obs = new IntersectionObserver(
+      ([entry]) => { entry.isIntersecting ? start() : stop() },
+      { threshold: 0 }
+    )
+    obs.observe(canvas)
+
+    const ro = new ResizeObserver(resize)
+    ro.observe(canvas)
+
+    resize()
+
+    return () => {
+      stop()
+      obs.disconnect()
+      ro.disconnect()
+    }
+  }, [])
+
+  return (
     <div
-      className="absolute top-[-15%] right-[-10%] w-[65vw] h-[65vw] rounded-full"
-      style={{
-        background: "radial-gradient(circle at center, var(--bg-glow-primary) 0%, transparent 65%)",
-        animation: "ambient-pulse 16s ease-in-out infinite",
-        mixBlendMode: "screen",
-      }}
-    />
-    {/* Soft radial glow — bottom left */}
-    <div
-      className="absolute bottom-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full"
-      style={{
-        background: "radial-gradient(circle at center, var(--bg-glow-secondary) 0%, transparent 65%)",
-        animation: "ambient-pulse 20s ease-in-out infinite 4s",
-        mixBlendMode: "screen",
-      }}
-    />
-    {/* Center ambient light */}
-    <div
-      className="absolute top-[30%] left-1/2 -translate-x-1/2 w-[40vw] h-[40vw] rounded-full"
-      style={{
-        background: "radial-gradient(circle at center, var(--bg-glow-secondary) 0%, transparent 60%)",
-        animation: "ambient-pulse 24s ease-in-out infinite 8s",
-        mixBlendMode: "screen",
-      }}
-    />
-    {/* Silver light sweep — once every ~18s */}
-    <div
-      className="absolute inset-0 overflow-hidden"
-      style={{ opacity: "var(--sweep-opacity)", mixBlendMode: "screen" }}
+      aria-hidden="true"
+      className={cn("absolute inset-0 overflow-hidden pointer-events-none z-0", className)}
     >
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+      {/* Silver light sweep — once every ~18s */}
       <div
-        className="absolute top-[25%] left-0 w-full h-[1px]"
+        className="absolute inset-0 overflow-hidden"
+        style={{ opacity: "var(--sweep-opacity)", mixBlendMode: "screen" }}
+      >
+        <div
+          className="absolute top-[25%] left-0 w-full h-[1px]"
+          style={{
+            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.9) 45%, rgba(255,255,255,0.9) 55%, transparent 100%)",
+            animation: "silver-sweep 18s ease-in-out infinite 3s",
+          }}
+        />
+      </div>
+      {/* Animated grain overlay */}
+      <div
+        className="absolute inset-[-20%] w-[140%] h-[140%] mix-blend-overlay"
         style={{
-          background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.9) 45%, rgba(255,255,255,0.9) 55%, transparent 100%)",
-          animation: "silver-sweep 18s ease-in-out infinite 3s",
+          opacity: "var(--grain-opacity)",
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          backgroundSize: "180px 180px",
+          animation: "grain-drift 8s steps(1) infinite",
         }}
       />
     </div>
-    {/* Animated grain overlay */}
-    <div
-      className="absolute inset-[-20%] w-[140%] h-[140%] mix-blend-overlay"
-      style={{
-        opacity: "var(--grain-opacity)",
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        backgroundSize: "180px 180px",
-        animation: "grain-drift 8s steps(1) infinite",
-      }}
-    />
-  </div>
-)
+  )
+}
 
 /* ─── NOISE OVERLAY (fixed, full-page) ─────────────────────────────────── */
 export const NoiseOverlay = () => (
