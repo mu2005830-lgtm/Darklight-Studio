@@ -302,7 +302,7 @@ export default function Services() {
                   Contact Us
                 </Link>
                 <a
-                  href="https://wa.me/+923351468615?text=Hi, I'd like to discuss my project"
+                  href="https://wa.me/+923350501287?text=Hi, I'd like to discuss my project"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 h-12 px-6 bg-[#25D366]/10 border border-[#25D366]/30 text-[#25D366] text-[10px] font-bold uppercase tracking-[0.2em] rounded-[2px] hover:bg-[#25D366]/20 transition-colors"

@@ -1322,7 +1322,7 @@ function FaviconUpload({ value, onChange }: { value: string; onChange: (url: str
 
 const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   siteName: "Darklightz Studio", tagline: "", logoText: "DARKLIGHTZ", logoUrl: "",
-  contactEmail: "", contactPhone: "", contactAddress: "", whatsappNumber: "+923351468615",
+  contactEmail: "", contactPhone: "", contactAddress: "", whatsappNumber: "+923350501287",
   seoTitle: "Darklightz Studio", seoDescription: "", ogImageUrl: "", faviconUrl: "",
   heroTitle: "", heroSubtitle: "", heroCtaText: "", heroCtaUrl: "",
   primaryColor: "#ffffff", accentColor: "#ffffff", fontHeading: "Syne", fontBody: "Plus Jakarta Sans",
@@ -1343,7 +1343,7 @@ function SiteSettingsSection() {
         logoText: settings.logoText, logoUrl: settings.logoUrl,
         contactEmail: settings.contactEmail, contactPhone: settings.contactPhone,
         contactAddress: settings.contactAddress,
-        whatsappNumber: (settings as any).whatsappNumber ?? "+923351468615",
+        whatsappNumber: (settings as any).whatsappNumber ?? "+923350501287",
         studioStoryImageUrl: settings.studioStoryImageUrl ?? "",
         seoTitle: settings.seoTitle, seoDescription: settings.seoDescription, ogImageUrl: settings.ogImageUrl, faviconUrl: settings.faviconUrl,
         heroTitle: settings.heroTitle, heroSubtitle: settings.heroSubtitle, heroCtaText: settings.heroCtaText, heroCtaUrl: settings.heroCtaUrl,
@@ -1398,7 +1398,7 @@ function SiteSettingsSection() {
             <FormField label="Phone"><Input className={inputCls} value={form.contactPhone ?? ""} onChange={f("contactPhone")} /></FormField>
           </div>
           <FormField label="WhatsApp Number">
-            <Input className={inputCls} value={form.whatsappNumber ?? ""} onChange={f("whatsappNumber")} placeholder="+923351468615" />
+            <Input className={inputCls} value={form.whatsappNumber ?? ""} onChange={f("whatsappNumber")} placeholder="+923350501287" />
           </FormField>
           <FormField label="Address"><Input className={inputCls} value={form.contactAddress ?? ""} onChange={f("contactAddress")} /></FormField>
         </div>

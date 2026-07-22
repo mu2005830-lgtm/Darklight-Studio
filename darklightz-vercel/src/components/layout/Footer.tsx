@@ -6,7 +6,7 @@ export function Footer() {
   const { data: settings } = useGetSiteSettings()
   const contactEmail = settings?.contactEmail || "darklightzstudiu@gmail.com"
   const whatsappNumber = settings?.whatsappNumber || "+923350501287"
-  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`
+  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20your%20services.`
 
   return (
     <footer className="bg-background pt-24 md:pt-32 pb-12 px-6 border-t border-border relative z-10">

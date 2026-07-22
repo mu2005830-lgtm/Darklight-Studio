@@ -30,7 +30,7 @@ export default function Contact() {
   const { data: settings } = useGetSiteSettings()
   const contactEmail = settings?.contactEmail || "darklightzstudiu@gmail.com"
   const whatsappNumber = settings?.whatsappNumber || "+923350501287"
-  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`
+  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=Hi%2C%20I%27d%20like%20to%20get%20in%20touch%20with%20Darklightz%20Studio.`
   const contactAddress = settings?.contactAddress || "Walton, Lahore, Punjab, Pakistan"
 
   const form = useForm<z.infer<typeof formSchema>>({

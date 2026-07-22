@@ -223,7 +223,7 @@ export default function Pricing() {
                       {/* CTA */}
                       <div className="relative z-10 mt-auto space-y-3">
                         <a
-                          href={`https://wa.me/+923351468615?text=Hi, I'm interested in the ${plan.name} — ${plan.price}`}
+                          href={`https://wa.me/+923350501287?text=Hi, I'm interested in the ${plan.name} — ${plan.price}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className={`w-full h-12 inline-flex items-center justify-center gap-2 rounded-[2px] text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 ${
@@ -312,7 +312,7 @@ export default function Pricing() {
                       ].map((p, i) => (
                         <td key={i} className={`p-4 text-center ${p.featured ? "bg-white/[0.02]" : ""}`}>
                           <a
-                            href={`https://wa.me/+923351468615?text=Hi, I'm interested in the ${p.name} — ${p.price}`}
+                            href={`https://wa.me/+923350501287?text=Hi, I'm interested in the ${p.name} — ${p.price}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-[2px] text-[9px] font-bold uppercase tracking-[0.18em] transition-all ${
@@ -428,7 +428,7 @@ export default function Pricing() {
                   </p>
                   <div className="flex flex-col gap-3">
                     <a
-                      href="https://wa.me/+923351468615?text=Hi, I have a question about pricing"
+                      href="https://wa.me/+923350501287?text=Hi, I have a question about pricing"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 h-11 px-6 bg-[#25D366]/10 border border-[#25D366]/30 text-[#25D366] text-[10px] font-bold uppercase tracking-[0.2em] rounded-[2px] hover:bg-[#25D366]/20 transition-colors"
@@ -484,7 +484,7 @@ export default function Pricing() {
             <BlurReveal delay={0.15}>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a
-                  href="https://wa.me/+923351468615?text=Hi, I'd like to discuss pricing and choose a bundle"
+                  href="https://wa.me/+923350501287?text=Hi, I'd like to discuss pricing and choose a bundle"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 h-14 px-10 bg-[#25D366] text-black text-[10px] font-bold uppercase tracking-[0.25em] rounded-[2px] hover:bg-[#22c55e] transition-colors group/btn"
