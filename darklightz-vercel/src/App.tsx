@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Route, Switch, Router as WouterRouter } from 'wouter';
-import { useState } from 'react';
+import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
+import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { CinematicLoader } from '@/components/CinematicLoader';
 import { ScrollProgress } from '@/components/ScrollProgress';
@@ -48,6 +48,15 @@ import PortalMessages from '@/pages/portal/messages';
 import PortalRevisions from '@/pages/portal/revisions';
 import PortalSupport from '@/pages/portal/support';
 import PortalInvoices from '@/pages/portal/invoices';
+
+// ── Scroll-to-top on every route change ───────────────────────────────────
+function ScrollToTop() {
+  const [location] = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location]);
+  return null;
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -181,6 +190,7 @@ function App() {
             </AnimatePresence>
             <ScrollProgress />
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+              <ScrollToTop />
               <Router />
             </WouterRouter>
             <Toaster />
