@@ -272,10 +272,10 @@ export function Navbar() {
             }}
           >
             {/* Spacer for the header bar */}
-            <div className="h-24" />
+            <div className="h-24 shrink-0" />
 
             {/* Nav links — all of them on mobile */}
-            <nav className="flex-1 flex flex-col justify-center px-8 gap-1">
+            <nav className="flex-1 overflow-y-auto flex flex-col px-8 gap-1 py-4">
               {allNavLinks.map((link, i) => (
                 <motion.div
                   key={link.href}

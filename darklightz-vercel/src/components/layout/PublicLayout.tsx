@@ -53,10 +53,11 @@ function WhatsAppButton() {
             {/* Dismiss button */}
             <button
               onClick={() => setDismissed(true)}
-              className="w-6 h-6 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white/80 transition-colors"
+              className="w-10 h-10 rounded-full bg-black/70 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors"
               aria-label="Dismiss WhatsApp button"
+              style={{ touchAction: "manipulation" }}
             >
-              <X className="w-3 h-3" />
+              <X className="w-4 h-4" />
             </button>
 
             {/* WhatsApp button */}
