@@ -22,7 +22,6 @@ import {
 import {
   Eyebrow,
   BlurReveal,
-  SpotlightBackground,
   TiltCard,
   AnimatedBorderSweep,
   SilverDivider,
@@ -131,7 +130,7 @@ export default function ServiceDetail() {
   return (
     <PublicLayout>
       <div className="relative min-h-[100dvh]">
-        <SpotlightBackground />
+
 
         {/* ── HERO ─────────────────────────────────────────────────────── */}
         <section className="relative pt-32 pb-20 px-6">

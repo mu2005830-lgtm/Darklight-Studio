@@ -69,7 +69,7 @@ export function FerrofluidBackground() {
         />
       </div>
 
-      {/* Dark readability overlay — fixed, above ferrofluid, below page content */}
+      {/* Very subtle dark overlay — just enough to maintain text contrast */}
       <div
         aria-hidden="true"
         style={{
@@ -77,7 +77,7 @@ export function FerrofluidBackground() {
           inset: 0,
           zIndex: -1,
           pointerEvents: 'none',
-          background: 'rgba(0, 0, 0, 0.72)',
+          background: 'rgba(0, 0, 0, 0.25)',
         }}
       />
     </>

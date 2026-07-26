@@ -5,7 +5,7 @@ import { Link } from "wouter"
 import { Check, X, ArrowRight, MessageCircle, Star, Zap, Shield, Clock, DollarSign, HeartHandshake, Award } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import {
-  Eyebrow, TiltCard, AnimatedBorderSweep, SpotlightBackground, BlurReveal, SilverDivider,
+  Eyebrow, TiltCard, AnimatedBorderSweep, BlurReveal, SilverDivider,
 } from "@/components/effects"
 import type { PricingPlan } from "@/lib/api-client/generated/api.schemas"
 
@@ -143,7 +143,7 @@ export default function Pricing() {
   return (
     <PublicLayout>
       <div className="relative min-h-[100dvh]">
-        <SpotlightBackground />
+
 
         {/* ── HERO ──────────────────────────────────────────────────────────── */}
         <section className="pt-40 pb-24 px-6 relative z-10">

@@ -195,7 +195,7 @@ export default function Services() {
   return (
     <PublicLayout>
       <div className="pt-40 pb-24 md:pb-32 relative min-h-[100dvh]">
-        <SpotlightBackground />
+
 
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           {/* Header */}

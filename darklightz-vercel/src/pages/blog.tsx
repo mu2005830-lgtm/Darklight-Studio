@@ -3,7 +3,7 @@ import { useListBlogPosts } from "@/lib/api-client"
 import { Link } from "wouter"
 import { format } from "date-fns"
 import { ArrowRight } from "lucide-react"
-import { Eyebrow, TiltCard, MetallicTextureBackground, BlurReveal } from "@/components/effects"
+import { Eyebrow, TiltCard, BlurReveal } from "@/components/effects"
 
 export default function Blog() {
   const { data: posts, isLoading } = useListBlogPosts()
@@ -11,7 +11,7 @@ export default function Blog() {
   return (
     <PublicLayout>
       <div className="pt-40 pb-24 md:pb-32 relative min-h-[100dvh]">
-        <MetallicTextureBackground />
+
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-3xl mb-24">
             <Eyebrow>Journal</Eyebrow>

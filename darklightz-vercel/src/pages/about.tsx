@@ -1,6 +1,6 @@
 import { PublicLayout } from "@/components/layout/PublicLayout"
 import { motion, useScroll, useTransform } from "framer-motion"
-import { SilverDivider, FloatingOrbsBackground, BlurReveal } from "@/components/effects"
+import { SilverDivider, BlurReveal } from "@/components/effects"
 import { useRef } from "react"
 import { useGetSiteSettings } from "@/lib/api-client"
 
@@ -51,7 +51,7 @@ export default function About() {
   return (
     <PublicLayout>
       <div className="pt-40 pb-24 md:pb-32 relative min-h-[100dvh]">
-        <FloatingOrbsBackground />
+
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-4xl mb-32">
             <motion.h1

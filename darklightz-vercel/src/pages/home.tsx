@@ -8,7 +8,7 @@ import { PublicLayout } from "@/components/layout/PublicLayout"
 import { useListServices, useListPortfolioProjects, useListTestimonials, useListReviews, type PublicReview } from "@/lib/api-client"
 import {
   MagneticButton, MagneticLink, SilverDivider, Eyebrow,
-  TextSliceReveal, TiltCard, AnimatedNumber, PremiumBackground, BlurReveal,
+  TextSliceReveal, TiltCard, AnimatedNumber, BlurReveal,
 } from "@/components/effects"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
@@ -37,7 +37,7 @@ function Hero() {
       className="relative min-h-[100dvh] flex flex-col justify-center items-center text-center overflow-hidden pt-28 pb-24 px-6 bg-background"
     >
       {/* Lightweight premium background — CSS-only, no Three.js */}
-      <PremiumBackground />
+
 
       <div className="z-10 w-full max-w-6xl mx-auto flex flex-col items-center my-auto">
         <div className="mb-8 overflow-hidden">
@@ -238,7 +238,7 @@ function SocialProof({ testimonial }: { testimonial: { quote: string; name: stri
 
   return (
     <section className="py-32 md:py-48 px-6 bg-card relative overflow-hidden flex items-center justify-center border-y border-border">
-      <PremiumBackground />
+
 
       <div className="max-w-5xl mx-auto relative z-10 text-center">
         <BlurReveal>
@@ -488,7 +488,7 @@ function HomeFAQ() {
 function FinalCTA() {
   return (
     <section className="py-32 md:py-48 px-6 bg-card relative overflow-hidden border-t border-border">
-      <PremiumBackground />
+
 
       <div className="max-w-5xl mx-auto relative z-10 text-center">
         <BlurReveal>

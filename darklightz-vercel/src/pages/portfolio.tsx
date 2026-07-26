@@ -4,7 +4,7 @@ import { useListPortfolioProjects } from "@/lib/api-client"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowUpRight, X } from "lucide-react"
-import { Eyebrow, TiltCard, MetallicTextureBackground, BlurReveal } from "@/components/effects"
+import { Eyebrow, TiltCard, BlurReveal } from "@/components/effects"
 
 export default function Portfolio() {
   const [activeCategory, setActiveCategory] = useState<string | undefined>()
@@ -21,7 +21,7 @@ export default function Portfolio() {
   return (
     <PublicLayout>
       <div className="pt-40 pb-24 md:pb-32 relative min-h-[100dvh]">
-        <MetallicTextureBackground />
+
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-3xl mb-20">
             <Eyebrow>Portfolio</Eyebrow>
