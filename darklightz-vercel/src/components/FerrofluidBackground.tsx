@@ -36,11 +36,11 @@ export function FerrofluidBackground() {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 0,              // Must be 0+, NOT negative (negative hides behind html background)
+        zIndex: 0,
         pointerEvents: 'none',
         width: '100vw',
         height: '100vh',
-        background: '#000',     // Black backdrop lives here, not on html/body
+        // No background needed — the canvas paints its own solid black (alpha: false)
       }}
     >
       <Ferrofluid

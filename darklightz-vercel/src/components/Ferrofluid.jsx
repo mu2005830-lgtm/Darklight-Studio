@@ -223,13 +223,13 @@ const Ferrofluid = ({
 
     const renderer = new Renderer({
       dpr: dpr ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1),
-      alpha: true,
+      alpha: false,       // opaque canvas — black background painted by WebGL itself
       antialias: true
     });
     rendererRef.current = renderer;
     const gl = renderer.gl;
     const canvas = gl.canvas;
-    gl.clearColor(0, 0, 0, 0);
+    gl.clearColor(0, 0, 0, 1);  // solid black
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.style.display = 'block';
