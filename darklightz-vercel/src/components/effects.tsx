@@ -164,25 +164,25 @@ export const NoiseOverlay = () => (
 )
 
 /* ─── CURSOR GLOW ──────────────────────────────────────────────────────── */
+// Uses a ref + direct DOM style mutation instead of useState so mouse moves
+// never trigger React re-renders (which would compete with the WebGL RAF loop).
 export const CursorGlow = () => {
-  const [mousePosition, setMousePosition] = useState({ x: -1000, y: -1000 })
+  const divRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const updateMousePosition = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY })
+    const update = (e: MouseEvent) => {
+      if (!divRef.current) return
+      divRef.current.style.background = `radial-gradient(320px circle at ${e.clientX}px ${e.clientY}px, rgba(255,255,255,0.025), transparent 40%)`
     }
-    window.addEventListener("mousemove", updateMousePosition)
-    return () => window.removeEventListener("mousemove", updateMousePosition)
+    window.addEventListener("mousemove", update, { passive: true })
+    return () => window.removeEventListener("mousemove", update)
   }, [])
 
   return (
-    <motion.div
+    <div
+      ref={divRef}
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 z-30 hidden md:block mix-blend-screen"
-      animate={{
-        background: `radial-gradient(320px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.025), transparent 40%)`,
-      }}
-      transition={{ duration: 0 }}
     />
   )
 }

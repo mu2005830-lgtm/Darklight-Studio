@@ -58,7 +58,7 @@ export function FerrofluidBackground() {
         mouseInteraction
         mouseStrength={1}
         mouseRadius={0.35}
-        dpr={typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 2) : 1}
+        dpr={1}
       />
     </div>
   );

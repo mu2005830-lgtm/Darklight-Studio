@@ -222,9 +222,10 @@ const Ferrofluid = ({
     if (!container) return;
 
     const renderer = new Renderer({
-      dpr: dpr ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1),
+      dpr: dpr ?? 1,
       alpha: true,        // transparent canvas — overlays on html/body background
-      antialias: true
+      antialias: false,   // no geometry edges in a full-screen shader — zero visual benefit, saves GPU overhead
+      powerPreference: 'high-performance',
     });
     rendererRef.current = renderer;
     const gl = renderer.gl;
