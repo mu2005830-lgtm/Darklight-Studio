@@ -5,14 +5,11 @@ import Ferrofluid from './Ferrofluid';
  * FerrofluidBackground
  *
  * Renders the ferrofluid shader as a fixed full-viewport background that:
- * - sits behind all page content (z-index: -2)
+ * - sits behind all page content (z-index: -1)
  * - stays fixed while scrolling
  * - never blocks clicks or links (pointer-events: none on the wrapper)
  * - forwards document-level mouse movement to the canvas so mouse
  *   interaction still works even though the canvas is below page content
- *
- * A separate semi-transparent dark overlay (z-index: -1) sits above the
- * ferrofluid but below all page content for readability.
  */
 export function FerrofluidBackground() {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -36,50 +33,34 @@ export function FerrofluidBackground() {
   }, []);
 
   return (
-    <>
-      {/* Ferrofluid canvas layer — fixed, behind everything */}
-      <div
-        ref={wrapperRef}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: -2,
-          pointerEvents: 'none',
-          width: '100vw',
-          height: '100vh',
-        }}
-      >
-        <Ferrofluid
-          colors={['#FFFFFF', '#D9D9D9', '#A3A3A3']}
-          speed={0.3}
-          scale={1.8}
-          turbulence={0.8}
-          fluidity={0.08}
-          rimWidth={0.18}
-          sharpness={3}
-          shimmer={1.2}
-          glow={1.3}
-          opacity={0.85}
-          mouseInteraction
-          mouseStrength={0.8}
-          mouseRadius={0.3}
-          mouseDampening={0.2}
-          flowDirection="down"
-          dpr={typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 2) : 1}
-        />
-      </div>
-
-      {/* Very subtle dark overlay — just enough to maintain text contrast */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: -1,
-          pointerEvents: 'none',
-          background: 'rgba(0, 0, 0, 0.25)',
-        }}
+    <div
+      ref={wrapperRef}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        pointerEvents: 'none',
+        width: '100vw',
+        height: '100vh',
+      }}
+    >
+      <Ferrofluid
+        colors={['#ffffff', '#ffffff', '#ffffff']}
+        speed={0.5}
+        scale={1.6}
+        turbulence={1}
+        fluidity={0.1}
+        rimWidth={0.2}
+        sharpness={2.5}
+        shimmer={1.5}
+        glow={2}
+        flowDirection="down"
+        opacity={1}
+        mouseInteraction
+        mouseStrength={1}
+        mouseRadius={0.35}
+        dpr={typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 2) : 1}
       />
-    </>
+    </div>
   );
 }
