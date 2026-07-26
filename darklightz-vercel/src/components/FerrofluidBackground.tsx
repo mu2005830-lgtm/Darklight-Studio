@@ -4,18 +4,16 @@ import Ferrofluid from './Ferrofluid';
 /**
  * FerrofluidBackground
  *
- * Renders the ferrofluid shader as a fixed full-viewport background that:
- * - sits behind all page content (z-index: -1)
- * - stays fixed while scrolling
- * - never blocks clicks or links (pointer-events: none on the wrapper)
- * - forwards document-level mouse movement to the canvas so mouse
- *   interaction still works even though the canvas is below page content
+ * Fixed full-viewport background layer. Sits at z-index 0 with its own
+ * black backdrop so the white ferrofluid shapes are visible. Page content
+ * must be wrapped at z-index 1 or higher (see App.tsx).
+ *
+ * IMPORTANT: z-index must be 0 or positive — negative z-index places the
+ * element *behind* the html element's own background, making it invisible.
  */
 export function FerrofluidBackground() {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Forward document mousemove → canvas pointermove so the shader receives
-  // mouse coordinates even though the canvas is behind page content.
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const canvas = wrapperRef.current?.querySelector('canvas');
@@ -38,10 +36,11 @@ export function FerrofluidBackground() {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: -1,
+        zIndex: 0,              // Must be 0+, NOT negative (negative hides behind html background)
         pointerEvents: 'none',
         width: '100vw',
         height: '100vh',
+        background: '#000',     // Black backdrop lives here, not on html/body
       }}
     >
       <Ferrofluid

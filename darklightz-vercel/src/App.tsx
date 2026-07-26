@@ -184,19 +184,23 @@ function App() {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <PortalAuthProvider>
+          {/* Background layer — z-index 0, black + ferrofluid canvas */}
           <FerrofluidBackground />
-          <AppInner />
-          <TooltipProvider>
-            <AnimatePresence>
-              {showLoader && <CinematicLoader onComplete={() => setShowLoader(false)} />}
-            </AnimatePresence>
-            <ScrollProgress />
-            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-              <ScrollToTop />
-              <Router />
-            </WouterRouter>
-            <Toaster />
-          </TooltipProvider>
+          {/* All page content — z-index 1, sits above the background */}
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <AppInner />
+            <TooltipProvider>
+              <AnimatePresence>
+                {showLoader && <CinematicLoader onComplete={() => setShowLoader(false)} />}
+              </AnimatePresence>
+              <ScrollProgress />
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+                <ScrollToTop />
+                <Router />
+              </WouterRouter>
+              <Toaster />
+            </TooltipProvider>
+          </div>
         </PortalAuthProvider>
       </QueryClientProvider>
     </ThemeProvider>
