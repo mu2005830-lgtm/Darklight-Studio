@@ -169,7 +169,7 @@ html.light {
     @apply border-border;
   }
   html {
-    background: transparent;
+    background: #000;
   }
   body {
     @apply font-sans antialiased text-foreground;

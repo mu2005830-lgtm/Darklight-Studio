@@ -6,7 +6,7 @@ import { MagneticLink } from "@/components/effects"
 export default function NotFound() {
   return (
     <PublicLayout>
-      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-[70vh] text-center px-6">
+      <div className="flex-1 flex flex-col items-center justify-center bg-transparent min-h-[70vh] text-center px-6">
         <h1 className="text-9xl font-display font-bold tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-b from-white to-neutral-700">404</h1>
         <p className="text-2xl text-neutral-400 mb-8 font-display">Path not found.</p>
         <p className="text-neutral-500 mb-12 max-w-md">

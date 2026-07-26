@@ -53,7 +53,7 @@ export default function SubmitReview() {
 
   return (
     <PublicLayout>
-      <div className="pt-40 pb-24 bg-background min-h-[100dvh]">
+      <div className="pt-40 pb-24 bg-transparent min-h-[100dvh]">
         <div className="max-w-2xl mx-auto px-6">
           <div className="text-center mb-16">
             <Eyebrow>Share Your Experience</Eyebrow>

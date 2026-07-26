@@ -65,7 +65,7 @@ export default function BookACall() {
 
   return (
     <PublicLayout>
-      <div className="pt-40 pb-24 md:pb-32 bg-background min-h-[100dvh]">
+      <div className="pt-40 pb-24 md:pb-32 bg-transparent min-h-[100dvh]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-16">

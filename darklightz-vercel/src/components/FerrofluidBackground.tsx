@@ -40,7 +40,7 @@ export function FerrofluidBackground() {
         pointerEvents: 'none',
         width: '100vw',
         height: '100vh',
-        // No background needed — the canvas paints its own solid black (alpha: false)
+        // Canvas is transparent (alpha: true) — html background (#000) shows through
       }}
     >
       <Ferrofluid

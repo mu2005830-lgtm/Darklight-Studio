@@ -18,7 +18,7 @@ export default function BlogPostDetail() {
   if (isLoading) {
     return (
       <PublicLayout>
-        <div className="min-h-[100dvh] flex items-center justify-center bg-background">
+        <div className="min-h-[100dvh] flex items-center justify-center bg-transparent">
           <div className="text-neutral-500">Loading journal...</div>
         </div>
       </PublicLayout>
@@ -28,7 +28,7 @@ export default function BlogPostDetail() {
   if (isError || !post) {
     return (
       <PublicLayout>
-        <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background">
+        <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-transparent">
           <div className="text-xl mb-4">Post not found</div>
           <Link href="/blog" className="text-foreground underline">Back to journal</Link>
         </div>
@@ -38,7 +38,7 @@ export default function BlogPostDetail() {
 
   return (
     <PublicLayout>
-      <article className="pt-40 pb-32 bg-background min-h-[100dvh]">
+      <article className="pt-40 pb-32 bg-transparent min-h-[100dvh]">
         <div className="max-w-4xl mx-auto px-6">
           <Link href="/blog" className="inline-flex items-center gap-2 text-[10px] text-neutral-500 hover:text-foreground transition-colors mb-12 font-display uppercase tracking-[0.2em] font-bold">
             <ArrowLeft className="w-4 h-4" /> Back to Journal

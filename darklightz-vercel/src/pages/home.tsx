@@ -34,7 +34,7 @@ function Hero() {
   return (
     <section
       ref={containerRef}
-      className="relative min-h-[100dvh] flex flex-col justify-center items-center text-center overflow-hidden pt-28 pb-24 px-6 bg-background"
+      className="relative min-h-[100dvh] flex flex-col justify-center items-center text-center overflow-hidden pt-28 pb-24 px-6 bg-transparent"
     >
       {/* Lightweight premium background — CSS-only, no Three.js */}
 
@@ -102,7 +102,7 @@ function Capabilities({ services }: { services: { id: number; title: string; sum
   const containerRef = useRef<HTMLElement>(null)
 
   return (
-    <section className="py-32 md:py-48 px-6 bg-background relative z-10" ref={containerRef}>
+    <section className="py-32 md:py-48 px-6 bg-transparent relative z-10" ref={containerRef}>
       <SilverDivider />
 
       <div className="max-w-7xl mx-auto pt-32">
@@ -175,7 +175,7 @@ function SelectedWork({ projects }: { projects: { id: number; title: string; cat
   }, [projects])
 
   return (
-    <section ref={containerRef} className="py-32 md:py-48 px-6 bg-background relative z-10">
+    <section ref={containerRef} className="py-32 md:py-48 px-6 bg-transparent relative z-10">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-8">
           <div>
@@ -306,7 +306,7 @@ function ClientReviews({ reviews }: { reviews: PublicReview[] | undefined }) {
   const strip = Array.from({ length: copies }, () => reviews).flat()
 
   return (
-    <section className="py-32 md:py-48 bg-background relative z-10 border-t border-border">
+    <section className="py-32 md:py-48 bg-transparent relative z-10 border-t border-border">
       {/* Header */}
       <div className="max-w-7xl mx-auto px-6">
         <BlurReveal>
@@ -391,7 +391,7 @@ function ClientReviews({ reviews }: { reviews: PublicReview[] | undefined }) {
 
 function Engagement() {
   return (
-    <section className="py-32 md:py-48 px-6 bg-background relative z-10">
+    <section className="py-32 md:py-48 px-6 bg-transparent relative z-10">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-24 md:mb-32">
           <BlurReveal>
@@ -453,7 +453,7 @@ function Engagement() {
 
 function HomeFAQ() {
   return (
-    <section className="py-32 md:py-48 px-6 bg-background relative z-10 border-t border-border">
+    <section className="py-32 md:py-48 px-6 bg-transparent relative z-10 border-t border-border">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-20">
           <BlurReveal>
