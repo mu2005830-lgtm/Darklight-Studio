@@ -9,6 +9,7 @@ import { ScrollProgress } from '@/components/ScrollProgress';
 import { ThemeProvider } from '@/lib/theme';
 import { useFavicon } from '@/hooks/use-favicon';
 import { PortalAuthProvider, usePortalAuth } from '@/lib/portal-auth';
+import { FerrofluidBackground } from '@/components/FerrofluidBackground';
 
 // ── Eager imports — no Suspense, no lazy() ────────────────────────────────
 // React.lazy() + AnimatePresence mode="wait" are incompatible: while the old
@@ -183,6 +184,7 @@ function App() {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <PortalAuthProvider>
+          <FerrofluidBackground />
           <AppInner />
           <TooltipProvider>
             <AnimatePresence>

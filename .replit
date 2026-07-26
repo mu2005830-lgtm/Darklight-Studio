@@ -11,6 +11,23 @@ env = { "CI" = "true" }
 [workflows]
 runButton = "Project"
 
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Dev Server"
+
+[[workflows.workflow]]
+name = "Dev Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd darklightz-vercel && pnpm run dev"
+
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true

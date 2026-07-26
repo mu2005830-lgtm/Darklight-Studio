@@ -12,7 +12,7 @@ export function AdminLayout({ children, onLogout }: AdminLayoutProps) {
   const [location] = useLocation()
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#050505] selection:bg-white selection:text-black">
+    <div className="min-h-screen flex flex-col bg-transparent selection:bg-white selection:text-black">
       <header className="border-b border-white/10 bg-black sticky top-0 z-40">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">

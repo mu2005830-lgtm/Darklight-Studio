@@ -1,4 +1,5 @@
 - [Darklightz deployment rules](darklightz-deployment-rules.md) — never deploy to Replit; GitHub→Vercel only; always run vercel from monorepo root with --archive=tgz.
+- [ogl / tar install gotcha](ogl-tar-install-gotcha.md) — darklightz-vercel pnpm install blocked by tar-6.2.1 firewall; remove @vercel/node temporarily to install, then restore.
 - [EmailJS dynamic recipient fix](emailjs-dynamic-recipient.md) — REST API ignores {{email}} in To Email; must use reserved `to_email` key + matching template dashboard change.
 - [Vercel Express catch-all API + Vite SPA rewrites](vercel-express-catchall-spa-rewrites.md) — SPA fallback rewrite can swallow /api routes; zero-config catch-all route can be single-segment only.
 - [PageTransition + CinematicLoader pattern](page-transition-pattern.md) — must wrap CinematicLoader in AnimatePresence; use mode=wait + initial=false for PageTransition.

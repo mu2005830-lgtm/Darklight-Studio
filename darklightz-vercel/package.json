@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push --config ./drizzle.config.ts"
   },
   "dependencies": {
+    "ogl": "^1.0.11",
     "@emailjs/browser": "^4.4.1",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.4",
@@ -86,11 +87,19 @@
     "@types/pg": "^8.11.10",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "@vercel/node": "^3.2.10",
     "@vitejs/plugin-react": "^5.0.4",
     "drizzle-kit": "^0.30.6",
     "tailwindcss": "^4.1.14",
     "typescript": "^5.7.3",
-    "vite": "^7.3.2"
+    "vite": "^7.3.2",
+    "@vercel/node": "^3.2.10"
+  },
+  "pnpm": {
+    "overrides": {
+      "tar": "6.2.0",
+      "@mapbox/node-pre-gyp": "1.0.10",
+      "@vercel/node": "3.2.10",
+      "@vercel/nft": "0.27.2"
+    }
   }
 }

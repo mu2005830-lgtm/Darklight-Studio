@@ -85,7 +85,7 @@ function WhatsAppButton() {
 
 export function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground relative transition-colors duration-350">
+    <div className="min-h-screen flex flex-col bg-transparent text-foreground relative transition-colors duration-350">
       <NoiseOverlay />
       <CursorGlow />
       <ScrollFollowLight />
