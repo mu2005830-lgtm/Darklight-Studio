@@ -168,9 +168,12 @@ html.light {
   * {
     @apply border-border;
   }
+  html {
+    background: #000;
+  }
   body {
     @apply font-sans antialiased text-foreground;
-    background: #000;
+    background: transparent;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight font-bold;
