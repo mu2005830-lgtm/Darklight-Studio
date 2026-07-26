@@ -80,8 +80,9 @@ export default function Portfolio() {
                   <TiltCard className="group h-full bg-card/60 backdrop-blur-sm border border-border rounded-[4px] p-4 flex flex-col hover:border-border transition-colors">
                     <motion.div layoutId={`project-image-${project.id}`} className="aspect-[4/3] overflow-hidden mb-6 relative bg-muted/30 rounded-[2px]">
                       <motion.img
-                        src={project.imageUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${project.id}`}
+                        src={project.imageUrl || `/api-assets/portfolio-nova.jpg`}
                         alt={project.title}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = `/placeholders/project${(project.id % 4) + 1}.jpg` }}
                         className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-card/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
@@ -129,7 +130,8 @@ export default function Portfolio() {
                 <div className="relative aspect-video w-full overflow-hidden">
                   <motion.img
                     layoutId={`project-image-${selectedProject.id}`}
-                    src={selectedProject.imageUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${selectedProject.id}`}
+                    src={selectedProject.imageUrl || `/placeholders/project${(selectedProject.id % 4) + 1}.jpg`}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = `/placeholders/project${(selectedProject.id % 4) + 1}.jpg` }}
                     alt={selectedProject.title}
                     className="w-full h-full object-cover"
                   />

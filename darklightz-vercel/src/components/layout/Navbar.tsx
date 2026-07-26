@@ -55,8 +55,8 @@ export function Navbar() {
   }, [mobileOpen])
 
   // Scroll-driven header styling
-  const headerBgDark  = useTransform(scrollY, [0, 100], ["rgba(10,10,10,0)", "rgba(10,10,10,0.88)"])
-  const headerBgLight = useTransform(scrollY, [0, 100], ["rgba(247,247,247,0)", "rgba(247,247,247,0.92)"])
+  const headerBgDark  = useTransform(scrollY, [0, 100], ["rgba(10,10,10,0.65)", "rgba(10,10,10,0.92)"])
+  const headerBgLight = useTransform(scrollY, [0, 100], ["rgba(247,247,247,0.65)", "rgba(247,247,247,0.95)"])
   const headerBorder  = useTransform(scrollY, [0, 100], ["rgba(128,128,128,0)", isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)"])
   const headerBlur    = useTransform(scrollY, [0, 100], ["blur(0px)", "blur(16px)"])
   const headerHeight  = useTransform(scrollY, [0, 100], ["6rem", "4.5rem"])

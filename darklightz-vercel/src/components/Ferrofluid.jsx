@@ -55,7 +55,7 @@ void main() {
 `;
 
 const fragment = `
-precision highp float;
+precision mediump float;
 
 uniform vec3  iResolution;
 uniform vec2  iMouse;
@@ -135,10 +135,8 @@ float dbn(vec2 p, float s, float seed) {
   float o = s / 2.0;
   float n0 = vn(p, s, seed);
   float n1 = vn(p + vec2(o, o), s, seed + 0.1);
-  float n2 = vn(p + vec2(-o, o), s, seed + 0.2);
-  float n3 = vn(p + vec2(o, -o), s, seed + 0.3);
-  float n4 = vn(p + vec2(-o, -o), s, seed + 0.4);
-  return (2.0 * n0 + 1.5 * n1 + 1.25 * n2 + 1.125 * n3 + n4) / 7.0;
+  float n2 = vn(p + vec2(-o, -o), s, seed + 0.4);
+  return (2.0 * n0 + 1.5 * n1 + n2) / 4.5;
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
@@ -299,6 +297,16 @@ const Ferrofluid = ({
       canvas.addEventListener('pointermove', onPointerMove);
     }
 
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+      } else {
+        lastTimeRef.current = 0;
+        rafRef.current = requestAnimationFrame(loop);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
     const loop = t => {
       rafRef.current = requestAnimationFrame(loop);
       uniforms.iTime.value = t * 0.001;
@@ -327,6 +335,7 @@ const Ferrofluid = ({
     rafRef.current = requestAnimationFrame(loop);
 
     return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (mouseInteraction) canvas.removeEventListener('pointermove', onPointerMove);
       ro.disconnect();
