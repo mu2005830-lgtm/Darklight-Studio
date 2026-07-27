@@ -186,8 +186,10 @@ function App() {
         <PortalAuthProvider>
           {/* Background layer — z-index 0, black + ferrofluid canvas */}
           <FerrofluidBackground />
-          {/* All page content — z-index 1, sits above the background */}
-          <div style={{ position: 'relative', zIndex: 1 }}>
+          {/* All page content — z-index 1, sits above the background.
+              willChange promotes this to its own GPU compositor layer so the
+              scroll surface composites independently of the fixed canvas. */}
+          <div style={{ position: 'relative', zIndex: 1, willChange: 'transform' }}>
             <AppInner />
             <TooltipProvider>
               <AnimatePresence>

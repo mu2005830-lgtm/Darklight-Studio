@@ -6,6 +6,41 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ArrowUpRight, X } from "lucide-react"
 import { Eyebrow, TiltCard, BlurReveal } from "@/components/effects"
 
+/**
+ * SafeImg — wraps <motion.img> with React-state-based fallback.
+ *
+ * Direct DOM mutation inside onError (e.currentTarget.src = x) fights with
+ * Framer Motion's layoutId projection engine: when a layout animation
+ * re-mounts or re-projects the element it can clear attributes and trigger
+ * onError even for perfectly valid images, replacing the real uploaded photo
+ * with a placeholder. Using useState keeps src in React's tree so Framer
+ * Motion always sees the correct value.
+ */
+function SafeImg({
+  src,
+  fallback,
+  layoutId,
+  className,
+  alt,
+}: {
+  src: string
+  fallback: string
+  layoutId?: string
+  className?: string
+  alt?: string
+}) {
+  const [imgSrc, setImgSrc] = useState(src)
+  return (
+    <motion.img
+      layoutId={layoutId}
+      src={imgSrc}
+      alt={alt}
+      className={className}
+      onError={() => setImgSrc(fallback)}
+    />
+  )
+}
+
 export default function Portfolio() {
   const [activeCategory, setActiveCategory] = useState<string | undefined>()
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
@@ -79,10 +114,10 @@ export default function Portfolio() {
                 >
                   <TiltCard className="group h-full bg-card/60 backdrop-blur-sm border border-border rounded-[4px] p-4 flex flex-col hover:border-border transition-colors">
                     <motion.div layoutId={`project-image-${project.id}`} className="aspect-[4/3] overflow-hidden mb-6 relative bg-muted/30 rounded-[2px]">
-                      <motion.img
-                        src={project.imageUrl || `/api-assets/portfolio-nova.jpg`}
+                      <SafeImg
+                        src={project.imageUrl || `/placeholders/project${(project.id % 4) + 1}.jpg`}
+                        fallback={`/placeholders/project${(project.id % 4) + 1}.jpg`}
                         alt={project.title}
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = `/placeholders/project${(project.id % 4) + 1}.jpg` }}
                         className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-card/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
@@ -128,10 +163,10 @@ export default function Portfolio() {
                 className="bg-background border border-border overflow-hidden rounded-[4px] pointer-events-auto shadow-2xl"
               >
                 <div className="relative aspect-video w-full overflow-hidden">
-                  <motion.img
+                  <SafeImg
                     layoutId={`project-image-${selectedProject.id}`}
                     src={selectedProject.imageUrl || `/placeholders/project${(selectedProject.id % 4) + 1}.jpg`}
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = `/placeholders/project${(selectedProject.id % 4) + 1}.jpg` }}
+                    fallback={`/placeholders/project${(selectedProject.id % 4) + 1}.jpg`}
                     alt={selectedProject.title}
                     className="w-full h-full object-cover"
                   />

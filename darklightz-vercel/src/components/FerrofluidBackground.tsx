@@ -51,7 +51,11 @@ export function FerrofluidBackground() {
         pointerEvents: 'none',
         width: '100vw',
         height: '100vh',
-        // Canvas is transparent (alpha: true) — html background (#000) shows through
+        // Canvas is transparent (alpha: true) — html background (#000) shows through.
+        // willChange + translateZ promote this to its own GPU compositor layer so
+        // scroll events never trigger a canvas repaint (no scroll jank).
+        willChange: 'transform',
+        transform: 'translateZ(0)',
       }}
     >
       {isMobile ? (
